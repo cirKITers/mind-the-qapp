@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "quantum-surrogate-project"
+version = "0.1.0"
+description = ""
+authors = ["lc3267 <melvin.strobl@kit.edu>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+ipykernel = "^6.27.1"
+pennylane = "^0.33.1"
+matplotlib = "^3.8.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
