@@ -13,6 +13,8 @@ matplotlib = "^3.8.2"
 plotly = "^5.18.0"
 pandas = "^2.1.4"
 nbformat = "^5.9.2"
+ipywidgets = "^8.1.1"
+dash = "^2.14.2"
 
 
 [build-system]
