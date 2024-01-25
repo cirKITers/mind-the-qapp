@@ -86,7 +86,7 @@ app.layout = html.Div(
 )
 
 
-instructor = Instructor(2, 10)
+instructor = Instructor(2, 4)
 
 
 @callback(
