@@ -9,11 +9,8 @@ from dash import (
 )
 import plotly.graph_objects as go
 
-from functools import partial
 
 import pennylane.numpy as np
-from pennylane.fourier import coefficients
-from pennylane.fourier.visualize import _extract_data_and_labels
 
 from instructor import Instructor
 
@@ -50,7 +47,7 @@ app.layout = html.Div(
                 html.Div(
                     [
                         dbc.Button(
-                            "Training",
+                            "Start Training",
                             id="training-button",
                         ),
                         dcc.Loading(
@@ -60,7 +57,7 @@ app.layout = html.Div(
                         ),
                         dcc.Interval(
                             id="interval-component",
-                            interval=2 * 1000,  # in milliseconds
+                            interval=1 * 1000,  # in milliseconds
                             n_intervals=0,
                         ),
                     ],
@@ -89,7 +86,7 @@ app.layout = html.Div(
 )
 
 
-instructor = Instructor(2, 6)
+instructor = Instructor(2, 10)
 
 
 @callback(
@@ -129,13 +126,35 @@ def update_hist(n):
 @callback(
     Output("fig-expval", "figure"),
     Input("interval-component", "n_intervals"),
+    State("bit-flip-prob", "value"),
+    State("phase-flip-prob", "value"),
+    State("amplitude-damping-prob", "value"),
+    State("phase-damping-prob", "value"),
+    State("depolarization-prob", "value"),
 )
-def update_expval(n):
+def update_expval(n, bf, pf, ad, pd, dp):
     fig_expval = go.Figure()
     # instructor.y = rng.random(size=len(instructor.y_d))
 
     if len(instructor.pred) > 0:
         fig_expval.add_scatter(x=instructor.x_d, y=instructor.pred)
+    else:
+        y = instructor.forward(
+            instructor.x_d,
+            bf=bf,
+            pf=pf,
+            ad=ad,
+            pd=pd,
+            dp=dp,
+        )
+
+        if hasattr(y, "_value"):
+            y = y._value
+        fig_expval.add_scatter(
+            x=instructor.x_d,
+            y=y,
+        )
+
     fig_expval.add_scatter(x=instructor.x_d, y=instructor.y_d)
 
     fig_expval.update_layout(
@@ -177,7 +196,7 @@ def update_expval(n):
 
 
 @callback(
-    Output("loading-output-2", "children"),
+    Output("training-button", "disabled"),
     Input("training-button", "n_clicks"),
     State("bit-flip-prob", "value"),
     State("phase-flip-prob", "value"),
@@ -188,28 +207,23 @@ def update_expval(n):
 def training(n, bf, pf, ad, pd, dp):
     if n is None:
         return None
+
+    instructor.clear_hist()
     _weights = instructor.weights.copy()
     for s in range(instructor.steps):
         pred, _weights, cost = instructor.step(
             _weights, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
         )
-
-        coeffs = coefficients(
-            partial(
-                instructor.forward, weights=_weights, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
-            ),
-            1,
-            instructor.max_freq,
-        )
-        nvecs_formatted, data = _extract_data_and_labels(np.array([coeffs]))
-        data_len = len(data["real"][0])
-        data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
-
-        instructor.x = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
         instructor.pred = pred
         instructor.loss.append(cost)
+
+        data_len, data = instructor.calc_hist(
+            _weights, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+        )
+
         instructor.append_hist(data["comb"][0])
-    return instructor.cost(_weights, instructor.y_d, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
+
+    return False
 
 
 if __name__ == "__main__":
