@@ -1,4 +1,12 @@
-from dash import Dash, dcc, html, Input, Output, callback
+from dash import (
+    Dash,
+    dcc,
+    html,
+    Input,
+    State,
+    Output,
+    callback,
+)
 import plotly.graph_objects as go
 
 from functools import partial
@@ -9,7 +17,17 @@ from pennylane.fourier.visualize import _extract_data_and_labels
 
 from instructor import Instructor
 
-app = Dash(__name__)
+import dash_bootstrap_components as dbc
+
+# from dash_bootstrap_templates import ThemeChangerAIO, template_from_url
+
+# stylesheet with the .dbc class to style  dcc, DataTable and AG Grid components with a Bootstrap theme
+dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
+
+app = Dash(
+    __name__,
+    external_stylesheets=[dbc.themes.MATERIA, dbc.icons.FONT_AWESOME, dbc_css],
+)
 
 
 app.layout = html.Div(
@@ -29,51 +47,96 @@ app.layout = html.Div(
                 dcc.Slider(0, 1, 0.1, value=0, id="phase-damping-prob"),
                 html.Label("Depolarization Probability", htmlFor="depolarization-prob"),
                 dcc.Slider(0, 1, 0.1, value=0, id="depolarization-prob"),
+                html.Div(
+                    [
+                        dbc.Button(
+                            "Training",
+                            id="training-button",
+                        ),
+                        dcc.Loading(
+                            id="loading-2",
+                            children=[html.Div([html.Div(id="loading-output-2")])],
+                            type="circle",
+                        ),
+                        dcc.Interval(
+                            id="interval-component",
+                            interval=2 * 1000,  # in milliseconds
+                            n_intervals=0,
+                        ),
+                    ],
+                ),
             ],
+            style={
+                "margin-left": "100px",
+                "margin-right": "100px",
+                "margin-top": "35px",
+                "margin-bottom": "35px",
+            },
         ),
         html.Div(
             id="output-container",
             children=[
-                dcc.Graph(id="fig-hist"),
-                dcc.Graph(id="fig-expval"),
+                dcc.Graph(id="fig-hist", style={"display": "inline-block"}),
+                dcc.Graph(id="fig-expval", style={"display": "inline-block"}),
+                dcc.Graph(id="fig-metric"),
             ],
+            style={
+                "margin-left": "100px",
+                "margin-right": "100px",
+            },
         ),
     ]
 )
 
 
-instructor = Instructor(2, 4)
+instructor = Instructor(2, 6)
 
 
 @callback(
-    [Output("fig-hist", "figure"), Output("fig-expval", "figure")],
-    [
-        Input("bit-flip-prob", "value"),
-        Input("phase-flip-prob", "value"),
-        Input("amplitude-damping-prob", "value"),
-        Input("phase-damping-prob", "value"),
-        Input("depolarization-prob", "value"),
-    ],
+    Output("fig-hist", "figure"),
+    Input("interval-component", "n_intervals"),
 )
-def update_output(bf, pf, ad, pd, dp):
-    coeffs = coefficients(
-        partial(instructor.forward, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp),
-        1,
-        instructor.max_freq,
+def update_hist(n):
+    # if len(instructor.y) == 0:
+    #     return None
+
+    fig_hist = go.Figure(
+        data=[
+            go.Surface(
+                **instructor.get_hist(),
+            )
+        ]
     )
-    nvecs_formatted, data = _extract_data_and_labels(np.array([coeffs]))
-    data_len = len(data["real"][0])
-    data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
+    fig_hist.update_layout(
+        title="Histogram (Absolute Value)",
+        template="simple_white",
+        width=500,
+        height=500,
+        # margin=dict(l=65, r=50, b=65, t=90),
+        xaxis_title="Frequency",
+        yaxis_title="Amplitude",
+    )
+    # fig_hist.update_layout(
+    #     template="simple_white",
+    # )
 
-    y_pred = instructor.forward(instructor.x_d, bf, pf, ad, pd, dp)
+    # instructor.weights = instructor.step(
+    #     instructor.weights, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+    # )
+    return fig_hist
 
-    fig_hist = go.Figure()
+
+@callback(
+    Output("fig-expval", "figure"),
+    Input("interval-component", "n_intervals"),
+)
+def update_expval(n):
     fig_expval = go.Figure()
+    # instructor.y = rng.random(size=len(instructor.y_d))
 
-    fig_expval.add_scatter(x=instructor.x_d, y=y_pred)
-    fig_hist.add_bar(
-        x=np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1), y=data["comb"][0]
-    )
+    if len(instructor.pred) > 0:
+        fig_expval.add_scatter(x=instructor.x_d, y=instructor.pred)
+    fig_expval.add_scatter(x=instructor.x_d, y=instructor.y_d)
 
     fig_expval.update_layout(
         title="Prediction",
@@ -81,15 +144,72 @@ def update_output(bf, pf, ad, pd, dp):
         xaxis_title="X Domain",
         yaxis_title="Expectation Value",
         yaxis_range=[-1, 1],
+        autosize=False,
+        width=1800,
+        height=500,
     )
-    fig_hist.update_layout(
-        title="Histogram (Absolute Value)",
+
+    return fig_expval
+
+
+@callback(
+    Output("fig-metric", "figure"),
+    Input("interval-component", "n_intervals"),
+)
+def update_expval(n):
+    fig_expval = go.Figure()
+
+    if len(instructor.loss) > 0:
+        fig_expval.add_scatter(y=instructor.loss)
+
+    fig_expval.update_layout(
+        title="Loss",
         template="simple_white",
-        xaxis_title="Frequency",
-        yaxis_title="Amplitude",
-        yaxis_range=[0, 0.5],
+        xaxis_title="Step",
+        yaxis_title="Loss",
+        xaxis_range=[0, instructor.steps],
+        autosize=False,
+        width=2400,
+        height=400,
     )
-    return [fig_hist, fig_expval]
+
+    return fig_expval
+
+
+@callback(
+    Output("loading-output-2", "children"),
+    Input("training-button", "n_clicks"),
+    State("bit-flip-prob", "value"),
+    State("phase-flip-prob", "value"),
+    State("amplitude-damping-prob", "value"),
+    State("phase-damping-prob", "value"),
+    State("depolarization-prob", "value"),
+)
+def training(n, bf, pf, ad, pd, dp):
+    if n is None:
+        return None
+    _weights = instructor.weights.copy()
+    for s in range(instructor.steps):
+        pred, _weights, cost = instructor.step(
+            _weights, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+        )
+
+        coeffs = coefficients(
+            partial(
+                instructor.forward, weights=_weights, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+            ),
+            1,
+            instructor.max_freq,
+        )
+        nvecs_formatted, data = _extract_data_and_labels(np.array([coeffs]))
+        data_len = len(data["real"][0])
+        data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
+
+        instructor.x = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
+        instructor.pred = pred
+        instructor.loss.append(cost)
+        instructor.append_hist(data["comb"][0])
+    return instructor.cost(_weights, instructor.y_d, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
 
 
 if __name__ == "__main__":
