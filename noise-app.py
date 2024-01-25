@@ -9,7 +9,17 @@ from pennylane.fourier.visualize import _extract_data_and_labels
 
 from instructor import Instructor
 
-app = Dash(__name__)
+import dash_bootstrap_components as dbc
+
+# from dash_bootstrap_templates import ThemeChangerAIO, template_from_url
+
+# stylesheet with the .dbc class to style  dcc, DataTable and AG Grid components with a Bootstrap theme
+dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
+
+app = Dash(
+    __name__,
+    external_stylesheets=[dbc.themes.MATERIA, dbc.icons.FONT_AWESOME, dbc_css],
+)
 
 
 app.layout = html.Div(
@@ -30,6 +40,12 @@ app.layout = html.Div(
                 html.Label("Depolarization Probability", htmlFor="depolarization-prob"),
                 dcc.Slider(0, 1, 0.1, value=0, id="depolarization-prob"),
             ],
+            style={
+                "margin-left": "100px",
+                "margin-right": "100px",
+                "margin-top": "35px",
+                "margin-bottom": "35px",
+            },
         ),
         html.Div(
             id="output-container",
@@ -37,6 +53,10 @@ app.layout = html.Div(
                 dcc.Graph(id="fig-hist"),
                 dcc.Graph(id="fig-expval"),
             ],
+            style={
+                "margin-left": "100px",
+                "margin-right": "100px",
+            },
         ),
     ]
 )
@@ -65,7 +85,9 @@ def update_output(bf, pf, ad, pd, dp):
     data_len = len(data["real"][0])
     data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
 
-    y_pred = instructor.forward(instructor.x_d, bf, pf, ad, pd, dp)
+    y_pred = instructor.forward(
+        instructor.x_d, weights=instructor.weights, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+    )
 
     fig_hist = go.Figure()
     fig_expval = go.Figure()
