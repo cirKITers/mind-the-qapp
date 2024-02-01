@@ -1,37 +1,10 @@
-import pennylane as qml
 from itertools import product
-from time import time
-
 import numpy as np
+from typing import Callable, Union, Tuple
 
-rng = np.random.default_rng(1111)
-
-n_qubits = 10
-n_layers = 10
-max_freq = n_qubits * n_layers
-
-dev = qml.device('default.qubit', wires=n_qubits)
-
-weights = rng.random(size=(n_layers, n_qubits, 2))
-x = 0.1
-
-@qml.qnode(dev)
-def circuit_with_weights(w, x):
-    for l in range(n_layers):
-        for q in range(n_qubits):
-            qml.RX(x, wires=q)
-
-            qml.RY(w[l, q, 0], wires=q)
-            qml.RZ(w[l, q, 1], wires=q)
-
-        if n_qubits > 1:
-            for q in range(n_qubits):
-                qml.CNOT(wires=[q, (q + 1) % n_qubits])
-
-    return qml.expval(qml.PauliZ(0))
-
-
-def get_coefficients(circuit_func, max_freq, weights):
+def get_coefficients(circuit_func: Callable,
+                     max_freq: Union[int, Tuple[int]],
+                     weights: Union[np.ndarray, list]) -> np.ndarray:
     r"""Function taken from Pennylane and modified to only compute half of the Fourier coefficients.
     Only one half of the frequency spectrum suffices as the coefficient :math:`c_{\omega}`
     is equal to :math:`(c_{-\omega})*`, where :math:`\omega` cooresponds to one frequency and c to its
@@ -43,15 +16,13 @@ def get_coefficients(circuit_func, max_freq, weights):
     This function computes the coefficients blindly without any filtering applied, and
     is thus used as a helper function for the true ``coefficients`` function.
 
-    Args:
-        circuit_func (callable): function that takes weights and a 1D array of scalar inputs
-        max_freq (int or tuple[int]): max frequency of Fourier coeffs to be computed. For degree
+    :param circuit_func: callable: function that takes weights and a 1D array of scalar inputs
+    :param max_freq: int or tuple[int]: max frequency of Fourier coeffs to be computed. For degree
             :math:`d`, the coefficients from frequencies :math:`0,..., d-1, d`
             will be computed.
-        weights (np.array or list): list of weig
+    :param weights: np.array or list: list of weights
 
-    Returns:
-        array[complex]: The Fourier coefficients of the function f up to the specified degree.
+    :return: np.ndarray: The Fourier coefficients of the function f up to the specified degree.
     """
     if isinstance(max_freq, int):
         max_freq = [max_freq]
@@ -88,24 +59,3 @@ def fourier_series(coefficients, frequencies, x):
             fs_sum += np.conjugate(c) * np.exp(1j * x * -omega)
     return fs_sum
 
-def main():
-
-    start = time()
-
-    # freqs = np.concatenate([np.arange(max_freq+1), np.arange(-max_freq, 0)])
-    freqs = np.arange(max_freq + 1)
-    coeffs = get_coefficients(circuit_with_weights, max_freq, weights)
-
-    res_fft = fourier_series(coeffs, np.array(freqs), x)
-    end = time()
-    print(f"Calculation using FFT took {end-start}")
-    print(f"Result using FFT: {np.real(res_fft)}")
-
-    start = time()
-    res_pl = circuit_with_weights(weights, x)
-    end = time()
-    print(f"Calculation using pennylane took {end-start}")
-    print(f"Result using Pennylane: {res_pl}")
-
-if __name__ == "__main__":
-    main()
