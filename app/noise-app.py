@@ -7,7 +7,7 @@ import pennylane.numpy as np
 from pennylane.fourier import coefficients
 from pennylane.fourier.visualize import _extract_data_and_labels
 
-from instructor import Instructor
+from app.instructor import Instructor
 
 import dash_bootstrap_components as dbc
 
