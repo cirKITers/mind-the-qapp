@@ -10,8 +10,8 @@ from pennylane.fourier.visualize import *
 
 rng = np.random.default_rng(1111)
 
-n_qubits = 2
-n_layers = 4
+n_qubits = 10
+n_layers = 10
 
 weights = rng.random(size=(n_layers, n_qubits, 2))
 

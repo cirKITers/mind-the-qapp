@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 
 import pennylane.numpy as np
 
-from instructor import Instructor
+from app.instructor import Instructor
 
 import dash_bootstrap_components as dbc
 
