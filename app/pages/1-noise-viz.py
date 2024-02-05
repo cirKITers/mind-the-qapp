@@ -1,5 +1,6 @@
 import dash
 from dash import Input, Output, dcc, html, callback
+import dash_bootstrap_components as dbc
 
 import plotly.graph_objects as go
 
@@ -15,38 +16,38 @@ dash.register_page(__name__, name="Noise Viz")
 layout = html.Div(
     [
         html.Div(
-            id="input-container",
-            children=[
-                html.Label("Bit-Flip Probability", htmlFor="bit-flip-prob"),
-                dcc.Slider(0, 1, 0.1, value=0, id="bit-flip-prob"),
-                html.Label("Phase Flip Probability", htmlFor="phase-flip-prob"),
-                dcc.Slider(0, 1, 0.1, value=0, id="phase-flip-prob"),
-                html.Label(
-                    "Amplitude Damping Probability", htmlFor="amplitude-damping-prob"
+            [
+                html.Div(
+                    [
+                        dbc.Label("Bit-Flip Probability"),
+                        dcc.Slider(0, 1, 0.1, value=0, id="bit-flip-prob"),
+                        dbc.Label("Phase Flip Probability"),
+                        dcc.Slider(0, 1, 0.1, value=0, id="phase-flip-prob"),
+                        dbc.Label(
+                            "Amplitude Damping Probability",
+                        ),
+                        dcc.Slider(0, 1, 0.1, value=0, id="amplitude-damping-prob"),
+                    ],
+                    style={"width": "49%", "display": "inline-block"},
                 ),
-                dcc.Slider(0, 1, 0.1, value=0, id="amplitude-damping-prob"),
-                html.Label("Phase Damping Probability", htmlFor="phase-damping-prob"),
-                dcc.Slider(0, 1, 0.1, value=0, id="phase-damping-prob"),
-                html.Label("Depolarization Probability", htmlFor="depolarization-prob"),
-                dcc.Slider(0, 1, 0.1, value=0, id="depolarization-prob"),
+                html.Div(
+                    [
+                        dbc.Label("Phase Damping Probability"),
+                        dcc.Slider(0, 1, 0.1, value=0, id="phase-damping-prob"),
+                        dbc.Label("Depolarization Probability"),
+                        dcc.Slider(0, 1, 0.1, value=0, id="depolarization-prob"),
+                    ],
+                    style={"width": "49%", "display": "inline-block"},
+                ),
             ],
-            style={
-                "margin-left": "100px",
-                "margin-right": "100px",
-                "margin-top": "35px",
-                "margin-bottom": "35px",
-            },
+            id="input-container",
         ),
         html.Div(
-            id="output-container",
-            children=[
+            [
                 dcc.Graph(id="fig-hist"),
                 dcc.Graph(id="fig-expval"),
             ],
-            style={
-                "margin-left": "100px",
-                "margin-right": "100px",
-            },
+            id="output-container",
         ),
     ]
 )
@@ -56,7 +57,11 @@ instructor = Instructor(2, 4)
 
 
 @callback(
-    [Output("fig-hist", "figure"), Output("fig-expval", "figure")],
+    [
+        Output("fig-hist", "figure"),
+        Output("fig-expval", "figure"),
+        Output("loading-state", "children"),
+    ],
     [
         Input("bit-flip-prob", "value"),
         Input("phase-flip-prob", "value"),
@@ -101,4 +106,4 @@ def update_output(bf, pf, ad, pd, dp):
         yaxis_title="Amplitude",
         yaxis_range=[0, 0.5],
     )
-    return [fig_hist, fig_expval]
+    return [fig_hist, fig_expval, "Ready"]
