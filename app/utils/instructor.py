@@ -84,12 +84,12 @@ class Model:
 
 
 class Instructor:
-    def __init__(self, n_qubits, n_layers) -> None:
+    def __init__(self, n_qubits, n_layers, seed=100) -> None:
         self.max_freq = n_qubits * n_layers
         self.model = Model(n_qubits, n_layers)
 
         self.steps = 10
-        rng = np.random.default_rng(200)
+        rng = np.random.default_rng(seed)
 
         x_domain = [-1 * np.pi, 1 * np.pi]  # [-4 * np.pi, 4 * np.pi]
         omega_d = np.array([1, 2, 3, 4])

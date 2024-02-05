@@ -68,12 +68,9 @@ instructor = Instructor(2, 4)
         Input("depolarization-prob", "value"),
     ],
     State("storage-noise-viz", "data"),
+    prevent_initial_call=True,
 )
 def on_preference_changed(bf, pf, ad, pd, dp, data):
-    if bf is None or pf is None or ad is None or pd is None or dp is None:
-        # prevent the None callbacks is important with the store component.
-        # you don't want to update the store for nothing.
-        raise PreventUpdate
 
     # Give a default data dict with 0 clicks if there's no data.
     data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
@@ -91,6 +88,7 @@ def on_preference_changed(bf, pf, ad, pd, dp, data):
         Input("storage-main", "data"),
         Input("storage-noise-viz", "data"),
     ],
+    prevent_initial_call=True,
 )
 def update_output(main_data, page_data):
     bf, pf, ad, pd, dp = (
@@ -100,7 +98,7 @@ def update_output(main_data, page_data):
         page_data["pd"],
         page_data["dp"],
     )
-    instructor = Instructor(main_data["niq"], main_data["nil"])
+    instructor = Instructor(main_data["niq"], main_data["nil"], seed=main_data["seed"])
     coeffs = coefficients(
         partial(instructor.forward, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp),
         1,
