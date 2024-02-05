@@ -1,3 +1,5 @@
+import dash
+
 from dash import (
     Dash,
     dcc,
@@ -10,24 +12,13 @@ from dash import (
 import plotly.graph_objects as go
 
 
-import pennylane.numpy as np
-
-from app.instructor import Instructor
+from utils.instructor import Instructor
 
 import dash_bootstrap_components as dbc
 
-# from dash_bootstrap_templates import ThemeChangerAIO, template_from_url
+dash.register_page(__name__, name="Noise Training")
 
-# stylesheet with the .dbc class to style  dcc, DataTable and AG Grid components with a Bootstrap theme
-dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
-
-app = Dash(
-    __name__,
-    external_stylesheets=[dbc.themes.MATERIA, dbc.icons.FONT_AWESOME, dbc_css],
-)
-
-
-app.layout = html.Div(
+layout = html.Div(
     [
         html.Div(
             id="input-container",
@@ -73,9 +64,9 @@ app.layout = html.Div(
         html.Div(
             id="output-container",
             children=[
-                dcc.Graph(id="fig-hist", style={"display": "inline-block"}),
-                dcc.Graph(id="fig-expval", style={"display": "inline-block"}),
-                dcc.Graph(id="fig-metric"),
+                dcc.Graph(id="fig-training-hist", style={"display": "inline-block"}),
+                dcc.Graph(id="fig-training-expval", style={"display": "inline-block"}),
+                dcc.Graph(id="fig-training-metric"),
             ],
             style={
                 "margin-left": "100px",
@@ -90,7 +81,7 @@ instructor = Instructor(2, 4)
 
 
 @callback(
-    Output("fig-hist", "figure"),
+    Output("fig-training-hist", "figure"),
     Input("interval-component", "n_intervals"),
 )
 def update_hist(n):
@@ -124,7 +115,7 @@ def update_hist(n):
 
 
 @callback(
-    Output("fig-expval", "figure"),
+    Output("fig-training-expval", "figure"),
     Input("interval-component", "n_intervals"),
     State("bit-flip-prob", "value"),
     State("phase-flip-prob", "value"),
@@ -172,7 +163,7 @@ def update_expval(n, bf, pf, ad, pd, dp):
 
 
 @callback(
-    Output("fig-metric", "figure"),
+    Output("fig-training-metric", "figure"),
     Input("interval-component", "n_intervals"),
 )
 def update_expval(n):
@@ -210,6 +201,7 @@ def training(n, bf, pf, ad, pd, dp):
 
     instructor.clear_hist()
     _weights = instructor.weights.copy()
+    print("Training started")
     for s in range(instructor.steps):
         pred, _weights, cost = instructor.step(
             _weights, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
@@ -223,8 +215,5 @@ def training(n, bf, pf, ad, pd, dp):
 
         instructor.append_hist(data["comb"][0])
 
+    print("Training finished")
     return False
-
-
-if __name__ == "__main__":
-    app.run(debug=True)

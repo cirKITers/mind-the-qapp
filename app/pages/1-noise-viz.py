@@ -1,28 +1,18 @@
-from dash import Dash, dcc, html, Input, Output, callback
-import plotly.graph_objects as go
+import dash
+from dash import Input, Output, dcc, html, callback
 
-from functools import partial
+import plotly.graph_objects as go
 
 import pennylane.numpy as np
 from pennylane.fourier import coefficients
 from pennylane.fourier.visualize import _extract_data_and_labels
+from functools import partial
 
-from app.instructor import Instructor
+from utils.instructor import Instructor
 
-import dash_bootstrap_components as dbc
+dash.register_page(__name__, name="Noise Viz")
 
-# from dash_bootstrap_templates import ThemeChangerAIO, template_from_url
-
-# stylesheet with the .dbc class to style  dcc, DataTable and AG Grid components with a Bootstrap theme
-dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
-
-app = Dash(
-    __name__,
-    external_stylesheets=[dbc.themes.MATERIA, dbc.icons.FONT_AWESOME, dbc_css],
-)
-
-
-app.layout = html.Div(
+layout = html.Div(
     [
         html.Div(
             id="input-container",
@@ -112,7 +102,3 @@ def update_output(bf, pf, ad, pd, dp):
         yaxis_range=[0, 0.5],
     )
     return [fig_hist, fig_expval]
-
-
-if __name__ == "__main__":
-    app.run(debug=True)

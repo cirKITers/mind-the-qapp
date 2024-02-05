@@ -88,7 +88,7 @@ class Instructor:
         self.max_freq = n_qubits * n_layers
         self.model = Model(n_qubits, n_layers)
 
-        self.steps = 40
+        self.steps = 10
         rng = np.random.default_rng(200)
 
         x_domain = [-1 * np.pi, 1 * np.pi]  # [-4 * np.pi, 4 * np.pi]
