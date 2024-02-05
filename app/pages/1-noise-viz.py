@@ -87,10 +87,20 @@ def on_preference_changed(bf, pf, ad, pd, dp, data):
         Output("fig-expval", "figure"),
         Output("loading-state", "children"),
     ],
-    Input("storage-noise-viz", "data"),
+    [
+        Input("storage-main", "data"),
+        Input("storage-noise-viz", "data"),
+    ],
 )
-def update_output(data):
-    bf, pf, ad, pd, dp = data["bf"], data["pf"], data["ad"], data["pd"], data["dp"]
+def update_output(main_data, page_data):
+    bf, pf, ad, pd, dp = (
+        page_data["bf"],
+        page_data["pf"],
+        page_data["ad"],
+        page_data["pd"],
+        page_data["dp"],
+    )
+    instructor = Instructor(main_data["niq"], main_data["nil"])
     coeffs = coefficients(
         partial(instructor.forward, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp),
         1,

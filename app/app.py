@@ -84,12 +84,12 @@ app.layout = html.Div([sidebar, content])
 
 
 @callback(
-    Output("session", "data"),
+    Output("storage-main", "data"),
     [
         Input("numeric-input-qubits", "value"),
         Input("numeric-input-layers", "value"),
     ],
-    State("session", "data"),
+    State("storage-main", "data"),
 )
 def on_preference_changed(niq, nil, data):
     if niq is None and nil is None:
