@@ -8,7 +8,7 @@
             "name": "App",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceRoot}/app/noise-app.py",
+            "program": "${workspaceRoot}/app/app.py",
             "console": "integratedTerminal"
         }
     ]
