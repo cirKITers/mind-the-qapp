@@ -27,6 +27,49 @@ sidebar = html.Div(
             pills=True,
             fill=False,
         ),
+        html.Div(
+            [
+                html.Div(
+                    [
+                        dbc.Label("# of Qubits (0-10)"),
+                        dbc.Input(
+                            type="number",
+                            min=0,
+                            max=10,
+                            step=1,
+                            id="numeric-input-qubits",
+                        ),
+                    ],
+                    className="numeric-input",
+                ),
+                html.Div(
+                    [
+                        dbc.Label("# of Layers (0-10)"),
+                        dbc.Input(
+                            type="number",
+                            min=0,
+                            max=10,
+                            step=1,
+                            id="numeric-input-layers",
+                        ),
+                    ],
+                    className="numeric-input",
+                ),
+            ],
+            className="preferencesBox",
+        ),
+        html.Hr(),
+        html.Div(
+            [
+                dbc.Spinner(
+                    [html.H6("", id="loading-state")],
+                    color="primary",
+                    type="grow",
+                    id="loading-spinner",
+                )
+            ],
+            className="spinnerBox",
+        ),
     ],
     className="sidebar",
     id="page-sidebar",
