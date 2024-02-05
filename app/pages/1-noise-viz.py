@@ -1,6 +1,7 @@
 import dash
-from dash import Input, Output, dcc, html, callback
+from dash import Input, Output, dcc, html, callback, State
 import dash_bootstrap_components as dbc
+from dash.exceptions import PreventUpdate
 
 import plotly.graph_objects as go
 
@@ -17,6 +18,7 @@ layout = html.Div(
     [
         html.Div(
             [
+                dcc.Store(id="storage-noise-viz", storage_type="session"),
                 html.Div(
                     [
                         dbc.Label("Bit-Flip Probability"),
@@ -57,11 +59,7 @@ instructor = Instructor(2, 4)
 
 
 @callback(
-    [
-        Output("fig-hist", "figure"),
-        Output("fig-expval", "figure"),
-        Output("loading-state", "children"),
-    ],
+    Output("storage-noise-viz", "data"),
     [
         Input("bit-flip-prob", "value"),
         Input("phase-flip-prob", "value"),
@@ -69,8 +67,30 @@ instructor = Instructor(2, 4)
         Input("phase-damping-prob", "value"),
         Input("depolarization-prob", "value"),
     ],
+    State("storage-noise-viz", "data"),
 )
-def update_output(bf, pf, ad, pd, dp):
+def on_preference_changed(bf, pf, ad, pd, dp, data):
+    if bf is None or pf is None or ad is None or pd is None or dp is None:
+        # prevent the None callbacks is important with the store component.
+        # you don't want to update the store for nothing.
+        raise PreventUpdate
+
+    # Give a default data dict with 0 clicks if there's no data.
+    data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
+
+    return data
+
+
+@callback(
+    [
+        Output("fig-hist", "figure"),
+        Output("fig-expval", "figure"),
+        Output("loading-state", "children"),
+    ],
+    Input("storage-noise-viz", "data"),
+)
+def update_output(data):
+    bf, pf, ad, pd, dp = data["bf"], data["pf"], data["ad"], data["pd"], data["dp"]
     coeffs = coefficients(
         partial(instructor.forward, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp),
         1,
