@@ -37,28 +37,29 @@ def ising_hamiltonian(J: np.ndarray, h: Optional[np.ndarray] = None) \
     return hamiltonian
 
 
-def circ_19(params: tf.Variable, observable: qml.Hamiltonian) -> qml.measurements.ExpectationMP:
+def circ_19(params: tf.Variable, observable: qml.Hamiltonian, n_layers: int = 1) \
+        -> qml.measurements.ExpectationMP:
     """
     Circuit 19 from https://arxiv.org/abs/1905.10876
 
     :param params: tf.Variable: Parameters for rotation gates of shape
-                (n_layers, 3 * n_qubits) or (n_layers, 3, n_qubits)
+                (n_layers * 3 * n_qubits,)
     :param observable: qml.Hamiltonian: Target Hamiltonian
 
     :return qml.measurements.ExpectationMP: Expectation for target Hamiltonian
     """
-    assert len(params.shape) == 2  and params.shape[1] % 3 == 0 or \
-            len(params.shape) == 3 and params.shape[1] == 3, \
-    "Parameters for circuit 19 should either be of shape" \
-    "(n_layers, 3 * n_qubits) or (n_layers, 3, n_qubits)"
+    assert params.shape[0] % (3 * n_layers) == 0, \
+    f"Parameters for circuit 19 should be of shape (n_layers * 3 * n_qubits,), " \
+    f"got {params.shape} instead"
 
-    n_layers = params.shape[0]
-    n_qubits = params.shape[1] // 3 if len(params.shape) == 2 else params.shape[2]
+    n_qubits = params.shape[0] // (3 * n_layers)
 
     qml.BasisState(np.zeros(n_qubits), range(n_qubits))
 
+    params = tf.split(params, n_layers)
+
     for l in range(n_layers):
-        p = tf.split(params[l], 3) if len(params.shape) == 2 else params[l]
+        p = tf.split(params[l], 3)
 
         for i in range(n_qubits):
             qml.RX(p[0][i], i)
@@ -66,6 +67,39 @@ def circ_19(params: tf.Variable, observable: qml.Hamiltonian) -> qml.measurement
 
         for i in range(n_qubits-1, -1, -1):
             qml.CRX(p[2][i], [i, (i+1) % n_qubits])
+
+    return qml.expval(observable)
+
+def circ_2(params: tf.Variable, observable: qml.Hamiltonian, n_layers: int = 1) \
+        -> qml.measurements.ExpectationMP:
+    """
+    Circuit 2 from https://arxiv.org/abs/1905.10876
+
+    :param params: tf.Variable: Parameters for rotation gates of shape
+                (n_layers * 2 * n_qubits,)
+    :param observable: qml.Hamiltonian: Target Hamiltonian
+
+    :return qml.measurements.ExpectationMP: Expectation for target Hamiltonian
+    """
+    assert params.shape[0] % (2 * n_layers) == 0, \
+    f"Parameters for circuit 19 should be of shape (n_layers * 2 * n_qubits,), " \
+    f"got {params.shape} instead"
+
+    n_qubits = params.shape[0] // (2 * n_layers)
+
+    qml.BasisState(np.zeros(n_qubits), range(n_qubits))
+
+    params = tf.split(params, n_layers)
+
+    for l in range(n_layers):
+        p = tf.split(params[l], 2)
+
+        for i in range(n_qubits):
+            qml.RX(p[0][i], i)
+            qml.RZ(p[1][i], i)
+
+        for i in range(n_qubits-1, 0, -1):
+            qml.CNOT([i, (i+1) % n_qubits])
 
     return qml.expval(observable)
 
