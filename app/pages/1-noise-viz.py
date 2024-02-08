@@ -55,9 +55,6 @@ layout = html.Div(
 )
 
 
-instructor = Instructor(2, 4)
-
-
 @callback(
     Output("storage-noise-viz", "data"),
     [
@@ -68,7 +65,6 @@ instructor = Instructor(2, 4)
         Input("depolarization-prob", "value"),
     ],
     State("storage-noise-viz", "data"),
-    prevent_initial_call=True,
 )
 def on_preference_changed(bf, pf, ad, pd, dp, data):
 
