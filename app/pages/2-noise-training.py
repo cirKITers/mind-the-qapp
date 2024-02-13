@@ -59,10 +59,42 @@ layout = html.Div(
         ),
         html.Div(
             [
-                dcc.Graph(id="fig-training-hist", style={"display": "inline-block"}),
-                dcc.Graph(id="fig-training-expval", style={"display": "inline-block"}),
-                dcc.Graph(id="fig-training-metric"),
+                html.Div(
+                    [
+                        dcc.Graph(
+                            id="fig-training-hist",
+                            style={
+                                "display": "inline-block",
+                                "height": "60vh",
+                                "width": "100%",
+                            },
+                        ),
+                    ],
+                    style={"width": "49%", "display": "inline-block"},
+                ),
+                html.Div(
+                    [
+                        dcc.Graph(
+                            id="fig-training-expval",
+                            style={
+                                "display": "inline-block",
+                                "height": "49%",
+                                "width": "100%",
+                            },
+                        ),
+                        dcc.Graph(
+                            id="fig-training-metric",
+                            style={
+                                "display": "inline-block",
+                                "height": "49%",
+                                "width": "100%",
+                            },
+                        ),
+                    ],
+                    style={"width": "49%", "display": "inline-block"},
+                ),
             ],
+            style={"height": "60%", "display": "inline-block"},
             id="output-container",
         ),
     ]
@@ -73,22 +105,28 @@ instructor = Instructor(2, 4)
 
 
 @callback(
-    Output("storage-noise-training-viz", "data"),
+    Output("storage-noise-training-viz", "data", allow_duplicate=True),
+    Output("storage-noise-hist-proc", "data", allow_duplicate=True),
     [
         Input("bit-flip-prob", "value"),
         Input("phase-flip-prob", "value"),
         Input("amplitude-damping-prob", "value"),
         Input("phase-damping-prob", "value"),
         Input("depolarization-prob", "value"),
+        Input("storage-main", "modified_timestamp"),
     ],
     State("storage-noise-training-viz", "data"),
+    State("storage-main", "data"),
+    prevent_initial_call=True,
 )
-def on_preference_changed(bf, pf, ad, pd, dp, data):
+def on_preference_changed(bf, pf, ad, pd, dp, n, page_data, main_data):
 
     # Give a default data dict with 0 clicks if there's no data.
-    data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
+    page_data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
 
-    return data
+    page_log_training = {"loss": [], "weights": []}
+    page_log_hist = {"x": [], "y": [], "z": []}
+    return page_data, page_log_hist
 
 
 @callback(
@@ -138,8 +176,6 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
     fig_hist.update_layout(
         title="Histogram (Absolute Value)",
         template="simple_white",
-        width=500,
-        height=500,
         # margin=dict(l=65, r=50, b=65, t=90),
         xaxis_title="Frequency",
         yaxis_title="Amplitude",
@@ -217,8 +253,6 @@ def update_loss(n, page_log):
         yaxis_title="Loss",
         xaxis_range=[0, 30],
         autosize=False,
-        # width=2400,
-        height=400,
     )
 
     return fig_expval
@@ -250,8 +284,6 @@ def pong(_, data):
     prevent_initial_call=True,
 )
 def training(n, page_log, page_data, main_data):
-    page_log = page_log or {"loss": [], "weights": []}
-
     if len(page_log["loss"]) > 30:
         page_log["loss"] = []
         page_log["weights"] = []
