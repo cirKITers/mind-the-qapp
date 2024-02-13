@@ -83,112 +83,15 @@ class Model:
         return self.circuit(*args, **kwds)
 
 
-# class Instructor:
-#     def __init__(self, n_qubits, n_layers, seed=100) -> None:
-#         self.max_freq = n_qubits * n_layers
-#         self.model = Model(n_qubits, n_layers)
-
-#         self.steps = 10
-#         rng = np.random.default_rng(seed)
-
-#         x_domain = [-1 * np.pi, 1 * np.pi]  # [-4 * np.pi, 4 * np.pi]
-#         omega_d = np.array([1, 2, 3, 4])
-
-#         n_d = int(np.ceil(2 * np.max(np.abs(x_domain)) * np.max(omega_d)))
-#         self.x_d = np.linspace(x_domain[0], x_domain[1], n_d)
-
-#         y_fct = lambda x: 1 / np.linalg.norm(omega_d) * np.sum(np.cos(omega_d * x))
-#         self.y_d = np.array([y_fct(x) for x in self.x_d])
-
-#         self.weights = (
-#             2 * np.pi * (1 - 2 * rng.random(size=(n_layers, n_qubits * 3 - 1)))
-#         )
-
-#         self.opt = qml.GradientDescentOptimizer(stepsize=0.05)
-
-#         self.clear_hist()
-
-#     def clear_hist(self):
-#         self.pred = []
-#         self.x = []
-#         self.y = []
-#         self.z = []
-#         self.loss = []
-
-#     def append_hist(self, hist):
-#         self.z.append(hist)
-#         if len(self.y) == 0:
-#             self.y.append(0)
-#         else:
-#             self.y.append(self.y[-1] + 1)
-#         return {"y": np.array(self.y), "z": np.array(self.z)}
-
-#     def get_hist(self):
-#         return {
-#             "x": np.array(self.x),
-#             "y": np.array(self.y),
-#             "z": np.array(self.z),
-#         }
-
-#     def calc_hist(self, w, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0):
-#         coeffs = coefficients(
-#             partial(self.forward, weights=w, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp),
-#             1,
-#             self.max_freq,
-#         )
-#         nvecs_formatted, data = _extract_data_and_labels(np.array([coeffs]))
-#         data_len = len(data["real"][0])
-#         data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
-
-#         self.x = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
-
-#         return data_len, data
-
-#     def forward(self, x_d, weights=None, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0):
-#         if weights is not None:
-#             w = weights
-#         else:
-#             w = self.weights
-#         return self.model(w, x_d, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
-
-#     def cost(self, w, y_d, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0):
-#         y_pred = self.model(w, self.x_d, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
-
-#         return np.mean((y_d - y_pred) ** 2)
-
-#     def step(self, w, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0):
-#         w, cost = self.opt.step_and_cost(
-#             self.cost, w, y_d=self.y_d, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
-#         )
-#         # grad, pred = opt.compute_grad(
-#         #     self.cost,
-#         #     w,
-#         #     grad_fn=None,
-#         #     kwargs=dict(
-#         #         y_d=self.y_d,
-#         #         bf=bf,
-#         #         pf=pf,
-#         #         ad=ad,
-#         #         pd=pd,
-#         #         dp=dp,
-#         #     ),
-#         # )
-
-#         # w = opt.apply_grad(grad, w)
-
-#         return self.forward(self.x_d, w, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp), w, cost
-
-
 class Instructor:
     def __init__(self, n_qubits, n_layers, seed=100) -> None:
         self.max_freq = n_qubits * n_layers
         self.model = Model(n_qubits, n_layers)
 
-        self.steps = 10
         rng = np.random.default_rng(seed)
 
         x_domain = [-1 * np.pi, 1 * np.pi]  # [-4 * np.pi, 4 * np.pi]
-        omega_d = np.array([1, 2, 3, 4])
+        omega_d = np.array([1, 2, 3])
 
         n_d = int(np.ceil(2 * np.max(np.abs(x_domain)) * np.max(omega_d)))
         self.x_d = np.linspace(x_domain[0], x_domain[1], n_d)
@@ -200,31 +103,7 @@ class Instructor:
             2 * np.pi * (1 - 2 * rng.random(size=(n_layers, n_qubits * 3 - 1)))
         )
 
-        self.opt = qml.GradientDescentOptimizer(stepsize=0.1)
-
-        self.clear_hist()
-
-    def clear_hist(self):
-        self.pred = []
-        self.x = []
-        self.y = []
-        self.z = []
-        self.loss = []
-
-    def append_hist(self, hist):
-        self.z.append(hist)
-        if len(self.y) == 0:
-            self.y.append(0)
-        else:
-            self.y.append(self.y[-1] + 1)
-        return {"y": np.array(self.y), "z": np.array(self.z)}
-
-    def get_hist(self):
-        return {
-            "x": np.array(self.x),
-            "y": np.array(self.y),
-            "z": np.array(self.z),
-        }
+        self.opt = qml.AdamOptimizer(stepsize=0.05)
 
     def calc_hist(self, w, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0):
         coeffs = coefficients(
@@ -236,7 +115,7 @@ class Instructor:
         data_len = len(data["real"][0])
         data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
 
-        self.x = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
+        # self.x = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
 
         return data_len, data
 
@@ -248,7 +127,7 @@ class Instructor:
         return self.model(w, x_d, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
 
     def cost(self, w, y_d, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0):
-        y_pred = self.model(w, self.x_d, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
+        y_pred = self.forward(self.x_d, weights=w, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
 
         return np.mean((y_d - y_pred) ** 2)
 

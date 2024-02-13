@@ -1,5 +1,5 @@
 import dash
-
+import numpy as np
 from dash import (
     Dash,
     dcc,
@@ -25,6 +25,7 @@ layout = html.Div(
             [
                 dcc.Store(id="storage-noise-training-viz", storage_type="session"),
                 dcc.Store(id="storage-noise-training-proc", storage_type="session"),
+                dcc.Store(id="storage-noise-hist-proc", storage_type="session"),
                 dbc.Label("Bit-Flip Probability"),
                 dcc.Slider(0, 1, 0.1, value=0, id="bit-flip-prob"),
                 dbc.Label("Phase Flip Probability"),
@@ -92,19 +93,48 @@ def on_preference_changed(bf, pf, ad, pd, dp, data):
 
 @callback(
     Output("fig-training-hist", "figure"),
-    Input("interval-component", "n_intervals"),
+    Output("storage-noise-hist-proc", "data"),
+    Input("storage-noise-training-proc", "modified_timestamp"),
+    State("storage-noise-training-proc", "data"),
+    State("storage-noise-hist-proc", "data"),
+    State("storage-noise-training-viz", "data"),
+    State("storage-main", "data"),
+    prevent_initial_call=True,
 )
-def update_hist(n):
-    # if len(instructor.y) == 0:
-    #     return None
-    return None
-    fig_hist = go.Figure(
-        data=[
-            go.Surface(
-                **instructor.get_hist(),
-            )
-        ]
+def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
+    if page_log_hist is None or len(page_log_training["loss"]) == 0:
+        page_log_hist = {"x": [], "y": [], "z": []}
+
+    instructor = Instructor(main_data["niq"], main_data["nil"], seed=main_data["seed"])
+
+    bf, pf, ad, pd, dp = (
+        page_data["bf"],
+        page_data["pf"],
+        page_data["ad"],
+        page_data["pd"],
+        page_data["dp"],
     )
+
+    data_len, data = instructor.calc_hist(
+        page_log_training["weights"],
+        bf=bf,
+        pf=pf,
+        ad=ad,
+        pd=pd,
+        dp=dp,
+    )
+
+    page_log_hist["x"] = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
+    page_log_hist["y"] = [i for i in range(len(page_log_training["loss"]))]
+    page_log_hist["z"].append(data["comb"][0].tolist())
+
+    fig_hist = go.Figure()
+    if len(page_log_training["loss"]) > 0:
+        fig_hist.add_surface(
+            x=np.array(page_log_hist["x"]),
+            y=np.array(page_log_hist["y"]),
+            z=np.array(page_log_hist["z"]),
+        )
     fig_hist.update_layout(
         title="Histogram (Absolute Value)",
         template="simple_white",
@@ -114,60 +144,55 @@ def update_hist(n):
         xaxis_title="Frequency",
         yaxis_title="Amplitude",
     )
-    # fig_hist.update_layout(
-    #     template="simple_white",
-    # )
 
-    # instructor.weights = instructor.step(
-    #     instructor.weights, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
-    # )
-    return fig_hist
+    return fig_hist, page_log_hist
 
 
 @callback(
     Output("fig-training-expval", "figure"),
-    Input("interval-component", "n_intervals"),
-    State("bit-flip-prob", "value"),
-    State("phase-flip-prob", "value"),
-    State("amplitude-damping-prob", "value"),
-    State("phase-damping-prob", "value"),
-    State("depolarization-prob", "value"),
+    Input("storage-noise-training-proc", "modified_timestamp"),
+    State("storage-noise-training-proc", "data"),
+    State("storage-noise-training-viz", "data"),
+    State("storage-main", "data"),
+    prevent_initial_call=True,
 )
-def update_expval(n, bf, pf, ad, pd, dp):
+def update_expval(n, page_log_training, page_data, main_data):
+    instructor = Instructor(main_data["niq"], main_data["nil"], seed=main_data["seed"])
+
+    bf, pf, ad, pd, dp = (
+        page_data["bf"],
+        page_data["pf"],
+        page_data["ad"],
+        page_data["pd"],
+        page_data["dp"],
+    )
+
+    y_pred = instructor.forward(
+        instructor.x_d,
+        weights=page_log_training["weights"],
+        bf=bf,
+        pf=pf,
+        ad=ad,
+        pd=pd,
+        dp=dp,
+    )
+
     fig_expval = go.Figure()
-    # instructor.y = rng.random(size=len(instructor.y_d))
-    return None
-
-    if len(instructor.pred) > 0:
-        fig_expval.add_scatter(x=instructor.x_d, y=instructor.pred)
-    else:
-        y = instructor.forward(
-            instructor.x_d,
-            bf=bf,
-            pf=pf,
-            ad=ad,
-            pd=pd,
-            dp=dp,
-        )
-
-        if hasattr(y, "_value"):
-            y = y._value
+    if len(page_log_training["loss"]) > 0:
         fig_expval.add_scatter(
             x=instructor.x_d,
-            y=y,
+            y=y_pred,
         )
-
-    fig_expval.add_scatter(x=instructor.x_d, y=instructor.y_d)
-
+        fig_expval.add_scatter(
+            x=instructor.x_d,
+            y=instructor.y_d,
+        )
     fig_expval.update_layout(
         title="Prediction",
         template="simple_white",
         xaxis_title="X Domain",
         yaxis_title="Expectation Value",
         yaxis_range=[-1, 1],
-        autosize=False,
-        width=1800,
-        height=500,
     )
 
     return fig_expval
@@ -175,7 +200,7 @@ def update_expval(n, bf, pf, ad, pd, dp):
 
 @callback(
     Output("fig-training-metric", "figure"),
-    Input("interval-component", "n_intervals"),
+    Input("storage-noise-training-proc", "modified_timestamp"),
     State("storage-noise-training-proc", "data"),
 )
 def update_loss(n, page_log):
@@ -206,7 +231,7 @@ def update_loss(n, page_log):
     prevent_initial_call=True,
 )
 def pong(_, data):
-    if len(data["loss"]) == 30:
+    if len(data["loss"]) > 30:
         raise PreventUpdate()
     print(len(data["loss"]))
     return data
@@ -227,7 +252,7 @@ def pong(_, data):
 def training(n, page_log, page_data, main_data):
     page_log = page_log or {"loss": [], "weights": []}
 
-    if len(page_log["loss"]) == 30:
+    if len(page_log["loss"]) > 30:
         page_log["loss"] = []
         page_log["weights"] = []
 
