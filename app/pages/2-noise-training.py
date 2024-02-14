@@ -23,6 +23,7 @@ layout = html.Div(
     [
         html.Div(
             [
+                dcc.Store(id="storage-noise-viz", storage_type="session"),
                 dcc.Store(id="storage-noise-training-viz", storage_type="session"),
                 dcc.Store(id="storage-noise-training-proc", storage_type="session"),
                 dcc.Store(id="storage-noise-hist-proc", storage_type="session"),
@@ -38,24 +39,45 @@ layout = html.Div(
                 dcc.Slider(0, 1, 0.1, value=0, id="depolarization-prob"),
                 html.Div(
                     [
-                        dbc.Button(
-                            "Start Training",
-                            id="training-button",
+                        html.Div(
+                            [
+                                dbc.Button(
+                                    "Start Training",
+                                    id="training-button",
+                                ),
+                            ],
+                            style={"width": "10vh", "display": "inline-block"},
+                        ),
+                        html.Div(
+                            [dbc.Label("Steps:")],
+                            style={"display": "inline-block", "padding": "0 10px"},
+                        ),
+                        html.Div(
+                            [
+                                dbc.Input(
+                                    type="number",
+                                    min=1,
+                                    max=50,
+                                    step=1,
+                                    value=10,
+                                    id="numeric-input-steps",
+                                ),
+                            ],
+                            style={"width": "10vh", "display": "inline-block"},
                         ),
                         # dcc.Loading(
                         #     id="loading-2",
                         #     children=[html.Div([html.Div(id="loading-output-2")])],
                         #     type="circle",
                         # ),
-                        dcc.Interval(
-                            id="interval-component",
-                            interval=1 * 1000,  # in milliseconds
-                            n_intervals=0,
-                        ),
                     ],
                 ),
+                dcc.Interval(
+                    id="interval-component",
+                    interval=1 * 1000,  # in milliseconds
+                    n_intervals=0,
+                ),
             ],
-            id="input-container",
         ),
         html.Div(
             [
@@ -95,43 +117,38 @@ layout = html.Div(
                 ),
             ],
             style={"height": "60%", "display": "inline-block"},
-            id="output-container",
         ),
     ]
 )
 
 
-instructor = Instructor(2, 4)
-
-
 @callback(
-    Output("storage-noise-training-viz", "data", allow_duplicate=True),
-    Output("storage-noise-hist-proc", "data", allow_duplicate=True),
+    Output("storage-noise-training-viz", "data"),
+    Output("storage-noise-hist-proc", "data"),
     [
         Input("bit-flip-prob", "value"),
         Input("phase-flip-prob", "value"),
         Input("amplitude-damping-prob", "value"),
         Input("phase-damping-prob", "value"),
         Input("depolarization-prob", "value"),
+        Input("numeric-input-steps", "value"),
         Input("storage-main", "modified_timestamp"),
     ],
     State("storage-noise-training-viz", "data"),
     State("storage-main", "data"),
-    prevent_initial_call=True,
 )
-def on_preference_changed(bf, pf, ad, pd, dp, n, page_data, main_data):
+def on_preference_changed(bf, pf, ad, pd, dp, steps, _, page_data, main_data):
 
     # Give a default data dict with 0 clicks if there's no data.
-    page_data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
-
-    page_log_training = {"loss": [], "weights": []}
+    page_data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, steps=steps)
     page_log_hist = {"x": [], "y": [], "z": []}
+
     return page_data, page_log_hist
 
 
 @callback(
     Output("fig-training-hist", "figure"),
-    Output("storage-noise-hist-proc", "data"),
+    Output("storage-noise-hist-proc", "data", allow_duplicate=True),
     Input("storage-noise-training-proc", "modified_timestamp"),
     State("storage-noise-training-proc", "data"),
     State("storage-noise-hist-proc", "data"),
@@ -140,34 +157,36 @@ def on_preference_changed(bf, pf, ad, pd, dp, n, page_data, main_data):
     prevent_initial_call=True,
 )
 def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
+    fig_hist = go.Figure()
+
     if page_log_hist is None or len(page_log_training["loss"]) == 0:
         page_log_hist = {"x": [], "y": [], "z": []}
+    else:
+        instructor = Instructor(
+            main_data["niq"], main_data["nil"], seed=main_data["seed"]
+        )
 
-    instructor = Instructor(main_data["niq"], main_data["nil"], seed=main_data["seed"])
+        bf, pf, ad, pd, dp = (
+            page_data["bf"],
+            page_data["pf"],
+            page_data["ad"],
+            page_data["pd"],
+            page_data["dp"],
+        )
 
-    bf, pf, ad, pd, dp = (
-        page_data["bf"],
-        page_data["pf"],
-        page_data["ad"],
-        page_data["pd"],
-        page_data["dp"],
-    )
+        data_len, data = instructor.calc_hist(
+            page_log_training["weights"],
+            bf=bf,
+            pf=pf,
+            ad=ad,
+            pd=pd,
+            dp=dp,
+        )
 
-    data_len, data = instructor.calc_hist(
-        page_log_training["weights"],
-        bf=bf,
-        pf=pf,
-        ad=ad,
-        pd=pd,
-        dp=dp,
-    )
+        page_log_hist["x"] = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
+        page_log_hist["y"] = [i for i in range(len(page_log_training["loss"]))]
+        page_log_hist["z"].append(data["comb"][0].tolist())
 
-    page_log_hist["x"] = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
-    page_log_hist["y"] = [i for i in range(len(page_log_training["loss"]))]
-    page_log_hist["z"].append(data["comb"][0].tolist())
-
-    fig_hist = go.Figure()
-    if len(page_log_training["loss"]) > 0:
         fig_hist.add_surface(
             x=np.array(page_log_hist["x"]),
             y=np.array(page_log_hist["y"]),
@@ -193,28 +212,31 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
     prevent_initial_call=True,
 )
 def update_expval(n, page_log_training, page_data, main_data):
-    instructor = Instructor(main_data["niq"], main_data["nil"], seed=main_data["seed"])
-
-    bf, pf, ad, pd, dp = (
-        page_data["bf"],
-        page_data["pf"],
-        page_data["ad"],
-        page_data["pd"],
-        page_data["dp"],
-    )
-
-    y_pred = instructor.forward(
-        instructor.x_d,
-        weights=page_log_training["weights"],
-        bf=bf,
-        pf=pf,
-        ad=ad,
-        pd=pd,
-        dp=dp,
-    )
-
     fig_expval = go.Figure()
+
     if len(page_log_training["loss"]) > 0:
+        instructor = Instructor(
+            main_data["niq"], main_data["nil"], seed=main_data["seed"]
+        )
+
+        bf, pf, ad, pd, dp = (
+            page_data["bf"],
+            page_data["pf"],
+            page_data["ad"],
+            page_data["pd"],
+            page_data["dp"],
+        )
+
+        y_pred = instructor.forward(
+            instructor.x_d,
+            weights=page_log_training["weights"],
+            bf=bf,
+            pf=pf,
+            ad=ad,
+            pd=pd,
+            dp=dp,
+        )
+
         fig_expval.add_scatter(
             x=instructor.x_d,
             y=y_pred,
@@ -224,7 +246,7 @@ def update_expval(n, page_log_training, page_data, main_data):
             y=instructor.y_d,
         )
     fig_expval.update_layout(
-        title="Prediction",
+        title="Output",
         template="simple_white",
         xaxis_title="X Domain",
         yaxis_title="Expectation Value",
@@ -238,20 +260,20 @@ def update_expval(n, page_log_training, page_data, main_data):
     Output("fig-training-metric", "figure"),
     Input("storage-noise-training-proc", "modified_timestamp"),
     State("storage-noise-training-proc", "data"),
+    State("storage-noise-training-viz", "data"),
+    prevent_initial_call=True,
 )
-def update_loss(n, page_log):
-    page_log = page_log or {"loss": [], "weights": []}
-
+def update_loss(n, page_log_training, data):
     fig_expval = go.Figure()
-    if len(page_log["loss"]) > 0:
-        fig_expval.add_scatter(y=page_log["loss"])
+    if len(page_log_training["loss"]) > 0:
+        fig_expval.add_scatter(y=page_log_training["loss"])
 
     fig_expval.update_layout(
         title="Loss",
         template="simple_white",
         xaxis_title="Step",
         yaxis_title="Loss",
-        xaxis_range=[0, 30],
+        xaxis_range=[0, data["steps"]],
         autosize=False,
     )
 
@@ -259,22 +281,49 @@ def update_loss(n, page_log):
 
 
 @callback(
+    [
+        Output("storage-noise-training-proc", "data", allow_duplicate=True),
+        Output("training-button", "disabled", allow_duplicate=True),
+    ],
+    Input("training-button", "n_clicks"),
+    prevent_initial_call=True,
+)
+def trigger_training(_):
+    page_log = {"loss": [], "weights": []}
+
+    return [page_log, True]
+
+
+@callback(
+    Output("training-button", "disabled", allow_duplicate=True),
+    Input("storage-noise-training-proc", "modified_timestamp"),
+    State("storage-noise-training-proc", "data"),
+    State("storage-noise-training-viz", "data"),
+    prevent_initial_call=True,
+)
+def stop_training(_, page_log_training, page_data):
+    if len(page_log_training["loss"]) <= page_data["steps"]:
+        raise PreventUpdate()
+
+    return False
+
+
+@callback(
     Output("storage-noise-training-proc", "data", allow_duplicate=True),
     Input("storage-noise-training-proc", "modified_timestamp"),
     State("storage-noise-training-proc", "data"),
+    State("storage-noise-training-viz", "data"),
     prevent_initial_call=True,
 )
-def pong(_, data):
-    if len(data["loss"]) > 30:
+def pong(_, page_log_training, data):
+    if len(page_log_training["loss"]) > data["steps"]:
         raise PreventUpdate()
-    print(len(data["loss"]))
-    return data
+    return page_log_training
 
 
 @callback(
     Output("storage-noise-training-proc", "data"),
     [
-        Input("training-button", "n_clicks"),
         Input("storage-noise-training-proc", "data"),
     ],
     [
@@ -283,10 +332,11 @@ def pong(_, data):
     ],
     prevent_initial_call=True,
 )
-def training(n, page_log, page_data, main_data):
-    if len(page_log["loss"]) > 30:
-        page_log["loss"] = []
-        page_log["weights"] = []
+def training(page_log_training, page_data, main_data):
+
+    if len(page_log_training["loss"]) > page_data["steps"]:
+        page_log_training["loss"] = []
+        page_log_training["weights"] = []
 
     bf, pf, ad, pd, dp = (
         page_data["bf"],
@@ -298,9 +348,9 @@ def training(n, page_log, page_data, main_data):
 
     instructor = Instructor(main_data["niq"], main_data["nil"], seed=main_data["seed"])
 
-    page_log["weights"], cost = instructor.step(
-        page_log["weights"], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+    page_log_training["weights"], cost = instructor.step(
+        page_log_training["weights"], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
     )
-    page_log["loss"].append(cost.item())
+    page_log_training["loss"].append(cost.item())
 
-    return page_log
+    return page_log_training

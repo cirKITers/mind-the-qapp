@@ -22,34 +22,32 @@ layout = html.Div(
                 html.Div(
                     [
                         dbc.Label("Bit-Flip Probability"),
-                        dcc.Slider(0, 1, 0.1, value=0, id="bit-flip-prob"),
+                        dcc.Slider(0, 1, 0.1, value=0, id="bit-flip-prob-viz"),
                         dbc.Label("Phase Flip Probability"),
-                        dcc.Slider(0, 1, 0.1, value=0, id="phase-flip-prob"),
+                        dcc.Slider(0, 1, 0.1, value=0, id="phase-flip-prob-viz"),
                         dbc.Label(
                             "Amplitude Damping Probability",
                         ),
-                        dcc.Slider(0, 1, 0.1, value=0, id="amplitude-damping-prob"),
+                        dcc.Slider(0, 1, 0.1, value=0, id="amplitude-damping-prob-viz"),
                     ],
                     style={"width": "49%", "display": "inline-block"},
                 ),
                 html.Div(
                     [
                         dbc.Label("Phase Damping Probability"),
-                        dcc.Slider(0, 1, 0.1, value=0, id="phase-damping-prob"),
+                        dcc.Slider(0, 1, 0.1, value=0, id="phase-damping-prob-viz"),
                         dbc.Label("Depolarization Probability"),
-                        dcc.Slider(0, 1, 0.1, value=0, id="depolarization-prob"),
+                        dcc.Slider(0, 1, 0.1, value=0, id="depolarization-prob-viz"),
                     ],
                     style={"width": "49%", "display": "inline-block"},
                 ),
             ],
-            id="input-container",
         ),
         html.Div(
             [
                 dcc.Graph(id="fig-hist"),
                 dcc.Graph(id="fig-expval"),
             ],
-            id="output-container",
         ),
     ]
 )
@@ -58,15 +56,14 @@ layout = html.Div(
 @callback(
     Output("storage-noise-viz", "data"),
     [
-        Input("bit-flip-prob", "value"),
-        Input("phase-flip-prob", "value"),
-        Input("amplitude-damping-prob", "value"),
-        Input("phase-damping-prob", "value"),
-        Input("depolarization-prob", "value"),
+        Input("bit-flip-prob-viz", "value"),
+        Input("phase-flip-prob-viz", "value"),
+        Input("amplitude-damping-prob-viz", "value"),
+        Input("phase-damping-prob-viz", "value"),
+        Input("depolarization-prob-viz", "value"),
     ],
-    State("storage-noise-viz", "data"),
 )
-def on_preference_changed(bf, pf, ad, pd, dp, data):
+def on_preference_changed(bf, pf, ad, pd, dp):
 
     # Give a default data dict with 0 clicks if there's no data.
     data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
@@ -82,11 +79,12 @@ def on_preference_changed(bf, pf, ad, pd, dp, data):
     ],
     [
         Input("storage-main", "data"),
-        Input("storage-noise-viz", "data"),
+        Input("storage-noise-viz", "modified_timestamp"),
     ],
+    State("storage-noise-viz", "data"),
     prevent_initial_call=True,
 )
-def update_output(main_data, page_data):
+def update_output(main_data, _, page_data):
     bf, pf, ad, pd, dp = (
         page_data["bf"],
         page_data["pf"],
