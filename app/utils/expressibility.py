@@ -1,6 +1,7 @@
 from .instructor import Model
 import numpy as np
 from typing import Tuple
+from scipy import integrate
 
 def theoretical_haar_probability(fidelity: float, n_qubits: int) \
         -> float:
@@ -12,24 +13,50 @@ def theoretical_haar_probability(fidelity: float, n_qubits: int) \
     :param n_qubits: int: number of qubits in the quantum system
     :return: float: probability for a given fidelity
     """
-
     N = 2**n_qubits
 
     return (N - 1) * (1 - fidelity) ** (N - 2)
 
-def sampled_haar_probability(fidelity: float, n_qubits: int) \
-        -> float:
+def sampled_haar_probability(n_qubits: int, n_bins: int) \
+        -> np.ndarray:
     """
     Calculates theoretical probability density function for random Haar states
-    as proposed by Sim et al. (https://arxiv.org/abs/1905.10876).
+    as proposed by Sim et al. (https://arxiv.org/abs/1905.10876) and bins it
+    into a 2D-histogram.
 
-    :param fidelity: float: fidelity of two parameter assignments in [0, 1]
     :param n_qubits: int: number of qubits in the quantum system
-    :return: float: probability for a given fidelity
+    :param n_bins: int: number of histogram bins
+    :return: float: probability distribution for all fidelities
     """
-    N = 2**n_qubits
+    dist = np.zeros(n_bins)
+    for i in range(n_bins):
+        l = (1/n_bins) * i
+        u = l + (1/n_bins)
+        dist[i], _ = integrate.quad(theoretical_haar_probability, l, u, args=(n_qubits,))
 
-    return (N - 1) * (1 - fidelity) ** (N - 2)
+    return dist
+
+def get_sampled_haar_probability_histogram(n_qubits, n_bins, n_repetitions) -> \
+        Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Calculates theoretical probability density function for random Haar states
+    as proposed by Sim et al. (https://arxiv.org/abs/1905.10876) and bins it
+    into a 3D-histogram.
+
+    :param n_qubits: int: number of qubits in the quantum system
+    :param n_bins: int: number of histogram bins
+    :param n_repetitions: int: number of repetitions for the x-axis
+    :return: np.ndarray: x component (input equivalent)
+    :return: np.ndarray: y component (bins)
+    :return: np.ndarray: z component (probabilities)
+    """
+    x_domain = [-1 * np.pi, 1 * np.pi]
+    x = np.linspace(x_domain[0], x_domain[1], n_repetitions)
+    y = np.linspace(0, 1, n_bins) * (n_bins - 1) / (n_repetitions - 1)
+    z_2d = sampled_haar_probability(n_qubits, n_bins)
+    z = np.repeat(np.expand_dims(z_2d, 0), n_repetitions, axis=0)
+
+    return x, y, z
 
 class Expressibility_Sampler:
     def __init__(self,
@@ -64,14 +91,13 @@ class Expressibility_Sampler:
                 sv2 = self.model(w2, x)
 
                 fidelities[i, s] = np.sum(np.abs(np.conj(sv1.T) * sv2))
-                print(s)
 
         return fidelities
 
     def sample_hist_state_fidelities(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         fidelities = self.sample_state_fidelities()
         z_component = np.zeros((len(self.x_samples), self.n_bins-1))
-        f = np.linspace(0, 1, self.n_bins)
+        f = np.linspace(0, 1, self.n_bins) * (self.n_bins - 1) / (len(self.x_samples) - 1)
         for i, x in enumerate(self.x_samples):
             z_component[i], _ = np.histogram(fidelities[i], bins=f, density=True)
         return self.x_samples, f, z_component

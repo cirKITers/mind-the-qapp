@@ -19,7 +19,7 @@ from functools import partial
 from pennylane.fourier.visualize import _extract_data_and_labels
 
 from utils.instructor import Instructor
-from utils.expressibility import Expressibility_Sampler
+from utils.expressibility import Expressibility_Sampler, get_sampled_haar_probability_histogram
 
 dash.register_page(__name__, name="Expr. Viz")
 
@@ -122,7 +122,7 @@ layout = html.Div(
         html.Div(
             [
                 dcc.Graph(
-                    id="fig-hist-fourier",
+                    id="fig-hist-haar",
                     style={
                         "display": "inline-block",
                         "height": "100%",
@@ -138,19 +138,46 @@ layout = html.Div(
                     },
                 ),
             ],
-            style={"height": "100%", "width": "100%", "display": "inline-block"},
+            style={"height": "49%", "width": "100%", "display": "inline-block"},
+        ),
+        html.Div(
+            [
+                dcc.Graph(
+                    id="fig-hist-fourier",
+                    style={
+                        "display": "inline-block",
+                        "height": "100%",
+                        "width": "49%",
+                    },
+                ),
+                html.Div(
+                    dbc.Spinner(
+                        color="primary",
+                        type="grow",
+                        id="loading-spinner-expr",
+                    ),
+                    style={
+                        "display": "inline-block",
+                        "height": "100%",
+                        "width": "49%",
+                    },
+                ),
+            ],
+            style={"height": "49%", "width": "100%", "display": "inline-block"},
         ),
     ]
 )
 
 @callback(
     Output("storage-expr-viz", "data"),
+    Output("loading-spinner-expr", "children", allow_duplicate=True),
     [
         Input("circuit-type", "value"),
         Input("num-param-sample-pairs", "value"),
         Input("num-input-samples", "value"),
         Input("num-histogram-bins", "value"),
     ],
+    prevent_initial_call=True,
 )
 def on_preference_changed(circ_type, n_samples, n_input_samples, n_bins):
 
@@ -158,13 +185,15 @@ def on_preference_changed(circ_type, n_samples, n_input_samples, n_bins):
     data = dict(circ_type=circ_type, n_samples=n_samples,
                 n_input_samples=n_input_samples, n_bins=n_bins)
 
-    return data
+    return data, "Loaded data"
 
 
 @callback(
     [
         Output("fig-hist-fourier", "figure"),
         Output("fig-hist-expr", "figure"),
+        Output("fig-hist-haar", "figure"),
+        Output("loading-spinner-expr", "children", allow_duplicate=True),
     ],
     [
         Input("storage-main", "data"),
@@ -204,15 +233,39 @@ def update_output(main_data, _, page_data):
         yaxis_range=[0, 0.5],
     )
 
+    x_haar, y_haar, z_haar = get_sampled_haar_probability_histogram(main_data["niq"], n_bins, n_input_samples)
+
+    fig_haar = go.Figure(
+        go.Surface(
+            x = x_haar,
+            y = y_haar,
+            z = z_haar,
+            cmax=1,
+            cmin=0,
+        )
+    )
+    fig_haar.update_layout(
+        title="Haar Probability Densities",
+        margin=dict(l=65, r=50, b=65, t=90),
+    )
+
     expr_sampler = Expressibility_Sampler(main_data["niq"], main_data["nil"], main_data["seed"],
                                           circ_type, n_samples, n_input_samples, n_bins)
     x_samples, y_samples, z_samples = expr_sampler.sample_hist_state_fidelities()
 
-    fig_expr = go.Figure(go.Surface(x = x_samples, y = y_samples, z = z_samples, colorbar_x=0.01))
+    fig_expr = go.Figure(
+        go.Surface(
+            x = x_samples,
+            y = y_samples,
+            z = z_samples,
+            cmax=1,
+            cmin=0,
+        )
+    )
     fig_expr.update_layout(
         title="Probability Densities",
         margin=dict(l=65, r=50, b=65, t=90),
-
     )
 
-    return [fig_coeffs, fig_expr]
+    return [fig_coeffs, fig_expr, fig_haar, "Ready"]
+
