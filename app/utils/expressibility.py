@@ -15,7 +15,8 @@ def theoretical_haar_probability(fidelity: float, n_qubits: int) \
     """
     N = 2**n_qubits
 
-    return (N - 1) * (1 - fidelity) ** (N - 2)
+    prob = (N - 1) * (1 - fidelity) ** (N - 2)
+    return prob
 
 def sampled_haar_probability(n_qubits: int, n_bins: int) \
         -> np.ndarray:
@@ -37,7 +38,7 @@ def sampled_haar_probability(n_qubits: int, n_bins: int) \
     return dist
 
 def get_sampled_haar_probability_histogram(n_qubits, n_bins, n_repetitions) -> \
-        Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        Tuple[np.ndarray, np.ndarray]:
     """
     Calculates theoretical probability density function for random Haar states
     as proposed by Sim et al. (https://arxiv.org/abs/1905.10876) and bins it
@@ -46,17 +47,13 @@ def get_sampled_haar_probability_histogram(n_qubits, n_bins, n_repetitions) -> \
     :param n_qubits: int: number of qubits in the quantum system
     :param n_bins: int: number of histogram bins
     :param n_repetitions: int: number of repetitions for the x-axis
-    :return: np.ndarray: x component (input equivalent)
-    :return: np.ndarray: y component (bins)
-    :return: np.ndarray: z component (probabilities)
+    :return: np.ndarray: x component (bins)
+    :return: np.ndarray: y component (probabilities)
     """
-    x_domain = [-1 * np.pi, 1 * np.pi]
-    x = np.linspace(x_domain[0], x_domain[1], n_repetitions)
-    y = np.linspace(0, 1, n_bins) * (n_bins - 1) / (n_repetitions - 1)
-    z_2d = sampled_haar_probability(n_qubits, n_bins)
-    z = np.repeat(np.expand_dims(z_2d, 0), n_repetitions, axis=0)
+    x = np.linspace(0, 1, n_bins)
+    y = sampled_haar_probability(n_qubits, n_bins)
 
-    return x, y, z
+    return x, y
 
 class Expressibility_Sampler:
     def __init__(self,

@@ -83,7 +83,7 @@ layout = html.Div(
                             [
                                 dbc.Input(
                                     type="number",
-                                    min=1,
+                                    min=2,
                                     max=100,
                                     step=1,
                                     value=5,
@@ -191,9 +191,7 @@ def on_preference_changed(circ_type, n_samples, n_input_samples, n_bins):
 @callback(
     [
         Output("fig-hist-fourier", "figure"),
-        Output("fig-hist-expr", "figure"),
         Output("fig-hist-haar", "figure"),
-        Output("loading-spinner-expr", "children", allow_duplicate=True),
     ],
     [
         Input("storage-main", "data"),
@@ -233,22 +231,43 @@ def update_output(main_data, _, page_data):
         yaxis_range=[0, 0.5],
     )
 
-    x_haar, y_haar, z_haar = get_sampled_haar_probability_histogram(main_data["niq"], n_bins, n_input_samples)
+    x_haar, y_haar = get_sampled_haar_probability_histogram(main_data["niq"], n_bins, n_input_samples)
 
-    fig_haar = go.Figure(
-        go.Surface(
-            x = x_haar,
-            y = y_haar,
-            z = z_haar,
-            cmax=1,
-            cmin=0,
-        )
+    fig_haar = go.Figure()
+    fig_haar.add_bar(
+        x=x_haar, y=y_haar,
     )
     fig_haar.update_layout(
         title="Haar Probability Densities",
-        margin=dict(l=65, r=50, b=65, t=90),
+        template="simple_white",
+        xaxis_title="Fidelity",
+        yaxis_title="Probability",
+        yaxis_range=[0, 0.5],
     )
 
+    return [fig_coeffs, fig_haar]
+
+@callback(
+    [
+        Output("fig-hist-expr", "figure"),
+        Output("loading-spinner-expr", "children", allow_duplicate=True),
+    ],
+    [
+        Input("storage-main", "data"),
+        Input("storage-expr-viz", "modified_timestamp"),
+    ],
+    State("storage-expr-viz", "data"),
+    prevent_initial_call=True,
+)
+def update_output_probabilities(main_data, _, page_data):
+    if page_data is None or main_data is None:
+        return [go.Figure(), go.Figure(), "Not Ready"]
+    circ_type, n_samples, n_input_samples, n_bins = (
+        page_data["circ_type"],
+        page_data["n_samples"],
+        page_data["n_input_samples"],
+        page_data["n_bins"],
+    )
     expr_sampler = Expressibility_Sampler(main_data["niq"], main_data["nil"], main_data["seed"],
                                           circ_type, n_samples, n_input_samples, n_bins)
     x_samples, y_samples, z_samples = expr_sampler.sample_hist_state_fidelities()
@@ -267,5 +286,5 @@ def update_output(main_data, _, page_data):
         margin=dict(l=65, r=50, b=65, t=90),
     )
 
-    return [fig_coeffs, fig_expr, fig_haar, "Ready"]
+    return [fig_expr, "Ready"]
 
