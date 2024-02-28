@@ -8,14 +8,27 @@ from pennylane.fourier.visualize import _extract_data_and_labels
 
 
 class Model:
-    def __init__(self, n_qubits: int, n_layers: int):
+    def __init__(self, n_qubits: int, n_layers: int,
+                 circuit_type: int = 19, state_vector = False):
         self.n_qubits = n_qubits
         self.n_layers = n_layers
+        self.state_vector = state_vector
+
+        self.pqc = getattr(self, f"_pqc{circuit_type}")
+        self.n_params = getattr(self, f"_n_params_circ{circuit_type}")()
+
         self.dev = qml.device("default.mixed", wires=n_qubits)
 
         self.circuit = qml.QNode(self._circuit, self.dev)
 
-    def pqc(self, w: np.ndarray):
+    # FIXME outsource num params and circuit definitions
+    def _n_params_circ19(self) -> tuple:
+        """
+        Returns the number of Parameters for the Circuit19 Ansatz
+        """
+        return (self.n_layers, self.n_qubits*3 - 1)
+
+    def _pqc19(self, w: np.ndarray):
         """
         Creates a Circuit19 ansatz.
 
@@ -67,6 +80,8 @@ class Model:
         Returns:
             _type_: _description_
         """
+        assert isinstance(w, list) or w.shape == self.n_params, "Number of parameters do not match. " \
+                f"Expected parameters of shape {self.n_params}, got {w.shape}"
         for l in range(self.n_layers):
             self.iec(x)
             self.pqc(w[l])
@@ -78,7 +93,10 @@ class Model:
                 qml.PhaseDamping(pd, wires=q)
                 qml.DepolarizingChannel(dp, wires=q)
 
-        return qml.expval(qml.PauliZ(0))
+        if self.state_vector:
+            return qml.state()
+        else:
+            return qml.expval(qml.PauliZ(0))
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         return self.circuit(*args, **kwds)
