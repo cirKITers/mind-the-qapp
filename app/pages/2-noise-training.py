@@ -27,16 +27,36 @@ layout = html.Div(
                 dcc.Store(id="storage-noise-training-viz", storage_type="session"),
                 dcc.Store(id="storage-noise-training-proc", storage_type="session"),
                 dcc.Store(id="storage-noise-hist-proc", storage_type="session"),
-                dbc.Label("Bit-Flip Probability"),
-                dcc.Slider(0, 1, 0.1, value=0, id="bit-flip-prob"),
-                dbc.Label("Phase Flip Probability"),
-                dcc.Slider(0, 1, 0.1, value=0, id="phase-flip-prob"),
-                dbc.Label("Amplitude Damping Probability"),
-                dcc.Slider(0, 1, 0.1, value=0, id="amplitude-damping-prob"),
-                dbc.Label("Phase Damping Probability"),
-                dcc.Slider(0, 1, 0.1, value=0, id="phase-damping-prob"),
-                dbc.Label("Depolarization Probability"),
-                dcc.Slider(0, 1, 0.1, value=0, id="depolarization-prob"),
+                html.Div(
+                    [
+                        dbc.Label("Bit-Flip Probability"),
+                        dcc.Slider(0, 0.5, 0.05, value=0, id="bit-flip-prob-training"),
+                        dbc.Label("Phase Flip Probability"),
+                        dcc.Slider(
+                            0, 0.5, 0.05, value=0, id="phase-flip-prob-training"
+                        ),
+                        dbc.Label(
+                            "Amplitude Damping Probability",
+                        ),
+                        dcc.Slider(
+                            0, 0.5, 0.05, value=0, id="amplitude-damping-prob-training"
+                        ),
+                    ],
+                    style={"width": "49%", "display": "inline-block"},
+                ),
+                html.Div(
+                    [
+                        dbc.Label("Phase Damping Probability"),
+                        dcc.Slider(
+                            0, 0.5, 0.05, value=0, id="phase-damping-prob-training"
+                        ),
+                        dbc.Label("Depolarization Probability"),
+                        dcc.Slider(
+                            0, 0.5, 0.05, value=0, id="depolarization-prob-training"
+                        ),
+                    ],
+                    style={"width": "49%", "display": "inline-block"},
+                ),
                 html.Div(
                     [
                         html.Div(
@@ -126,11 +146,11 @@ layout = html.Div(
     Output("storage-noise-training-viz", "data"),
     Output("storage-noise-hist-proc", "data"),
     [
-        Input("bit-flip-prob", "value"),
-        Input("phase-flip-prob", "value"),
-        Input("amplitude-damping-prob", "value"),
-        Input("phase-damping-prob", "value"),
-        Input("depolarization-prob", "value"),
+        Input("bit-flip-prob-training", "value"),
+        Input("phase-flip-prob-training", "value"),
+        Input("amplitude-damping-prob-training", "value"),
+        Input("phase-damping-prob-training", "value"),
+        Input("depolarization-prob-training", "value"),
         Input("numeric-input-steps", "value"),
         Input("storage-main", "modified_timestamp"),
     ],
