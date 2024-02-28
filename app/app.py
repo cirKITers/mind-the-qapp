@@ -61,6 +61,27 @@ sidebar = html.Div(
                 ),
                 html.Div(
                     [
+                        dbc.Label("Circuit Identifier"),
+                        dbc.Input(
+                            type="number",
+                            min=19,
+                            max=19,
+                            step=1,
+                            value=19,
+                            id="numeric-input-circuit-ident",
+                        ),
+                    ],
+                    className="numeric-input",
+                ),
+                html.Div(
+                    [
+                        dbc.Label("Data-Reupload"),
+                        dbc.Switch(id="switch-data-reupload", value=True),
+                    ],
+                    # className="numeric-input",
+                ),
+                html.Div(
+                    [
                         dbc.Label("Seed"),
                         dbc.Input(
                             type="number",
@@ -102,16 +123,20 @@ app.layout = html.Div([sidebar, content])
     [
         Input("numeric-input-qubits", "value"),
         Input("numeric-input-layers", "value"),
+        Input("numeric-input-circuit-ident", "value"),
+        Input("switch-data-reupload", "value"),
         Input("numeric-input-seed", "value"),
     ],
     State("storage-main", "data"),
     # prevent_initial_call=True,
 )
-def on_preference_changed(niq, nil, seed, data):
+def on_preference_changed(niq, nil, cid, dru, seed, data):
     # Give a default data dict with 0 clicks if there's no data.
     data = data or {}
-    data["niq"] = max(min(niq, 10), 0)
-    data["nil"] = max(min(nil, 10), 0)
+    data["number_qubits"] = max(min(niq, 10), 0)
+    data["number_layers"] = max(min(nil, 10), 0)
+    data["cid"] = cid
+    data["dru"] = dru
     data["seed"] = max(min(seed, 999), 100)
 
     return data
