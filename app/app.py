@@ -105,7 +105,7 @@ app.layout = html.Div([sidebar, content])
         Input("numeric-input-seed", "value"),
     ],
     State("storage-main", "data"),
-    prevent_initial_call=True,
+    # prevent_initial_call=True,
 )
 def on_preference_changed(niq, nil, seed, data):
     # Give a default data dict with 0 clicks if there's no data.
