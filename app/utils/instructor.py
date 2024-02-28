@@ -8,8 +8,14 @@ from pennylane.fourier.visualize import _extract_data_and_labels
 
 
 class Model:
-    def __init__(self, n_qubits: int, n_layers: int,
-                 circuit_type: int = 19, state_vector = False):
+    def __init__(
+        self,
+        n_qubits: int,
+        n_layers: int,
+        circuit_type: int = 19,
+        data_reupload=True,
+        state_vector=False,
+    ):
         self.n_qubits = n_qubits
         self.n_layers = n_layers
         self.state_vector = state_vector
@@ -26,7 +32,7 @@ class Model:
         """
         Returns the number of Parameters for the Circuit19 Ansatz
         """
-        return (self.n_layers, self.n_qubits*3 - 1)
+        return (self.n_layers, self.n_qubits * 3 - 1)
 
     def _pqc19(self, w: np.ndarray):
         """
@@ -80,8 +86,10 @@ class Model:
         Returns:
             _type_: _description_
         """
-        assert isinstance(w, list) or w.shape == self.n_params, "Number of parameters do not match. " \
-                f"Expected parameters of shape {self.n_params}, got {w.shape}"
+        assert isinstance(w, list) or w.shape == self.n_params, (
+            "Number of parameters do not match. "
+            f"Expected parameters of shape {self.n_params}, got {w.shape}"
+        )
         for l in range(self.n_layers):
             self.iec(x)
             self.pqc(w[l])
@@ -103,9 +111,13 @@ class Model:
 
 
 class Instructor:
-    def __init__(self, n_qubits, n_layers, seed=100) -> None:
+    def __init__(
+        self, n_qubits, n_layers, seed=100, circuit_type=19, data_reupload=True
+    ) -> None:
         self.max_freq = n_qubits * n_layers
-        self.model = Model(n_qubits, n_layers)
+        self.model = Model(
+            n_qubits, n_layers, circuit_type=circuit_type, data_reupload=data_reupload
+        )
 
         rng = np.random.default_rng(seed)
 
