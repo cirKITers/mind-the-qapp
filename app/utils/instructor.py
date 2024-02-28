@@ -33,6 +33,7 @@ class Model:
             qml.RZ(w[w_idx], wires=q)
             w_idx += 1
 
+        for q in range(self.n_qubits):
             if q > 0:
                 qml.CRX(w[w_idx], wires=[q, (q + 1) % self.n_qubits])
                 w_idx += 1
@@ -67,8 +68,8 @@ class Model:
             _type_: _description_
         """
         for l in range(self.n_layers):
-            self.pqc(w[l])
             self.iec(x)
+            self.pqc(w[l])
 
             for q in range(self.n_qubits):
                 qml.BitFlip(bf, wires=q)
