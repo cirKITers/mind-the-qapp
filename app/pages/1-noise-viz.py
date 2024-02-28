@@ -94,7 +94,9 @@ def update_output(main_data, _, page_data):
         page_data["pd"],
         page_data["dp"],
     )
-    instructor = Instructor(main_data["niq"], main_data["nil"], seed=main_data["seed"])
+    instructor = Instructor(
+        main_data["number_qubits"], main_data["number_layers"], seed=main_data["seed"]
+    )
     coeffs = coefficients(
         partial(instructor.forward, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp),
         1,

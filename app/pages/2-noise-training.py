@@ -54,43 +54,50 @@ layout = html.Div(
                         dcc.Slider(
                             0, 0.5, 0.05, value=0, id="depolarization-prob-training"
                         ),
+                        html.Div(
+                            [
+                                html.Div(
+                                    [
+                                        dbc.Button(
+                                            "Start Training",
+                                            id="training-button",
+                                        ),
+                                    ],
+                                    style={
+                                        # "height": "1vh",
+                                        # "width": "10vh",
+                                        "display": "inline-block",
+                                    },
+                                ),
+                                html.Div(
+                                    [dbc.Label("Steps:")],
+                                    style={
+                                        "display": "inline-block",
+                                        "padding": "0 10px",
+                                    },
+                                ),
+                                html.Div(
+                                    [
+                                        dbc.Input(
+                                            type="number",
+                                            min=1,
+                                            max=50,
+                                            step=1,
+                                            value=10,
+                                            id="numeric-input-steps",
+                                        ),
+                                    ],
+                                    style={"width": "10vh", "display": "inline-block"},
+                                ),
+                                # dcc.Loading(
+                                #     id="loading-2",
+                                #     children=[html.Div([html.Div(id="loading-output-2")])],
+                                #     type="circle",
+                                # ),
+                            ],
+                        ),
                     ],
                     style={"width": "49%", "display": "inline-block"},
-                ),
-                html.Div(
-                    [
-                        html.Div(
-                            [
-                                dbc.Button(
-                                    "Start Training",
-                                    id="training-button",
-                                ),
-                            ],
-                            style={"width": "10vh", "display": "inline-block"},
-                        ),
-                        html.Div(
-                            [dbc.Label("Steps:")],
-                            style={"display": "inline-block", "padding": "0 10px"},
-                        ),
-                        html.Div(
-                            [
-                                dbc.Input(
-                                    type="number",
-                                    min=1,
-                                    max=50,
-                                    step=1,
-                                    value=10,
-                                    id="numeric-input-steps",
-                                ),
-                            ],
-                            style={"width": "10vh", "display": "inline-block"},
-                        ),
-                        # dcc.Loading(
-                        #     id="loading-2",
-                        #     children=[html.Div([html.Div(id="loading-output-2")])],
-                        #     type="circle",
-                        # ),
-                    ],
                 ),
                 dcc.Interval(
                     id="interval-component",
@@ -107,7 +114,7 @@ layout = html.Div(
                             id="fig-training-hist",
                             style={
                                 "display": "inline-block",
-                                "height": "60vh",
+                                "height": "80vh",
                                 "width": "100%",
                             },
                         ),
@@ -120,7 +127,7 @@ layout = html.Div(
                             id="fig-training-expval",
                             style={
                                 "display": "inline-block",
-                                "height": "49%",
+                                "height": "40vh",
                                 "width": "100%",
                             },
                         ),
@@ -128,7 +135,7 @@ layout = html.Div(
                             id="fig-training-metric",
                             style={
                                 "display": "inline-block",
-                                "height": "49%",
+                                "height": "40vh",
                                 "width": "100%",
                             },
                         ),
@@ -136,7 +143,7 @@ layout = html.Div(
                     style={"width": "49%", "display": "inline-block"},
                 ),
             ],
-            style={"height": "60%", "display": "inline-block"},
+            style={"height": "49%", "display": "inline-block"},
         ),
     ]
 )
@@ -183,7 +190,11 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
         page_log_hist = {"x": [], "y": [], "z": []}
     else:
         instructor = Instructor(
-            main_data["niq"], main_data["nil"], seed=main_data["seed"]
+            main_data["number_qubits"],
+            main_data["number_layers"],
+            seed=main_data["seed"],
+            circuit_type=main_data["circuit_type"],
+            data_reupload=main_data["data_reupload"],
         )
 
         bf, pf, ad, pd, dp = (
@@ -236,7 +247,9 @@ def update_expval(n, page_log_training, page_data, main_data):
 
     if len(page_log_training["loss"]) > 0:
         instructor = Instructor(
-            main_data["niq"], main_data["nil"], seed=main_data["seed"]
+            main_data["number_qubits"],
+            main_data["number_layers"],
+            seed=main_data["seed"],
         )
 
         bf, pf, ad, pd, dp = (
@@ -366,7 +379,9 @@ def training(page_log_training, page_data, main_data):
         page_data["dp"],
     )
 
-    instructor = Instructor(main_data["niq"], main_data["nil"], seed=main_data["seed"])
+    instructor = Instructor(
+        main_data["number_qubits"], main_data["number_layers"], seed=main_data["seed"]
+    )
 
     page_log_training["weights"], cost = instructor.step(
         page_log_training["weights"], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
