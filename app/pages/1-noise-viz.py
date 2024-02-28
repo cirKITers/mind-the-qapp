@@ -95,7 +95,11 @@ def update_output(main_data, _, page_data):
         page_data["dp"],
     )
     instructor = Instructor(
-        main_data["number_qubits"], main_data["number_layers"], seed=main_data["seed"]
+        main_data["number_qubits"],
+        main_data["number_layers"],
+        seed=main_data["seed"],
+        circuit_type=main_data["circuit_type"],
+        data_reupload=main_data["data_reupload"],
     )
     coeffs = coefficients(
         partial(instructor.forward, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp),

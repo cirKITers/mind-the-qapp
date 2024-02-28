@@ -78,8 +78,13 @@ sidebar = html.Div(
                         dbc.Label("Data-Reupload"),
                         dbc.Switch(id="switch-data-reupload", value=True),
                     ],
-                    # className="numeric-input",
                 ),
+                # html.Div(
+                #     [
+                #         dbc.Label("Trainable Freqs."),
+                #         dbc.Switch(id="switch-tffm", value=False),
+                #     ],
+                # ),
                 html.Div(
                     [
                         dbc.Label("Seed"),
@@ -125,18 +130,22 @@ app.layout = html.Div([sidebar, content])
         Input("numeric-input-layers", "value"),
         Input("numeric-input-circuit-ident", "value"),
         Input("switch-data-reupload", "value"),
+        # Input("switch-tffm", "value"),
         Input("numeric-input-seed", "value"),
     ],
     State("storage-main", "data"),
     # prevent_initial_call=True,
 )
-def on_preference_changed(niq, nil, cid, dru, seed, data):
+def on_preference_changed(
+    number_qubits, number_layers, circuit_type, data_reupload, seed, data
+):
     # Give a default data dict with 0 clicks if there's no data.
     data = data or {}
-    data["number_qubits"] = max(min(niq, 10), 0)
-    data["number_layers"] = max(min(nil, 10), 0)
-    data["cid"] = cid
-    data["dru"] = dru
+    data["number_qubits"] = max(min(number_qubits, 10), 0)
+    data["number_layers"] = max(min(number_layers, 10), 0)
+    data["circuit_type"] = circuit_type
+    data["data_reupload"] = data_reupload
+    data["tffm"] = False  # tffm
     data["seed"] = max(min(seed, 999), 100)
 
     return data

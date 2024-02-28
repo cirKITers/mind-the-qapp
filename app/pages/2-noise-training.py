@@ -46,14 +46,6 @@ layout = html.Div(
                 ),
                 html.Div(
                     [
-                        dbc.Label("Phase Damping Probability"),
-                        dcc.Slider(
-                            0, 0.5, 0.05, value=0, id="phase-damping-prob-training"
-                        ),
-                        dbc.Label("Depolarization Probability"),
-                        dcc.Slider(
-                            0, 0.5, 0.05, value=0, id="depolarization-prob-training"
-                        ),
                         html.Div(
                             [
                                 html.Div(
@@ -73,7 +65,7 @@ layout = html.Div(
                                     [dbc.Label("Steps:")],
                                     style={
                                         "display": "inline-block",
-                                        "padding": "0 10px",
+                                        "padding": "0 20px",
                                     },
                                 ),
                                 html.Div(
@@ -95,6 +87,15 @@ layout = html.Div(
                                 #     type="circle",
                                 # ),
                             ],
+                            style={"padding": "15px"},
+                        ),
+                        dbc.Label("Phase Damping Probability"),
+                        dcc.Slider(
+                            0, 0.5, 0.05, value=0, id="phase-damping-prob-training"
+                        ),
+                        dbc.Label("Depolarization Probability"),
+                        dcc.Slider(
+                            0, 0.5, 0.05, value=0, id="depolarization-prob-training"
                         ),
                     ],
                     style={"width": "49%", "display": "inline-block"},
@@ -250,6 +251,8 @@ def update_expval(n, page_log_training, page_data, main_data):
             main_data["number_qubits"],
             main_data["number_layers"],
             seed=main_data["seed"],
+            circuit_type=main_data["circuit_type"],
+            data_reupload=main_data["data_reupload"],
         )
 
         bf, pf, ad, pd, dp = (
@@ -380,7 +383,11 @@ def training(page_log_training, page_data, main_data):
     )
 
     instructor = Instructor(
-        main_data["number_qubits"], main_data["number_layers"], seed=main_data["seed"]
+        main_data["number_qubits"],
+        main_data["number_layers"],
+        seed=main_data["seed"],
+        circuit_type=main_data["circuit_type"],
+        data_reupload=main_data["data_reupload"],
     )
 
     page_log_training["weights"], cost = instructor.step(

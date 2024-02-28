@@ -14,12 +14,14 @@ class Model:
         n_layers: int,
         circuit_type: int = 19,
         data_reupload=True,
+        tffm=False,
         state_vector=False,
     ):
         self.n_qubits = n_qubits
         self.n_layers = n_layers
         self.state_vector = state_vector
-
+        self.data_reupload = data_reupload
+        self.tffm = tffm
         self.pqc = getattr(self, f"_pqc{circuit_type}")
         self.n_params = getattr(self, f"_n_params_circ{circuit_type}")()
 
@@ -57,16 +59,18 @@ class Model:
                 qml.CRX(w[w_idx], wires=[q, (q + 1) % self.n_qubits])
                 w_idx += 1
 
-    def iec(self, x: np.ndarray):
+    def iec(self, x: np.ndarray, data_reupload=True):
         """
         Creates an AngleEncoding using RY gates
 
         Args:
             x (np.ndarray): length of vector must be 1
         """
-
-        for q in range(self.n_qubits):
-            qml.RY(x, wires=q)
+        if data_reupload:
+            for q in range(self.n_qubits):
+                qml.RY(x, wires=q)
+        else:
+            qml.RY(x, wires=0)
 
     def _circuit(
         self, w: np.ndarray, x: np.ndarray, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0
@@ -91,7 +95,8 @@ class Model:
             f"Expected parameters of shape {self.n_params}, got {w.shape}"
         )
         for l in range(self.n_layers):
-            self.iec(x)
+            if self.data_reupload or l == 0:
+                self.iec(x, data_reupload=self.data_reupload)
             self.pqc(w[l])
 
             for q in range(self.n_qubits):
@@ -112,11 +117,21 @@ class Model:
 
 class Instructor:
     def __init__(
-        self, n_qubits, n_layers, seed=100, circuit_type=19, data_reupload=True
+        self,
+        n_qubits,
+        n_layers,
+        seed=100,
+        circuit_type=19,
+        data_reupload=True,
+        tffm=False,
     ) -> None:
         self.max_freq = n_qubits * n_layers
         self.model = Model(
-            n_qubits, n_layers, circuit_type=circuit_type, data_reupload=data_reupload
+            n_qubits,
+            n_layers,
+            circuit_type=circuit_type,
+            data_reupload=data_reupload,
+            tffm=tffm,
         )
 
         rng = np.random.default_rng(seed)
