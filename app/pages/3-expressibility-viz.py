@@ -19,7 +19,10 @@ from functools import partial
 from pennylane.fourier.visualize import _extract_data_and_labels
 
 from utils.instructor import Instructor
-from utils.expressibility import Expressibility_Sampler, get_sampled_haar_probability_histogram
+from utils.expressibility import (
+    Expressibility_Sampler,
+    get_sampled_haar_probability_histogram,
+)
 
 dash.register_page(__name__, name="Expr. Viz")
 
@@ -32,7 +35,11 @@ layout = html.Div(
                     [
                         html.Div(
                             [dbc.Label("Circuit Type")],
-                            style={"width": "12vh", "display": "inline-block", "padding": "0 10px"},
+                            style={
+                                "width": "12vh",
+                                "display": "inline-block",
+                                "padding": "0 10px",
+                            },
                         ),
                         html.Div(
                             [
@@ -55,7 +62,11 @@ layout = html.Div(
                     [
                         html.Div(
                             [dbc.Label("Sampled Parameter Pairs:")],
-                            style={"width": "12vh", "display": "inline-block", "padding": "0 10px"},
+                            style={
+                                "width": "12vh",
+                                "display": "inline-block",
+                                "padding": "0 10px",
+                            },
                         ),
                         html.Div(
                             [
@@ -77,7 +88,11 @@ layout = html.Div(
                     [
                         html.Div(
                             [dbc.Label("Input Samples")],
-                            style={"width": "12vh", "display": "inline-block", "padding": "0 10px"},
+                            style={
+                                "width": "12vh",
+                                "display": "inline-block",
+                                "padding": "0 10px",
+                            },
                         ),
                         html.Div(
                             [
@@ -99,7 +114,11 @@ layout = html.Div(
                     [
                         html.Div(
                             [dbc.Label("Histogram Bins")],
-                            style={"width": "12vh", "display": "inline-block", "padding": "0 10px"},
+                            style={
+                                "width": "12vh",
+                                "display": "inline-block",
+                                "padding": "0 10px",
+                            },
                         ),
                         html.Div(
                             [
@@ -168,6 +187,7 @@ layout = html.Div(
     ]
 )
 
+
 @callback(
     Output("storage-expr-viz", "data"),
     Output("loading-spinner-expr", "children", allow_duplicate=True),
@@ -182,8 +202,12 @@ layout = html.Div(
 def on_preference_changed(circ_type, n_samples, n_input_samples, n_bins):
 
     # Give a default data dict with 0 clicks if there's no data.
-    data = dict(circ_type=circ_type, n_samples=n_samples,
-                n_input_samples=n_input_samples, n_bins=n_bins)
+    data = dict(
+        circ_type=circ_type,
+        n_samples=n_samples,
+        n_input_samples=n_input_samples,
+        n_bins=n_bins,
+    )
 
     return data, "Loaded data"
 
@@ -209,7 +233,9 @@ def update_output(main_data, _, page_data):
         page_data["n_input_samples"],
         page_data["n_bins"],
     )
-    instructor = Instructor(main_data["niq"], main_data["nil"], seed=main_data["seed"])
+    instructor = Instructor(
+        main_data["number_qubits"], main_data["number_layers"], seed=main_data["seed"]
+    )
     coeffs = coefficients(
         partial(instructor.forward),
         1,
@@ -231,11 +257,14 @@ def update_output(main_data, _, page_data):
         yaxis_range=[0, 0.5],
     )
 
-    x_haar, y_haar = get_sampled_haar_probability_histogram(main_data["niq"], n_bins, n_input_samples)
+    x_haar, y_haar = get_sampled_haar_probability_histogram(
+        main_data["number_qubits"], n_bins, n_input_samples
+    )
 
     fig_haar = go.Figure()
     fig_haar.add_bar(
-        x=x_haar, y=y_haar,
+        x=x_haar,
+        y=y_haar,
     )
     fig_haar.update_layout(
         title="Haar Probability Densities",
@@ -246,6 +275,7 @@ def update_output(main_data, _, page_data):
     )
 
     return [fig_coeffs, fig_haar]
+
 
 @callback(
     [
@@ -268,15 +298,22 @@ def update_output_probabilities(main_data, _, page_data):
         page_data["n_input_samples"],
         page_data["n_bins"],
     )
-    expr_sampler = Expressibility_Sampler(main_data["niq"], main_data["nil"], main_data["seed"],
-                                          circ_type, n_samples, n_input_samples, n_bins)
+    expr_sampler = Expressibility_Sampler(
+        main_data["number_qubits"],
+        main_data["number_layers"],
+        main_data["seed"],
+        circ_type,
+        n_samples,
+        n_input_samples,
+        n_bins,
+    )
     x_samples, y_samples, z_samples = expr_sampler.sample_hist_state_fidelities()
 
     fig_expr = go.Figure(
         go.Surface(
-            x = x_samples,
-            y = y_samples,
-            z = z_samples,
+            x=x_samples,
+            y=y_samples,
+            z=z_samples,
             cmax=1,
             cmin=0,
         )
@@ -287,4 +324,3 @@ def update_output_probabilities(main_data, _, page_data):
     )
 
     return [fig_expr, "Ready"]
-
