@@ -79,6 +79,8 @@ class Expressibility_Sampler:
         )
         self.rng = np.random.default_rng(seed)
 
+        self.epsilon = 1e-5
+
         x_domain = [-1 * np.pi, 1 * np.pi]
         self.x_samples = np.linspace(x_domain[0], x_domain[1], n_input_samples)
 
@@ -94,15 +96,22 @@ class Expressibility_Sampler:
                 w2 = 2 * np.pi * (1 - 2 * self.rng.random(size=self.model.n_params))
                 sv2 = self.model(w2, x)
 
-                fidelities[i, s] = np.sum(np.abs(np.conj(sv1.T) * sv2))
+                fidelity = np.trace(np.sqrt(np.sqrt(sv1) * sv2 * np.sqrt(sv1)))**2
+                fidelity = np.abs(fidelity)
+
+                fidelities[i, s] = fidelity
 
         return fidelities
 
     def sample_hist_state_fidelities(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         fidelities = self.sample_state_fidelities()
         z_component = np.zeros((len(self.x_samples), self.n_bins-1))
-        f = np.linspace(0, 1, self.n_bins) * (self.n_bins - 1) / (len(self.x_samples) - 1)
+
+        # FIXME: somehow I get nan's in the histogram, when directly creating bins until n
+        # workaround hack is to add a small epsilon
+        b = np.linspace(0, 1 + self.epsilon, self.n_bins)
         for i, x in enumerate(self.x_samples):
-            z_component[i], _ = np.histogram(fidelities[i], bins=f, density=True)
-        return self.x_samples, f, z_component
+            z_component[i], _ = np.histogram(fidelities[i], bins=b, density=True)
+        z_component = np.transpose(z_component)
+        return self.x_samples, b, z_component
 
