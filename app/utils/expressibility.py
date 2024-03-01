@@ -57,19 +57,26 @@ def get_sampled_haar_probability_histogram(n_qubits, n_bins, n_repetitions) -> \
 
 class Expressibility_Sampler:
     def __init__(self,
-                 n_qubits: int,
-                 n_layers: int,
-                 seed: int = 100,
-                 circuit_type: int = 19,
-                 n_samples: int = 1000,
-                 n_input_samples: int = 10,
-                 n_bins: int = 75,
-                 ):
+        n_qubits: int,
+        n_layers: int,
+        seed: int = 100,
+        circuit_type: int = 19,
+        data_reupload: bool = True,
+        n_samples: int = 1000,
+        n_input_samples: int = 10,
+        n_bins: int = 75,
+    ) -> None:
 
         self.n_samples = n_samples
         self.n_bins = n_bins
 
-        self.model = Model(n_qubits, n_layers, circuit_type, state_vector=True)
+        self.model = Model(
+            n_qubits,
+            n_layers,
+            circuit_type,
+            data_reupload=data_reupload,
+            state_vector=True,
+        )
         self.rng = np.random.default_rng(seed)
 
         x_domain = [-1 * np.pi, 1 * np.pi]

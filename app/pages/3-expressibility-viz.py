@@ -34,33 +34,6 @@ layout = html.Div(
                 html.Div(
                     [
                         html.Div(
-                            [dbc.Label("Circuit Type")],
-                            style={
-                                "width": "12vh",
-                                "display": "inline-block",
-                                "padding": "0 10px",
-                            },
-                        ),
-                        html.Div(
-                            [
-                                dbc.Input(
-                                    type="number",
-                                    # currently only circ 19 is supported
-                                    min=19,
-                                    max=19,
-                                    step=1,
-                                    value=19,
-                                    id="circuit-type",
-                                ),
-                            ],
-                            style={"width": "10vh", "display": "inline-block"},
-                        ),
-                    ],
-                    style={"width": "100%", "display": "inline-block"},
-                ),
-                html.Div(
-                    [
-                        html.Div(
                             [dbc.Label("Sampled Parameter Pairs:")],
                             style={
                                 "width": "12vh",
@@ -192,18 +165,16 @@ layout = html.Div(
     Output("storage-expr-viz", "data"),
     Output("loading-spinner-expr", "children", allow_duplicate=True),
     [
-        Input("circuit-type", "value"),
         Input("num-param-sample-pairs", "value"),
         Input("num-input-samples", "value"),
         Input("num-histogram-bins", "value"),
     ],
     prevent_initial_call=True,
 )
-def on_preference_changed(circ_type, n_samples, n_input_samples, n_bins):
+def on_preference_changed(n_samples, n_input_samples, n_bins):
 
     # Give a default data dict with 0 clicks if there's no data.
     data = dict(
-        circ_type=circ_type,
         n_samples=n_samples,
         n_input_samples=n_input_samples,
         n_bins=n_bins,
@@ -227,14 +198,17 @@ def on_preference_changed(circ_type, n_samples, n_input_samples, n_bins):
 def update_output(main_data, _, page_data):
     if page_data is None or main_data is None:
         return [go.Figure(), go.Figure(), "Not Ready"]
-    circ_type, n_samples, n_input_samples, n_bins = (
-        page_data["circ_type"],
+    n_samples, n_input_samples, n_bins = (
         page_data["n_samples"],
         page_data["n_input_samples"],
         page_data["n_bins"],
     )
     instructor = Instructor(
-        main_data["number_qubits"], main_data["number_layers"], seed=main_data["seed"]
+        main_data["number_qubits"],
+        main_data["number_layers"],
+        seed=main_data["seed"],
+        circuit_type=main_data["circuit_type"],
+        data_reupload=main_data["data_reupload"],
     )
     coeffs = coefficients(
         partial(instructor.forward),
@@ -292,8 +266,7 @@ def update_output(main_data, _, page_data):
 def update_output_probabilities(main_data, _, page_data):
     if page_data is None or main_data is None:
         return [go.Figure(), go.Figure(), "Not Ready"]
-    circ_type, n_samples, n_input_samples, n_bins = (
-        page_data["circ_type"],
+    n_samples, n_input_samples, n_bins = (
         page_data["n_samples"],
         page_data["n_input_samples"],
         page_data["n_bins"],
@@ -302,7 +275,8 @@ def update_output_probabilities(main_data, _, page_data):
         main_data["number_qubits"],
         main_data["number_layers"],
         main_data["seed"],
-        circ_type,
+        main_data["circuit_type"],
+        main_data["data_reupload"],
         n_samples,
         n_input_samples,
         n_bins,
