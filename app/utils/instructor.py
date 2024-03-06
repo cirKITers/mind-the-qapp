@@ -174,6 +174,9 @@ class Instructor:
             w = weights
         else:
             w = self.weights
+
+        if type(w) == list:
+            w = np.array(w)
         return self.model(w, x_d, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
 
     def cost(self, w, y_d, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0):
