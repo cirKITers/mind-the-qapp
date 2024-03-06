@@ -71,9 +71,9 @@ class Model:
         """
         if data_reupload:
             for q in range(self.n_qubits):
-                qml.RY(x, wires=q)
+                qml.RX(x, wires=q)
         else:
-            qml.RY(x, wires=0)
+            qml.RX(x, wires=0)
 
     def _circuit(
         self, w: np.ndarray, x: np.ndarray, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0
