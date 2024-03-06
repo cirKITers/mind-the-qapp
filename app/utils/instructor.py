@@ -59,6 +59,9 @@ class Model:
                 qml.CRX(w[w_idx], wires=[q, (q + 1) % self.n_qubits])
                 w_idx += 1
 
+    def _strongly_entangling(self, w: np.ndarray):
+        qml.StronglyEntanglingLayers(w, wires=range(self.n_qubits))
+
     def iec(self, x: np.ndarray, data_reupload=True):
         """
         Creates an AngleEncoding using RY gates
