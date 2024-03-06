@@ -151,9 +151,7 @@ class Instructor:
         y_fct = lambda x: 1 / np.linalg.norm(omega_d) * np.sum(np.cos(omega_d * x))
         self.y_d = np.array([y_fct(x) for x in self.x_d])
 
-        self.weights = (
-            2 * np.pi * (1 - 2 * rng.random(size=(n_layers, n_qubits * 3 - 1)))
-        )
+        self.weights = 2 * np.pi * rng.random(size=(impl_n_layers, n_qubits * 3))
 
         self.opt = qml.AdamOptimizer(stepsize=0.01)
 
