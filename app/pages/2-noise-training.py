@@ -73,13 +73,13 @@ layout = html.Div(
                                         dbc.Input(
                                             type="number",
                                             min=1,
-                                            max=50,
+                                            max=101,
                                             step=1,
                                             value=10,
                                             id="numeric-input-steps",
                                         ),
                                     ],
-                                    style={"width": "10vh", "display": "inline-block"},
+                                    style={"width": "10vw", "display": "inline-block"},
                                 ),
                                 # dcc.Loading(
                                 #     id="loading-2",
