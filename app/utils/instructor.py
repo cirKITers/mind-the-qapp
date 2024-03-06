@@ -56,7 +56,7 @@ class Model:
 
         for q in range(self.n_qubits):
             if q > 0:
-                qml.CRX(w[w_idx], wires=[q, (q + 1) % self.n_qubits])
+                qml.CRX(w[w_idx], wires=[(q + 1) % self.n_qubits, q])
                 w_idx += 1
 
     def _strongly_entangling(self, w: np.ndarray):
