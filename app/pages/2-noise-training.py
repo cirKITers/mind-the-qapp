@@ -292,20 +292,15 @@ def update_expval(n, page_log_training, page_data, main_data):
             dp=dp,
         )
 
-        fig_expval.add_scatter(
-            x=instructor.x_d,
-            y=y_pred,
-        )
-        fig_expval.add_scatter(
-            x=instructor.x_d,
-            y=instructor.y_d,
-        )
+        fig_expval.add_scatter(x=instructor.x_d, y=y_pred, name="Prediction")
+        fig_expval.add_scatter(x=instructor.x_d, y=instructor.y_d, name="Target")
     fig_expval.update_layout(
         title="Output",
         template="simple_white",
         xaxis_title="X Domain",
         yaxis_title="Expectation Value",
         yaxis_range=[-1, 1],
+        legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
     )
 
     return fig_expval
