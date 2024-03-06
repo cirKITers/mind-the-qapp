@@ -223,13 +223,32 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
             x=np.array(page_log_hist["x"]),
             y=np.array(page_log_hist["y"]),
             z=np.array(page_log_hist["z"]),
+            showscale=False,
+            showlegend=False,
+            # opacity=0.8,
+            # colorscale="Plotly3",
         )
     fig_hist.update_layout(
         title="Histogram (Absolute Value)",
         template="simple_white",
         # margin=dict(l=65, r=50, b=65, t=90),
+        scene=dict(
+            xaxis=dict(
+                title="Frequency",
+            ),
+            yaxis=dict(title="Step"),
+            zaxis=dict(
+                title="Amplitude",
+            ),
+        ),
+        scene_camera=dict(
+            up=dict(x=0, y=0, z=1),
+            center=dict(x=0.1, y=0, z=0),
+            eye=dict(x=1.15, y=2.05, z=1.05),
+        ),
         xaxis_title="Frequency",
         yaxis_title="Amplitude",
+        coloraxis_showscale=False,
     )
 
     return fig_hist, page_log_hist
