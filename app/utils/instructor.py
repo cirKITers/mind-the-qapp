@@ -90,14 +90,14 @@ class Model:
         Returns:
             _type_: _description_
         """
-        assert isinstance(w, list) or w.shape == self.n_params, (
-            "Number of parameters do not match. "
-            f"Expected parameters of shape {self.n_params}, got {w.shape}"
-        )
-        for l in range(self.n_layers):
+        # assert isinstance(w, list) or w.shape == self.n_params, (
+        #     "Number of parameters do not match. "
+        #     f"Expected parameters of shape {self.n_params}, got {w.shape}"
+        # )
+        for l in range(0, self.n_layers - 1):
+            self.pqc(w[l].reshape(1, self.n_qubits, 3))
             if self.data_reupload or l == 0:
                 self.iec(x, data_reupload=self.data_reupload)
-            self.pqc(w[l])
 
             for q in range(self.n_qubits):
                 qml.BitFlip(bf, wires=q)
@@ -105,11 +105,12 @@ class Model:
                 qml.AmplitudeDamping(ad, wires=q)
                 qml.PhaseDamping(pd, wires=q)
                 qml.DepolarizingChannel(dp, wires=q)
+        self.pqc(w[-1].reshape(1, self.n_qubits, 3))
 
         if self.state_vector:
             return qml.state()
         else:
-            return qml.expval(qml.PauliZ(0))
+            return qml.expval(qml.PauliZ(wires=0))
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         return self.circuit(*args, **kwds)
