@@ -130,9 +130,11 @@ class Instructor:
         tffm=False,
     ) -> None:
         self.max_freq = n_qubits * n_layers
+
+        impl_n_layers = n_layers + 1  # we need L+1 according to Schuld et al.
         self.model = Model(
             n_qubits,
-            n_layers,
+            impl_n_layers,
             circuit_type=circuit_type,
             data_reupload=data_reupload,
             tffm=tffm,
