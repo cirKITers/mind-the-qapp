@@ -155,7 +155,7 @@ class Instructor:
             2 * np.pi * (1 - 2 * rng.random(size=(n_layers, n_qubits * 3 - 1)))
         )
 
-        self.opt = qml.AdamOptimizer(stepsize=0.05)
+        self.opt = qml.AdamOptimizer(stepsize=0.01)
 
     def calc_hist(self, w, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0):
         coeffs = coefficients(
