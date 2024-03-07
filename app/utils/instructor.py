@@ -23,6 +23,7 @@ class Model:
         self.data_reupload = data_reupload
         self.tffm = tffm
         self.pqc = getattr(self, f"_pqc{circuit_type}")
+        # self.pqc = self._strongly_entangling
         self.n_params = getattr(self, f"_n_params_circ{circuit_type}")()
 
         self.dev = qml.device("default.mixed", wires=n_qubits)
@@ -98,7 +99,8 @@ class Model:
         #     f"Expected parameters of shape {self.n_params}, got {w.shape}"
         # )
         for l in range(0, self.n_layers - 1):
-            self.pqc(w[l].reshape(1, self.n_qubits, 3))
+            self.pqc(w[l])
+            # self.pqc(w[l].reshape(1, self.n_qubits, 3))
             if self.data_reupload or l == 0:
                 self.iec(x, data_reupload=self.data_reupload)
 
@@ -108,7 +110,8 @@ class Model:
                 qml.AmplitudeDamping(ad, wires=q)
                 qml.PhaseDamping(pd, wires=q)
                 qml.DepolarizingChannel(dp, wires=q)
-        self.pqc(w[-1].reshape(1, self.n_qubits, 3))
+        self.pqc(w[-1])
+        # self.pqc(w[-1].reshape(1, self.n_qubits, 3))
 
         if self.state_vector:
             return qml.state()
@@ -180,6 +183,10 @@ class Instructor:
         return self.model(w, x_d, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
 
     def cost(self, w, y_d, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0):
+        # batch_size = min(len(self.x_d), 10)
+
+        # batch_index = np.random.randint(0, len(self.x_d), batch_size)
+
         y_pred = self.forward(self.x_d, weights=w, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
 
         return np.mean((y_d - y_pred) ** 2)
