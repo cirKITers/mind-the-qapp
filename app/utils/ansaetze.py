@@ -3,7 +3,10 @@ import pennylane as qml
 
 
 class Ansaetze:
+    def get_available():
+        return [Ansaetze.circuit19, Ansaetze.strongly_entangling]
 
+    @staticmethod
     def circuit19(w: np.ndarray, n_qubits: int):
         """
         Creates a Circuit19 ansatz.
@@ -30,12 +33,16 @@ class Ansaetze:
                 qml.CRX(w[w_idx], wires=[(q + 1) % n_qubits, q])
                 w_idx += 1
 
+    @staticmethod
     def strongly_entangling(w: np.ndarray, n_qubits: int) -> None:
         """
         Creates a StronglyEntanglingLayers ansatz.
 
         Args:
-            w (np.ndarray): weight vector of size n_layers*(n_qubits**2)
+            w (np.ndarray): weight vector of size n_layers*(n_qubits*3)
             n_qubits (int): number of qubits
         """
-        qml.StronglyEntanglingLayers(w, wires=range(n_qubits))
+        if w is None:
+            return n_qubits * 3
+
+        qml.StronglyEntanglingLayers(w.reshape(-1, n_qubits, 3), wires=range(n_qubits))
