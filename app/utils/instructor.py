@@ -146,6 +146,7 @@ class Instructor:
         circuit_type: int = 19,
         data_reupload: bool = True,
         tffm: bool = False,
+        **kwargs,
     ) -> None:
         """
         Constructor for the Instructor class.
@@ -167,6 +168,7 @@ class Instructor:
             circuit_type=circuit_type,
             data_reupload=data_reupload,
             tffm=tffm,
+            **kwargs,
         )
 
         rng = np.random.default_rng(seed)

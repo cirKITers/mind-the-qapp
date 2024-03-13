@@ -1,10 +1,10 @@
-from .instructor import Model
-import numpy as np
+from .instructor import Instructor
+import pennylane.numpy as np
 from typing import Tuple
 from scipy import integrate
 
-def theoretical_haar_probability(fidelity: float, n_qubits: int) \
-        -> float:
+
+def theoretical_haar_probability(fidelity: float, n_qubits: int) -> float:
     """
     Calculates theoretical probability density function for random Haar states
     as proposed by Sim et al. (https://arxiv.org/abs/1905.10876).
@@ -18,8 +18,8 @@ def theoretical_haar_probability(fidelity: float, n_qubits: int) \
     prob = (N - 1) * (1 - fidelity) ** (N - 2)
     return prob
 
-def sampled_haar_probability(n_qubits: int, n_bins: int) \
-        -> np.ndarray:
+
+def sampled_haar_probability(n_qubits: int, n_bins: int) -> np.ndarray:
     """
     Calculates theoretical probability density function for random Haar states
     as proposed by Sim et al. (https://arxiv.org/abs/1905.10876) and bins it
@@ -31,14 +31,18 @@ def sampled_haar_probability(n_qubits: int, n_bins: int) \
     """
     dist = np.zeros(n_bins)
     for i in range(n_bins):
-        l = (1/n_bins) * i
-        u = l + (1/n_bins)
-        dist[i], _ = integrate.quad(theoretical_haar_probability, l, u, args=(n_qubits,))
+        l = (1 / n_bins) * i
+        u = l + (1 / n_bins)
+        dist[i], _ = integrate.quad(
+            theoretical_haar_probability, l, u, args=(n_qubits,)
+        )
 
     return dist
 
-def get_sampled_haar_probability_histogram(n_qubits, n_bins, n_repetitions) -> \
-        Tuple[np.ndarray, np.ndarray]:
+
+def get_sampled_haar_probability_histogram(
+    n_qubits, n_bins, n_repetitions
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Calculates theoretical probability density function for random Haar states
     as proposed by Sim et al. (https://arxiv.org/abs/1905.10876) and bins it
@@ -55,8 +59,10 @@ def get_sampled_haar_probability_histogram(n_qubits, n_bins, n_repetitions) -> \
 
     return x, y
 
+
 class Expressibility_Sampler:
-    def __init__(self,
+    def __init__(
+        self,
         n_qubits: int,
         n_layers: int,
         seed: int = 100,
@@ -70,10 +76,11 @@ class Expressibility_Sampler:
         self.n_samples = n_samples
         self.n_bins = n_bins
 
-        self.model = Model(
+        self.instructor = Instructor(
             n_qubits,
             n_layers,
-            circuit_type,
+            seed=seed,
+            circuit_type=circuit_type,
             data_reupload=data_reupload,
             state_vector=True,
         )
@@ -82,36 +89,57 @@ class Expressibility_Sampler:
         self.epsilon = 1e-5
 
         x_domain = [-1 * np.pi, 1 * np.pi]
-        self.x_samples = np.linspace(x_domain[0], x_domain[1], n_input_samples)
+        self.x_samples = np.linspace(
+            x_domain[0], x_domain[1], n_input_samples, requires_grad=False
+        )
 
     def sample_state_fidelities(self) -> np.ndarray:
 
         fidelities = np.zeros((len(self.x_samples), self.n_samples))
-        for i, x in enumerate(self.x_samples):
-            for s in range(self.n_samples):
 
-                w1 = 2 * np.pi * (1 - 2 * self.rng.random(size=self.model.n_params))
-                sv1 = self.model(w1, x)
+        # moving the rng out of for loops can improve performance
+        # python can handle large arrays pretty well
+        # but calls to the rng are relatively slow
+        w = (
+            2
+            * np.pi
+            * (
+                1
+                - 2
+                * self.rng.random(
+                    size=[*self.instructor.model.n_params, self.n_samples * 2]
+                )
+            )
+        )
+        for idx, x in enumerate(self.x_samples):
 
-                w2 = 2 * np.pi * (1 - 2 * self.rng.random(size=self.model.n_params))
-                sv2 = self.model(w2, x)
+            sv = self.instructor.model(w, x)  # n_samples, N
 
-                fidelity = np.trace(np.sqrt(np.sqrt(sv1) * sv2 * np.sqrt(sv1)))**2
-                fidelity = np.abs(fidelity)
+            fidelity = (
+                np.trace(
+                    np.sqrt(
+                        np.sqrt(sv[: self.n_samples])
+                        * sv[self.n_samples :]
+                        * np.sqrt(sv[: self.n_samples])
+                    ),
+                    axis1=1,
+                    axis2=2,
+                )
+                ** 2
+            )
+            fidelities[idx] = fidelity
 
-                fidelities[i, s] = fidelity
-
-        return fidelities
+        return np.abs(fidelities)
 
     def sample_hist_state_fidelities(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         fidelities = self.sample_state_fidelities()
-        z_component = np.zeros((len(self.x_samples), self.n_bins-1))
+        z_component = np.zeros((len(self.x_samples), self.n_bins - 1))
 
         # FIXME: somehow I get nan's in the histogram, when directly creating bins until n
         # workaround hack is to add a small epsilon
+        # could it be related to sampling issues?
         b = np.linspace(0, 1 + self.epsilon, self.n_bins)
-        for i, x in enumerate(self.x_samples):
-            z_component[i], _ = np.histogram(fidelities[i], bins=b, density=True)
+        for i, f in enumerate(fidelities):
+            z_component[i], _ = np.histogram(f, bins=b, density=True)
         z_component = np.transpose(z_component)
         return self.x_samples, b, z_component
-

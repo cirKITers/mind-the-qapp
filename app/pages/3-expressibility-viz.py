@@ -24,7 +24,7 @@ from utils.expressibility import (
     get_sampled_haar_probability_histogram,
 )
 
-dash.register_page(__name__, name="Expr. Viz")
+dash.register_page(__name__, name="Expressibility")
 
 layout = html.Div(
     [
@@ -33,129 +33,114 @@ layout = html.Div(
             [
                 html.Div(
                     [
-                        html.Div(
-                            [dbc.Label("Sampled Parameter Pairs:")],
-                            style={
-                                "width": "12vh",
-                                "display": "inline-block",
-                                "padding": "0 10px",
-                            },
-                        ),
-                        html.Div(
+                        dbc.Row(
                             [
-                                dbc.Input(
-                                    type="number",
-                                    min=1,
-                                    max=5000,
-                                    step=1,
-                                    value=1000,
-                                    id="num-param-sample-pairs",
+                                dbc.Label(
+                                    "Sampled Parameter Pairs:",
+                                    html_for="num-param-sample-pairs",
+                                    width=4,
+                                ),
+                                dbc.Col(
+                                    dbc.Input(
+                                        type="number",
+                                        min=1,
+                                        max=5000,
+                                        step=1,
+                                        value=500,
+                                        id="num-param-sample-pairs",
+                                    ),
                                 ),
                             ],
-                            style={"width": "10vh", "display": "inline-block"},
+                            className="settingsRow",
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Label(
+                                    "Input Samples",
+                                    html_for="num-input-samples",
+                                    width=4,
+                                ),
+                                dbc.Col(
+                                    dbc.Input(
+                                        type="number",
+                                        min=2,
+                                        max=100,
+                                        step=1,
+                                        value=5,
+                                        id="num-input-samples",
+                                    ),
+                                ),
+                            ],
+                            className="settingsRow",
                         ),
                     ],
-                    style={"width": "100%", "display": "inline-block"},
+                    style={"width": "49%", "display": "inline-block"},
                 ),
                 html.Div(
                     [
-                        html.Div(
-                            [dbc.Label("Input Samples")],
-                            style={
-                                "width": "12vh",
-                                "display": "inline-block",
-                                "padding": "0 10px",
-                            },
-                        ),
-                        html.Div(
+                        dbc.Row(
                             [
-                                dbc.Input(
-                                    type="number",
-                                    min=2,
-                                    max=100,
-                                    step=1,
-                                    value=5,
-                                    id="num-input-samples",
+                                dbc.Label(
+                                    "Histogram Bins",
+                                    html_for="num-histogram-bins",
+                                    width=4,
+                                ),
+                                dbc.Col(
+                                    dbc.Input(
+                                        type="number",
+                                        min=1,
+                                        max=500,
+                                        step=1,
+                                        value=50,
+                                        id="num-histogram-bins",
+                                    ),
                                 ),
                             ],
-                            style={"width": "10vh", "display": "inline-block"},
+                            className="settingsRow",
                         ),
                     ],
-                    style={"width": "100%", "display": "inline-block"},
-                ),
-                html.Div(
-                    [
-                        html.Div(
-                            [dbc.Label("Histogram Bins")],
-                            style={
-                                "width": "12vh",
-                                "display": "inline-block",
-                                "padding": "0 10px",
-                            },
-                        ),
-                        html.Div(
-                            [
-                                dbc.Input(
-                                    type="number",
-                                    min=1,
-                                    max=500,
-                                    step=1,
-                                    value=75,
-                                    id="num-histogram-bins",
-                                ),
-                            ],
-                            style={"width": "10vh", "display": "inline-block"},
-                        ),
-                    ],
-                    style={"width": "100%", "display": "inline-block"},
+                    style={"width": "49%", "display": "inline-block"},
                 ),
             ],
         ),
         html.Div(
             [
-                dcc.Graph(
-                    id="fig-hist-haar",
-                    style={
-                        "display": "inline-block",
-                        "height": "100%",
-                        "width": "49%",
-                    },
-                ),
-                dcc.Graph(
-                    id="fig-hist-expr",
-                    style={
-                        "display": "inline-block",
-                        "height": "100%",
-                        "width": "49%",
-                    },
-                ),
-            ],
-            style={"height": "49%", "width": "100%", "display": "inline-block"},
-        ),
-        html.Div(
-            [
-                dcc.Graph(
-                    id="fig-hist-fourier",
-                    style={
-                        "display": "inline-block",
-                        "height": "100%",
-                        "width": "49%",
-                    },
+                html.Div(
+                    [
+                        dcc.Graph(
+                            id="fig-hist-expr",
+                            style={
+                                "display": "inline-block",
+                                "height": "80vh",
+                                "width": "100%",
+                            },
+                        ),
+                    ],
+                    style={"width": "49%", "display": "inline-block"},
                 ),
                 html.Div(
-                    dbc.Spinner(
-                        color="primary",
-                        type="grow",
-                        id="loading-spinner-expr",
-                    ),
-                    style={
-                        "display": "inline-block",
-                        "height": "100%",
-                        "width": "49%",
-                    },
+                    [
+                        dcc.Graph(
+                            id="fig-hist-haar",
+                            style={
+                                "display": "inline-block",
+                                "height": "40vh",
+                                "width": "100%",
+                            },
+                        ),
+                        dcc.Graph(
+                            id="fig-hist-fourier",
+                            style={
+                                "display": "inline-block",
+                                "height": "40vh",
+                                "width": "100%",
+                            },
+                        ),
+                    ],
+                    style={"width": "49%", "display": "inline-block"},
                 ),
             ],
-            style={"height": "49%", "width": "100%", "display": "inline-block"},
+            style={"height": "49%", "display": "inline-block"},
         ),
     ]
 )
@@ -163,7 +148,7 @@ layout = html.Div(
 
 @callback(
     Output("storage-expr-viz", "data"),
-    Output("loading-spinner-expr", "children", allow_duplicate=True),
+    Output("loading-state", "children", allow_duplicate=True),
     [
         Input("num-param-sample-pairs", "value"),
         Input("num-input-samples", "value"),
@@ -186,7 +171,6 @@ def on_preference_changed(n_samples, n_input_samples, n_bins):
 @callback(
     [
         Output("fig-hist-fourier", "figure"),
-        Output("fig-hist-haar", "figure"),
     ],
     [
         Input("storage-main", "data"),
@@ -195,7 +179,7 @@ def on_preference_changed(n_samples, n_input_samples, n_bins):
     State("storage-expr-viz", "data"),
     prevent_initial_call=True,
 )
-def update_output(main_data, _, page_data):
+def update_hist_fourier(main_data, _, page_data):
     if page_data is None or main_data is None:
         return [go.Figure(), go.Figure(), "Not Ready"]
     n_samples, n_input_samples, n_bins = (
@@ -228,7 +212,30 @@ def update_output(main_data, _, page_data):
         template="simple_white",
         xaxis_title="Frequency",
         yaxis_title="Amplitude",
-        yaxis_range=[0, 0.5],
+    )
+
+    return [fig_coeffs]
+
+
+@callback(
+    [
+        Output("fig-hist-haar", "figure"),
+        # Output("loading-state", "children", allow_duplicate=True),
+    ],
+    [
+        Input("storage-main", "data"),
+        Input("storage-expr-viz", "modified_timestamp"),
+    ],
+    State("storage-expr-viz", "data"),
+    prevent_initial_call=True,
+)
+def update_hist_haar(main_data, _, page_data):
+    if page_data is None or main_data is None:
+        return [go.Figure(), "Not Ready"]
+    n_samples, n_input_samples, n_bins = (
+        page_data["n_samples"],
+        page_data["n_input_samples"],
+        page_data["n_bins"],
     )
 
     x_haar, y_haar = get_sampled_haar_probability_histogram(
@@ -245,16 +252,15 @@ def update_output(main_data, _, page_data):
         template="simple_white",
         xaxis_title="Fidelity",
         yaxis_title="Probability",
-        yaxis_range=[0, 0.5],
     )
 
-    return [fig_coeffs, fig_haar]
+    return [fig_haar]
 
 
 @callback(
     [
         Output("fig-hist-expr", "figure"),
-        Output("loading-spinner-expr", "children", allow_duplicate=True),
+        Output("loading-state", "children", allow_duplicate=True),
     ],
     [
         Input("storage-main", "data"),
@@ -265,7 +271,7 @@ def update_output(main_data, _, page_data):
 )
 def update_output_probabilities(main_data, _, page_data):
     if page_data is None or main_data is None:
-        return [go.Figure(), go.Figure(), "Not Ready"]
+        return [go.Figure(), "Not Ready"]
     n_samples, n_input_samples, n_bins = (
         page_data["n_samples"],
         page_data["n_input_samples"],
@@ -290,11 +296,28 @@ def update_output_probabilities(main_data, _, page_data):
             z=z_samples,
             cmax=1,
             cmin=0,
+            showscale=False,
+            showlegend=False,
         )
     )
     fig_expr.update_layout(
-        title="Probability Densities",
-        margin=dict(l=65, r=50, b=65, t=90),
+        title="Expressibility",
+        template="simple_white",
+        scene=dict(
+            xaxis=dict(
+                title="Frequency",
+            ),
+            yaxis=dict(title="Bin"),
+            zaxis=dict(
+                title="Prob. Density",
+            ),
+        ),
+        scene_camera=dict(
+            up=dict(x=0, y=0, z=1),
+            center=dict(x=0.1, y=0, z=0),
+            eye=dict(x=-1.15, y=-2.05, z=1.05),
+        ),
+        coloraxis_showscale=False,
     )
 
     return [fig_expr, "Ready"]
