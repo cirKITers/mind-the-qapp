@@ -93,6 +93,10 @@ class Expressibility_Sampler:
     def sample_state_fidelities(self) -> np.ndarray:
 
         fidelities = np.zeros((len(self.x_samples), self.n_samples))
+
+        # moving the rng out of for loops can improve performance
+        # python can handle large arrays pretty well
+        # but calls to the rng are relatively slow
         w = (
             2
             * np.pi
