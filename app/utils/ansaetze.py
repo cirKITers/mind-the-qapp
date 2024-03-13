@@ -9,7 +9,7 @@ class Ansaetze:
     @staticmethod
     def no_ansatz(w: np.ndarray, n_qubits: int):
         if w is None:
-            return 0
+            return 1
         pass
 
     @staticmethod
@@ -25,7 +25,7 @@ class Ansaetze:
             n_qubits (int): number of qubits
         """
         if w is None:
-            return n_qubits * 3 - 1
+            return n_qubits * 3
 
         w_idx = 0
         for q in range(n_qubits):
