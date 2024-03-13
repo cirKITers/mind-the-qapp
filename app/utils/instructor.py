@@ -16,8 +16,8 @@ class Model:
     Parameters:
         n_qubits (int): The number of qubits in the circuit.
         n_layers (int): The number of layers in the circuit.
-        circuit_type (int, optional): The type of quantum circuit to use.
-            Defaults to 19.
+        circuit_type (str): The type of quantum circuit to use.
+            If None, defaults to circuit19
         data_reupload (bool, optional): Whether to reupload data to the
             quantum device on each measurement. Defaults to True.
         tffm (bool, optional): Whether to use the TensorFlow Quantum
@@ -46,7 +46,7 @@ class Model:
         self,
         n_qubits: int,
         n_layers: int,
-        circuit_type: int = 19,
+        circuit_type: str,
         data_reupload: bool = True,
         tffm: bool = False,
         state_vector: bool = False,
@@ -56,7 +56,9 @@ class Model:
         self.state_vector = state_vector
         self.data_reupload = data_reupload
         self.tffm = tffm
-        self.pqc = getattr(Ansaetze, f"circuit{circuit_type}")
+        if circuit_type is None:
+            circuit_type = "circuit19"
+        self.pqc = getattr(Ansaetze, circuit_type)
         # self.pqc = self._strongly_entangling
         self.n_params = (self.n_layers, self.pqc(None, self.n_qubits))
 
