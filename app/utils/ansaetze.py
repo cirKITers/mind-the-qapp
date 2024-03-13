@@ -25,8 +25,8 @@ class Ansaetze:
             qml.RZ(w[w_idx], wires=q)
             w_idx += 1
 
-        for q in range(n_qubits):
-            if q > 0:
+        if n_qubits > 1:
+            for q in range(n_qubits):
                 qml.CRX(w[w_idx], wires=[(q + 1) % n_qubits, q])
                 w_idx += 1
 
