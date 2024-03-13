@@ -24,7 +24,7 @@ from utils.expressibility import (
     get_sampled_haar_probability_histogram,
 )
 
-dash.register_page(__name__, name="Expr. Viz")
+dash.register_page(__name__, name="Expressibility")
 
 layout = html.Div(
     [
@@ -142,18 +142,6 @@ layout = html.Div(
                         "width": "49%",
                     },
                 ),
-                html.Div(
-                    dbc.Spinner(
-                        color="primary",
-                        type="grow",
-                        id="loading-spinner-expr",
-                    ),
-                    style={
-                        "display": "inline-block",
-                        "height": "100%",
-                        "width": "49%",
-                    },
-                ),
             ],
             style={"height": "49%", "width": "100%", "display": "inline-block"},
         ),
@@ -163,7 +151,7 @@ layout = html.Div(
 
 @callback(
     Output("storage-expr-viz", "data"),
-    Output("loading-spinner-expr", "children", allow_duplicate=True),
+    Output("loading-state", "children", allow_duplicate=True),
     [
         Input("num-param-sample-pairs", "value"),
         Input("num-input-samples", "value"),
@@ -254,7 +242,7 @@ def update_output(main_data, _, page_data):
 @callback(
     [
         Output("fig-hist-expr", "figure"),
-        Output("loading-spinner-expr", "children", allow_duplicate=True),
+        Output("loading-state", "children", allow_duplicate=True),
     ],
     [
         Input("storage-main", "data"),
