@@ -4,7 +4,13 @@ import pennylane as qml
 
 class Ansaetze:
     def get_available():
-        return [Ansaetze.circuit19, Ansaetze.strongly_entangling]
+        return [Ansaetze.no_ansatz, Ansaetze.circuit19, Ansaetze.strongly_entangling]
+
+    @staticmethod
+    def no_ansatz(w: np.ndarray, n_qubits: int):
+        if w is None:
+            return 0
+        pass
 
     @staticmethod
     def circuit19(w: np.ndarray, n_qubits: int):

@@ -57,7 +57,7 @@ class Model:
         self.data_reupload = data_reupload
         self.tffm = tffm
         if circuit_type is None:
-            circuit_type = "circuit19"
+            circuit_type = "no_ansatz"
         self.pqc = getattr(Ansaetze, circuit_type)
         # self.pqc = self._strongly_entangling
         self.n_params = (self.n_layers, self.pqc(None, self.n_qubits))

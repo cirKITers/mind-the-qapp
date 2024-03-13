@@ -71,15 +71,19 @@ sidebar = html.Div(
                                 }
                                 for fct in Ansaetze.get_available()
                             ],
+                            placeholder="No Ansatz",
+                            required=True,
                             id="select-input-circuit-ident",
                         ),
                     ],
-                    # className="numeric-input",
+                    className="numeric-input",
                 ),
                 html.Div(
                     [
                         dbc.Label("Data-Reupload"),
-                        dbc.Switch(id="switch-data-reupload", value=True),
+                        dbc.Switch(
+                            id="switch-data-reupload", value=True, className="fs-4"
+                        ),
                     ],
                 ),
                 # html.Div(
