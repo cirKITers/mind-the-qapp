@@ -113,37 +113,42 @@ layout = html.Div(
         ),
         html.Div(
             [
-                dcc.Graph(
-                    id="fig-hist-haar",
-                    style={
-                        "display": "inline-block",
-                        "height": "100%",
-                        "width": "49%",
-                    },
+                html.Div(
+                    [
+                        dcc.Graph(
+                            id="fig-hist-expr",
+                            style={
+                                "display": "inline-block",
+                                "height": "80vh",
+                                "width": "100%",
+                            },
+                        ),
+                    ],
+                    style={"width": "49%", "display": "inline-block"},
                 ),
-                dcc.Graph(
-                    id="fig-hist-expr",
-                    style={
-                        "display": "inline-block",
-                        "height": "100%",
-                        "width": "49%",
-                    },
+                html.Div(
+                    [
+                        dcc.Graph(
+                            id="fig-hist-haar",
+                            style={
+                                "display": "inline-block",
+                                "height": "40vh",
+                                "width": "100%",
+                            },
+                        ),
+                        dcc.Graph(
+                            id="fig-hist-fourier",
+                            style={
+                                "display": "inline-block",
+                                "height": "40vh",
+                                "width": "100%",
+                            },
+                        ),
+                    ],
+                    style={"width": "49%", "display": "inline-block"},
                 ),
             ],
-            style={"height": "49%", "width": "100%", "display": "inline-block"},
-        ),
-        html.Div(
-            [
-                dcc.Graph(
-                    id="fig-hist-fourier",
-                    style={
-                        "display": "inline-block",
-                        "height": "100%",
-                        "width": "49%",
-                    },
-                ),
-            ],
-            style={"height": "49%", "width": "100%", "display": "inline-block"},
+            style={"height": "49%", "display": "inline-block"},
         ),
     ]
 )
@@ -224,6 +229,7 @@ def update_hist_fourier(main_data, _, page_data):
 @callback(
     [
         Output("fig-hist-haar", "figure"),
+        # Output("loading-state", "children", allow_duplicate=True),
     ],
     [
         Input("storage-main", "data"),
@@ -234,7 +240,7 @@ def update_hist_fourier(main_data, _, page_data):
 )
 def update_hist_haar(main_data, _, page_data):
     if page_data is None or main_data is None:
-        return [go.Figure(), go.Figure(), "Not Ready"]
+        return [go.Figure(), "Not Ready"]
     n_samples, n_input_samples, n_bins = (
         page_data["n_samples"],
         page_data["n_input_samples"],
@@ -275,7 +281,7 @@ def update_hist_haar(main_data, _, page_data):
 )
 def update_output_probabilities(main_data, _, page_data):
     if page_data is None or main_data is None:
-        return [go.Figure(), go.Figure(), "Not Ready"]
+        return [go.Figure(), "Not Ready"]
     n_samples, n_input_samples, n_bins = (
         page_data["n_samples"],
         page_data["n_input_samples"],
@@ -300,11 +306,28 @@ def update_output_probabilities(main_data, _, page_data):
             z=z_samples,
             cmax=1,
             cmin=0,
+            showscale=False,
+            showlegend=False,
         )
     )
     fig_expr.update_layout(
         title="Probability Densities",
-        margin=dict(l=65, r=50, b=65, t=90),
+        template="simple_white",
+        scene=dict(
+            xaxis=dict(
+                title="Frequency",
+            ),
+            yaxis=dict(title="Bin"),
+            zaxis=dict(
+                title="Density",
+            ),
+        ),
+        scene_camera=dict(
+            up=dict(x=0, y=0, z=1),
+            center=dict(x=0.1, y=0, z=0),
+            eye=dict(x=-1.15, y=-2.05, z=1.05),
+        ),
+        coloraxis_showscale=False,
     )
 
     return [fig_expr, "Ready"]
