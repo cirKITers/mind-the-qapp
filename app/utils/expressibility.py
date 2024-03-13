@@ -1,5 +1,5 @@
-from .instructor import Model
-import numpy as np
+from .instructor import Instructor
+import pennylane.numpy as np
 from typing import Tuple
 from scipy import integrate
 
@@ -76,10 +76,11 @@ class Expressibility_Sampler:
         self.n_samples = n_samples
         self.n_bins = n_bins
 
-        self.model = Model(
+        self.instructor = Instructor(
             n_qubits,
             n_layers,
-            circuit_type,
+            seed=seed,
+            circuit_type=circuit_type,
             data_reupload=data_reupload,
             state_vector=True,
         )
@@ -88,7 +89,9 @@ class Expressibility_Sampler:
         self.epsilon = 1e-5
 
         x_domain = [-1 * np.pi, 1 * np.pi]
-        self.x_samples = np.linspace(x_domain[0], x_domain[1], n_input_samples)
+        self.x_samples = np.linspace(
+            x_domain[0], x_domain[1], n_input_samples, requires_grad=False
+        )
 
     def sample_state_fidelities(self) -> np.ndarray:
 
@@ -104,22 +107,29 @@ class Expressibility_Sampler:
                 1
                 - 2
                 * self.rng.random(
-                    size=[len(self.x_samples), self.n_samples, 2, *self.model.n_params]
+                    size=[*self.instructor.model.n_params, self.n_samples * 2]
                 )
             )
         )
-        for i, x in enumerate(self.x_samples):
-            for s in range(self.n_samples):
+        for idx, x in enumerate(self.x_samples):
 
-                sv1 = self.model(w[i, s, 0], x)
-                sv2 = self.model(w[i, s, 1], x)
+            sv = self.instructor.model(w, x)  # n_samples, N
 
-                fidelity = np.trace(np.sqrt(np.sqrt(sv1) * sv2 * np.sqrt(sv1))) ** 2
-                fidelity = np.abs(fidelity)
+            fidelity = (
+                np.trace(
+                    np.sqrt(
+                        np.sqrt(sv[: self.n_samples])
+                        * sv[self.n_samples :]
+                        * np.sqrt(sv[: self.n_samples])
+                    ),
+                    axis1=1,
+                    axis2=2,
+                )
+                ** 2
+            )
+            fidelities[idx] = fidelity
 
-                fidelities[i, s] = fidelity
-
-        return fidelities
+        return np.abs(fidelities)
 
     def sample_hist_state_fidelities(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         fidelities = self.sample_state_fidelities()
@@ -127,8 +137,9 @@ class Expressibility_Sampler:
 
         # FIXME: somehow I get nan's in the histogram, when directly creating bins until n
         # workaround hack is to add a small epsilon
+        # could it be related to sampling issues?
         b = np.linspace(0, 1 + self.epsilon, self.n_bins)
-        for i, x in enumerate(self.x_samples):
-            z_component[i], _ = np.histogram(fidelities[i], bins=b, density=True)
+        for i, f in enumerate(fidelities):
+            z_component[i], _ = np.histogram(f, bins=b, density=True)
         z_component = np.transpose(z_component)
         return self.x_samples, b, z_component
