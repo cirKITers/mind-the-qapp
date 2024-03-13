@@ -174,7 +174,6 @@ def on_preference_changed(n_samples, n_input_samples, n_bins):
 @callback(
     [
         Output("fig-hist-fourier", "figure"),
-        Output("fig-hist-haar", "figure"),
     ],
     [
         Input("storage-main", "data"),
@@ -183,7 +182,7 @@ def on_preference_changed(n_samples, n_input_samples, n_bins):
     State("storage-expr-viz", "data"),
     prevent_initial_call=True,
 )
-def update_output(main_data, _, page_data):
+def update_hist_fourier(main_data, _, page_data):
     if page_data is None or main_data is None:
         return [go.Figure(), go.Figure(), "Not Ready"]
     n_samples, n_input_samples, n_bins = (
@@ -219,6 +218,29 @@ def update_output(main_data, _, page_data):
         yaxis_range=[0, 0.5],
     )
 
+    return [fig_coeffs]
+
+
+@callback(
+    [
+        Output("fig-hist-haar", "figure"),
+    ],
+    [
+        Input("storage-main", "data"),
+        Input("storage-expr-viz", "modified_timestamp"),
+    ],
+    State("storage-expr-viz", "data"),
+    prevent_initial_call=True,
+)
+def update_hist_haar(main_data, _, page_data):
+    if page_data is None or main_data is None:
+        return [go.Figure(), go.Figure(), "Not Ready"]
+    n_samples, n_input_samples, n_bins = (
+        page_data["n_samples"],
+        page_data["n_input_samples"],
+        page_data["n_bins"],
+    )
+
     x_haar, y_haar = get_sampled_haar_probability_histogram(
         main_data["number_qubits"], n_bins, n_input_samples
     )
@@ -236,7 +258,7 @@ def update_output(main_data, _, page_data):
         yaxis_range=[0, 0.5],
     )
 
-    return [fig_coeffs, fig_haar]
+    return [fig_haar]
 
 
 @callback(
