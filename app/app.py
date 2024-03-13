@@ -1,7 +1,8 @@
 import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html, callback, State
-from dash.exceptions import PreventUpdate
+
+from typing import Any, Dict, Optional
 
 app = dash.Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME], use_pages=True
@@ -137,8 +138,26 @@ app.layout = html.Div([sidebar, content])
     # prevent_initial_call=True,
 )
 def on_preference_changed(
-    number_qubits, number_layers, circuit_type, data_reupload, seed, data
-):
+    number_qubits: int,
+    number_layers: int,
+    circuit_type: int,
+    data_reupload: bool,
+    seed: int,
+    data: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Updates the data dict with new values from the preferences.
+
+    Args:
+        number_qubits: The number of qubits from the user's input.
+        number_layers: The number of layers from the user's input.
+        circuit_type: The circuit identifier chosen by the user.
+        data_reupload: Whether data reupload is enabled or not.
+        seed: The seed for the data generation.
+        data: The data dict to update. If None, creates a new dict.
+
+    Returns:
+        The updated data dict.
+    """
     # Give a default data dict with 0 clicks if there's no data.
     data = data or {}
     data["number_qubits"] = max(min(number_qubits, 10), 0)
