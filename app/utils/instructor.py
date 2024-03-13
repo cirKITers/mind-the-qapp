@@ -59,7 +59,7 @@ class Model:
         if circuit_type is None:
             circuit_type = "no_ansatz"
         self.pqc = getattr(Ansaetze, circuit_type)
-        # self.pqc = self._strongly_entangling
+
         self.n_params = (self.n_layers, self.pqc(None, self.n_qubits))
 
         self.dev = qml.device("default.mixed", wires=n_qubits)
@@ -233,8 +233,6 @@ class Instructor:
             respectively, and "comb" containing the combination of the two.
         """
         data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
-
-        # self.x = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
 
         return data_len, data
 
