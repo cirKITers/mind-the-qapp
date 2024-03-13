@@ -33,81 +33,73 @@ layout = html.Div(
             [
                 html.Div(
                     [
-                        html.Div(
-                            [dbc.Label("Sampled Parameter Pairs:")],
-                            style={
-                                "width": "12vh",
-                                "display": "inline-block",
-                                "padding": "0 10px",
-                            },
-                        ),
-                        html.Div(
+                        dbc.Row(
                             [
-                                dbc.Input(
-                                    type="number",
-                                    min=1,
-                                    max=5000,
-                                    step=1,
-                                    value=1000,
-                                    id="num-param-sample-pairs",
+                                dbc.Label(
+                                    "Sampled Parameter Pairs:",
+                                    html_for="num-param-sample-pairs",
+                                    width=4,
+                                ),
+                                dbc.Col(
+                                    dbc.Input(
+                                        type="number",
+                                        min=1,
+                                        max=5000,
+                                        step=1,
+                                        value=1000,
+                                        id="num-param-sample-pairs",
+                                    ),
                                 ),
                             ],
-                            style={"width": "10vh", "display": "inline-block"},
+                            className="settingsRow",
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Label(
+                                    "Input Samples",
+                                    html_for="num-input-samples",
+                                    width=4,
+                                ),
+                                dbc.Col(
+                                    dbc.Input(
+                                        type="number",
+                                        min=2,
+                                        max=100,
+                                        step=1,
+                                        value=5,
+                                        id="num-input-samples",
+                                    ),
+                                ),
+                            ],
+                            className="settingsRow",
                         ),
                     ],
-                    style={"width": "100%", "display": "inline-block"},
+                    style={"width": "49%", "display": "inline-block"},
                 ),
                 html.Div(
                     [
-                        html.Div(
-                            [dbc.Label("Input Samples")],
-                            style={
-                                "width": "12vh",
-                                "display": "inline-block",
-                                "padding": "0 10px",
-                            },
-                        ),
-                        html.Div(
+                        dbc.Row(
                             [
-                                dbc.Input(
-                                    type="number",
-                                    min=2,
-                                    max=100,
-                                    step=1,
-                                    value=5,
-                                    id="num-input-samples",
+                                dbc.Label(
+                                    "Histogram Bins",
+                                    html_for="num-histogram-bins",
+                                    width=4,
+                                ),
+                                dbc.Col(
+                                    dbc.Input(
+                                        type="number",
+                                        min=1,
+                                        max=500,
+                                        step=1,
+                                        value=75,
+                                        id="num-histogram-bins",
+                                    ),
                                 ),
                             ],
-                            style={"width": "10vh", "display": "inline-block"},
+                            className="settingsRow",
                         ),
                     ],
-                    style={"width": "100%", "display": "inline-block"},
-                ),
-                html.Div(
-                    [
-                        html.Div(
-                            [dbc.Label("Histogram Bins")],
-                            style={
-                                "width": "12vh",
-                                "display": "inline-block",
-                                "padding": "0 10px",
-                            },
-                        ),
-                        html.Div(
-                            [
-                                dbc.Input(
-                                    type="number",
-                                    min=1,
-                                    max=500,
-                                    step=1,
-                                    value=75,
-                                    id="num-histogram-bins",
-                                ),
-                            ],
-                            style={"width": "10vh", "display": "inline-block"},
-                        ),
-                    ],
-                    style={"width": "100%", "display": "inline-block"},
+                    style={"width": "49%", "display": "inline-block"},
                 ),
             ],
         ),
