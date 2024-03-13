@@ -1,7 +1,7 @@
 import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html, callback, State
-
+from utils.ansaetze import Ansaetze
 from typing import Any, Dict, Optional
 
 app = dash.Dash(
@@ -62,17 +62,19 @@ sidebar = html.Div(
                 ),
                 html.Div(
                     [
-                        dbc.Label("Circuit Identifier"),
-                        dbc.Input(
-                            type="number",
-                            min=19,
-                            max=19,
-                            step=1,
-                            value=19,
-                            id="numeric-input-circuit-ident",
+                        dbc.Label("Circuit Type"),
+                        dbc.Select(
+                            options=[
+                                {
+                                    "label": fct.__name__.replace("_", " ").title(),
+                                    "value": fct.__name__,
+                                }
+                                for fct in Ansaetze.get_available()
+                            ],
+                            id="select-input-circuit-ident",
                         ),
                     ],
-                    className="numeric-input",
+                    # className="numeric-input",
                 ),
                 html.Div(
                     [
@@ -129,7 +131,7 @@ app.layout = html.Div([sidebar, content])
     [
         Input("numeric-input-qubits", "value"),
         Input("numeric-input-layers", "value"),
-        Input("numeric-input-circuit-ident", "value"),
+        Input("select-input-circuit-ident", "value"),
         Input("switch-data-reupload", "value"),
         # Input("switch-tffm", "value"),
         Input("numeric-input-seed", "value"),
