@@ -46,7 +46,7 @@ layout = html.Div(
                                         min=1,
                                         max=5000,
                                         step=1,
-                                        value=1000,
+                                        value=500,
                                         id="num-param-sample-pairs",
                                     ),
                                 ),
@@ -91,7 +91,7 @@ layout = html.Div(
                                         min=1,
                                         max=500,
                                         step=1,
-                                        value=75,
+                                        value=50,
                                         id="num-histogram-bins",
                                     ),
                                 ),
@@ -212,7 +212,6 @@ def update_hist_fourier(main_data, _, page_data):
         template="simple_white",
         xaxis_title="Frequency",
         yaxis_title="Amplitude",
-        yaxis_range=[0, 0.5],
     )
 
     return [fig_coeffs]
@@ -253,7 +252,6 @@ def update_hist_haar(main_data, _, page_data):
         template="simple_white",
         xaxis_title="Fidelity",
         yaxis_title="Probability",
-        yaxis_range=[0, 0.5],
     )
 
     return [fig_haar]
@@ -303,7 +301,7 @@ def update_output_probabilities(main_data, _, page_data):
         )
     )
     fig_expr.update_layout(
-        title="Probability Densities",
+        title="Expressibility",
         template="simple_white",
         scene=dict(
             xaxis=dict(
@@ -311,7 +309,7 @@ def update_output_probabilities(main_data, _, page_data):
             ),
             yaxis=dict(title="Bin"),
             zaxis=dict(
-                title="Density",
+                title="Prob. Density",
             ),
         ),
         scene_camera=dict(
