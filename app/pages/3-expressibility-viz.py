@@ -98,6 +98,27 @@ layout = html.Div(
                             ],
                             className="settingsRow",
                         ),
+                        dbc.Row(
+                            [
+                                dbc.Label(
+                                    "Meyer-Wallach Entangling Capability",
+                                    html_for="ent-cap",
+                                    width=4,
+                                ),
+                                dbc.Col(
+                                    html.H4(
+                                        dbc.Badge(
+                                            "0.0",
+                                            color="primary",
+                                            pill=True,
+                                            className="me-1",
+                                            id="ent-cap",
+                                        )
+                                    ),
+                                ),
+                            ],
+                            className="settingsRow",
+                        ),
                     ],
                     style={"width": "49%", "display": "inline-block"},
                 ),
