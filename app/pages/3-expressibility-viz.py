@@ -321,3 +321,38 @@ def update_output_probabilities(main_data, _, page_data):
     )
 
     return [fig_expr, "Ready"]
+
+@callback(
+    [
+        Output("ent-cap", "children"),
+        # Output("loading-state", "children", allow_duplicate=True),
+    ],
+    [
+        Input("storage-main", "data"),
+        Input("storage-expr-viz", "modified_timestamp"),
+    ],
+    State("storage-expr-viz", "data"),
+    prevent_initial_call=True,
+)
+def update_ent_cap(main_data, _, page_data):
+    if page_data is None or main_data is None:
+        return 0
+    n_samples, n_input_samples, n_bins = (
+        page_data["n_samples"],
+        page_data["n_input_samples"],
+        page_data["n_bins"],
+    )
+
+    ent_sampler = EntanglingCapability_Sampler(
+        main_data["number_qubits"],
+        main_data["number_layers"],
+        main_data["seed"],
+        main_data["circuit_type"],
+        main_data["data_reupload"],
+        n_samples,
+        n_input_samples,
+        n_bins,
+    )
+    ent_cap = ent_sampler.calculate_entangling_capability(10)
+    print(ent_cap)
+    return [f"{ent_cap:.3f}"]
