@@ -365,11 +365,6 @@ def update_output_probabilities(main_data, _, page_data):
 def update_ent_cap(main_data, _, page_data):
     if page_data is None or main_data is None:
         return 0
-    n_samples, n_input_samples, n_bins = (
-        page_data["n_samples"],
-        page_data["n_input_samples"],
-        page_data["n_bins"],
-    )
 
     ent_sampler = EntanglingCapability_Sampler(
         main_data["number_qubits"],
@@ -377,9 +372,6 @@ def update_ent_cap(main_data, _, page_data):
         main_data["seed"],
         main_data["circuit_type"],
         main_data["data_reupload"],
-        n_samples,
-        n_input_samples,
-        n_bins,
     )
     ent_cap = ent_sampler.calculate_entangling_capability(10)
     return [f"{ent_cap:.3f}"]
