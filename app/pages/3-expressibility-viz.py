@@ -43,10 +43,10 @@ layout = html.Div(
                                 dbc.Col(
                                     dbc.Input(
                                         type="number",
-                                        min=1,
-                                        max=5000,
+                                        min=100,
+                                        max=1000,
                                         step=1,
-                                        value=500,
+                                        value=200,
                                         id="num-param-sample-pairs",
                                     ),
                                 ),
@@ -88,10 +88,10 @@ layout = html.Div(
                                 dbc.Col(
                                     dbc.Input(
                                         type="number",
-                                        min=1,
+                                        min=10,
                                         max=500,
                                         step=1,
-                                        value=50,
+                                        value=20,
                                         id="num-histogram-bins",
                                     ),
                                 ),
