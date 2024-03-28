@@ -24,6 +24,8 @@ from utils.expressibility import (
     get_sampled_haar_probability_histogram,
 )
 
+from utils.entangling import EntanglingCapability_Sampler
+
 dash.register_page(__name__, name="Expressibility")
 
 layout = html.Div(
