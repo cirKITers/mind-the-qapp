@@ -111,25 +111,22 @@ class Expressibility_Sampler:
                 )
             )
         )
-        for idx, x in enumerate(self.x_samples):
+        for idx, x in enumerate(self.x_samples[:-1]):
 
             sv = self.instructor.model(w, x)  # n_samples, N
 
             fidelity = (
                 np.trace(
-                    np.sqrt(
-                        np.sqrt(sv[: self.n_samples])
-                        * sv[self.n_samples :]
-                        * np.sqrt(sv[: self.n_samples])
-                    ),
+                    np.sqrt(sv[: self.n_samples] * sv[self.n_samples :]),
                     axis1=1,
                     axis2=2,
                 )
                 ** 2
             )
             fidelities[idx] = fidelity
+        fidelities[-1] = fidelities[0]
 
-        return np.abs(fidelities)
+        return fidelities
 
     def sample_hist_state_fidelities(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         fidelities = self.sample_state_fidelities()
