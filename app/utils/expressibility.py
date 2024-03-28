@@ -124,7 +124,7 @@ class Expressibility_Sampler:
                 ** 2
             )
             fidelities[idx] = fidelity
-        fidelities[-1] = fidelities[0]
+        fidelities[-1] = fidelities[0]  # fist input is the equal to the last one
 
         return fidelities
 
