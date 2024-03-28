@@ -382,5 +382,4 @@ def update_ent_cap(main_data, _, page_data):
         n_bins,
     )
     ent_cap = ent_sampler.calculate_entangling_capability(10)
-    print(ent_cap)
     return [f"{ent_cap:.3f}"]
