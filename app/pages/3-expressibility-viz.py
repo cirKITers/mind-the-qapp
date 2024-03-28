@@ -291,36 +291,7 @@ def update_hist_haar(main_data, _, page_data):
     prevent_initial_call=True,
 )
 def update_output_probabilities(main_data, _, page_data):
-    if page_data is None or main_data is None:
-        return [go.Figure(), "Not Ready"]
-    n_samples, n_input_samples, n_bins = (
-        page_data["n_samples"],
-        page_data["n_input_samples"],
-        page_data["n_bins"],
-    )
-    expr_sampler = Expressibility_Sampler(
-        main_data["number_qubits"],
-        main_data["number_layers"],
-        main_data["seed"],
-        main_data["circuit_type"],
-        main_data["data_reupload"],
-        n_samples,
-        n_input_samples,
-        n_bins,
-    )
-    x_samples, y_samples, z_samples = expr_sampler.sample_hist_state_fidelities()
-
-    fig_expr = go.Figure(
-        go.Surface(
-            x=x_samples,
-            y=y_samples,
-            z=z_samples,
-            cmax=1,
-            cmin=0,
-            showscale=False,
-            showlegend=False,
-        )
-    )
+    fig_expr = go.Figure()
     fig_expr.update_layout(
         title="Expressibility",
         template="simple_white",
@@ -341,7 +312,41 @@ def update_output_probabilities(main_data, _, page_data):
         coloraxis_showscale=False,
     )
 
+    if page_data is None or main_data is None:
+        return [fig_expr, "Not Ready"]
+    n_samples, n_input_samples, n_bins = (
+        page_data["n_samples"],
+        page_data["n_input_samples"],
+        page_data["n_bins"],
+    )
+
+    if main_data["circuit_type"] == None:
+        return [fig_expr, "Ready"]
+
+    expr_sampler = Expressibility_Sampler(
+        main_data["number_qubits"],
+        main_data["number_layers"],
+        main_data["seed"],
+        main_data["circuit_type"],
+        main_data["data_reupload"],
+        n_samples,
+        n_input_samples,
+        n_bins,
+    )
+    x_samples, y_samples, z_samples = expr_sampler.sample_hist_state_fidelities()
+
+    fig_expr.add_surface(
+        x=x_samples,
+        y=y_samples,
+        z=z_samples,
+        cmax=1,
+        cmin=0,
+        showscale=False,
+        showlegend=False,
+    )
+
     return [fig_expr, "Ready"]
+
 
 @callback(
     [
