@@ -24,6 +24,8 @@ from utils.expressibility import (
     get_sampled_haar_probability_histogram,
 )
 
+from utils.entangling import EntanglingCapability_Sampler
+
 dash.register_page(__name__, name="Expressibility")
 
 layout = html.Div(
@@ -43,10 +45,10 @@ layout = html.Div(
                                 dbc.Col(
                                     dbc.Input(
                                         type="number",
-                                        min=1,
-                                        max=5000,
+                                        min=100,
+                                        max=1000,
                                         step=1,
-                                        value=500,
+                                        value=200,
                                         id="num-param-sample-pairs",
                                     ),
                                 ),
@@ -88,11 +90,32 @@ layout = html.Div(
                                 dbc.Col(
                                     dbc.Input(
                                         type="number",
-                                        min=1,
+                                        min=10,
                                         max=500,
                                         step=1,
-                                        value=50,
+                                        value=20,
                                         id="num-histogram-bins",
+                                    ),
+                                ),
+                            ],
+                            className="settingsRow",
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Label(
+                                    "Meyer-Wallach Entangling Capability",
+                                    html_for="ent-cap",
+                                    width=4,
+                                ),
+                                dbc.Col(
+                                    html.H4(
+                                        dbc.Badge(
+                                            "0.0",
+                                            color="primary",
+                                            pill=True,
+                                            className="me-1",
+                                            id="ent-cap",
+                                        )
                                     ),
                                 ),
                             ],
@@ -270,36 +293,7 @@ def update_hist_haar(main_data, _, page_data):
     prevent_initial_call=True,
 )
 def update_output_probabilities(main_data, _, page_data):
-    if page_data is None or main_data is None:
-        return [go.Figure(), "Not Ready"]
-    n_samples, n_input_samples, n_bins = (
-        page_data["n_samples"],
-        page_data["n_input_samples"],
-        page_data["n_bins"],
-    )
-    expr_sampler = Expressibility_Sampler(
-        main_data["number_qubits"],
-        main_data["number_layers"],
-        main_data["seed"],
-        main_data["circuit_type"],
-        main_data["data_reupload"],
-        n_samples,
-        n_input_samples,
-        n_bins,
-    )
-    x_samples, y_samples, z_samples = expr_sampler.sample_hist_state_fidelities()
-
-    fig_expr = go.Figure(
-        go.Surface(
-            x=x_samples,
-            y=y_samples,
-            z=z_samples,
-            cmax=1,
-            cmin=0,
-            showscale=False,
-            showlegend=False,
-        )
-    )
+    fig_expr = go.Figure()
     fig_expr.update_layout(
         title="Expressibility",
         template="simple_white",
@@ -320,4 +314,64 @@ def update_output_probabilities(main_data, _, page_data):
         coloraxis_showscale=False,
     )
 
+    if page_data is None or main_data is None:
+        return [fig_expr, "Not Ready"]
+    n_samples, n_input_samples, n_bins = (
+        page_data["n_samples"],
+        page_data["n_input_samples"],
+        page_data["n_bins"],
+    )
+
+    if main_data["circuit_type"] == None:
+        return [fig_expr, "Ready"]
+
+    expr_sampler = Expressibility_Sampler(
+        main_data["number_qubits"],
+        main_data["number_layers"],
+        main_data["seed"],
+        main_data["circuit_type"],
+        main_data["data_reupload"],
+        n_samples,
+        n_input_samples,
+        n_bins,
+    )
+    x_samples, y_samples, z_samples = expr_sampler.sample_hist_state_fidelities()
+
+    fig_expr.add_surface(
+        x=x_samples,
+        y=y_samples,
+        z=z_samples,
+        cmax=1,
+        cmin=0,
+        showscale=False,
+        showlegend=False,
+    )
+
     return [fig_expr, "Ready"]
+
+
+@callback(
+    [
+        Output("ent-cap", "children"),
+        # Output("loading-state", "children", allow_duplicate=True),
+    ],
+    [
+        Input("storage-main", "data"),
+        Input("storage-expr-viz", "modified_timestamp"),
+    ],
+    State("storage-expr-viz", "data"),
+    prevent_initial_call=True,
+)
+def update_ent_cap(main_data, _, page_data):
+    if page_data is None or main_data is None:
+        return 0
+
+    ent_sampler = EntanglingCapability_Sampler(
+        main_data["number_qubits"],
+        main_data["number_layers"],
+        main_data["seed"],
+        main_data["circuit_type"],
+        main_data["data_reupload"],
+    )
+    ent_cap = ent_sampler.calculate_entangling_capability(10)
+    return [f"{ent_cap:.3f}"]
