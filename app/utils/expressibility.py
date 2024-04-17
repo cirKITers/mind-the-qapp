@@ -2,6 +2,8 @@ from .instructor import Instructor
 import pennylane.numpy as np
 from typing import Tuple
 from scipy import integrate
+import os
+import hashlib
 
 
 def theoretical_haar_probability(fidelity: float, n_qubits: int) -> float:
@@ -41,7 +43,7 @@ def sampled_haar_probability(n_qubits: int, n_bins: int) -> np.ndarray:
 
 
 def get_sampled_haar_probability_histogram(
-    n_qubits, n_bins, n_repetitions
+    n_qubits, n_bins, n_repetitions, cache=True
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Calculates theoretical probability density function for random Haar states
@@ -56,6 +58,26 @@ def get_sampled_haar_probability_histogram(
     """
     x = np.linspace(0, 1, n_bins)
     y = sampled_haar_probability(n_qubits, n_bins)
+
+    if cache:
+        name = f"haar_{n_qubits}q_{n_bins}s.npy"
+
+        cache_folder = ".cache"
+        if not os.path.exists(cache_folder):
+            os.mkdir(cache_folder)
+
+        file_path = os.path.join(cache_folder, name)
+
+        if os.path.isfile(file_path):
+            y = np.load(file_path)
+            return x, y
+
+    # Note that this is a jax rng, so it does not matter if we
+    # call that multiple times
+    y = sampled_haar_probability(n_qubits, n_bins)
+
+    if cache:
+        np.save(file_path, y)
 
     return x, y
 
@@ -93,6 +115,43 @@ class Expressibility_Sampler:
             x_domain[0], x_domain[1], n_input_samples, requires_grad=False
         )
 
+    def get_pqc_statevector(self, w: np.ndarray, x: np.ndarray, cache=True) -> float:
+
+        # the qasm representation contains the bound parameters, thus it is ok to hash that
+        hs = hashlib.md5(
+            repr(
+                {
+                    "n_qubits": self.instructor.model.n_qubits,
+                    "n_layers": self.instructor.model.n_layers,
+                    "pqc": self.instructor.model.pqc.__name__,
+                    "w": w,
+                    "x": x,
+                }
+            ).encode("utf-8")
+        ).hexdigest()
+
+        if cache:
+            name = f"pqc_{hs}.npy"
+
+            cache_folder = ".cache"
+            if not os.path.exists(cache_folder):
+                os.mkdir(cache_folder)
+
+            file_path = os.path.join(cache_folder, name)
+
+            if os.path.isfile(file_path):
+                loaded_array = np.load(file_path)
+                return loaded_array
+
+        # execute the PQC circuit with the current set of parameters
+        # ansatz = circuit(params, circuit.num_qubits)
+        result = self.instructor.model(w, x)
+
+        if cache:
+            np.save(file_path, result)
+
+        return result
+
     def sample_state_fidelities(self) -> np.ndarray:
 
         fidelities = np.zeros((len(self.x_samples), self.n_samples))
@@ -113,7 +172,8 @@ class Expressibility_Sampler:
         )
         for idx, x in enumerate(self.x_samples[:-1]):
 
-            sv = self.instructor.model(w, x)  # n_samples, N
+            # sv = self.instructor.model(w, x)  # n_samples, N
+            sv = self.get_pqc_statevector(w, x)  # n_samples, N
 
             fidelity = (
                 np.trace(
