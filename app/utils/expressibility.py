@@ -114,7 +114,9 @@ class Expressibility_Sampler:
             x_domain[0], x_domain[1], n_input_samples, requires_grad=False
         )
 
-    def sample_state_fidelities(self) -> np.ndarray:
+    def sample_state_fidelities(
+        self, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0
+    ) -> np.ndarray:
 
         fidelities = np.zeros((len(self.x_samples), self.n_samples))
 
@@ -134,7 +136,9 @@ class Expressibility_Sampler:
         )
         for idx, x in enumerate(self.x_samples[:-1]):
 
-            sv = self.instructor.forward(x, w, cache=True)  # n_samples, N
+            sv = self.instructor.forward(
+                x, w, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=True
+            )  # n_samples, N
 
             fidelity = (
                 np.trace(
@@ -149,8 +153,10 @@ class Expressibility_Sampler:
 
         return fidelities
 
-    def sample_hist_state_fidelities(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        fidelities = self.sample_state_fidelities()
+    def sample_hist_state_fidelities(
+        self, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        fidelities = self.sample_state_fidelities(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
         z_component = np.zeros((len(self.x_samples), self.n_bins - 1))
 
         # FIXME: somehow I get nan's in the histogram, when directly creating bins until n

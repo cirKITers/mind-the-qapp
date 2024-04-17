@@ -41,7 +41,9 @@ class EntanglingCapability_Sampler:
         )
         self.rng = np.random.default_rng(seed)
 
-    def calculate_entangling_capability(self, samples_per_qubit: int) -> float:
+    def calculate_entangling_capability(
+        self, samples_per_qubit: int, bf=0, pf=0, ad=0, pd=0, dp=0
+    ) -> float:
         """
         Calculates the entangling capacity of a given quantum circuit
         using Meyer-Wallach measure.
@@ -85,7 +87,9 @@ class EntanglingCapability_Sampler:
             qb = list(range(n_qubits))
 
             for i in range(samples):
-                U = self.instructor.forward(0, params[i], cache=True)
+                U = self.instructor.forward(
+                    0, params[i], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=True
+                )
 
                 qb = list(range(n_qubits))
                 entropy = 0
