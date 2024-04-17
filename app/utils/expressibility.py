@@ -146,7 +146,7 @@ class Expressibility_Sampler:
 
         # execute the PQC circuit with the current set of parameters
         # ansatz = circuit(params, circuit.num_qubits)
-        result = self.instructor.model(w, x)
+        result = self.instructor.forward(x, w)
 
         if cache:
             np.save(file_path, result)
