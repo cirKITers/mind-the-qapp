@@ -124,6 +124,7 @@ class Expressibility_Sampler:
                     "n_qubits": self.instructor.model.n_qubits,
                     "n_layers": self.instructor.model.n_layers,
                     "pqc": self.instructor.model.pqc.__name__,
+                    "dru": self.instructor.model.data_reupload,
                     "w": w,
                     "x": x,
                 }
