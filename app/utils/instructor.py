@@ -5,6 +5,8 @@ import pennylane.numpy as np
 from pennylane.fourier import coefficients
 from functools import partial
 from pennylane.fourier.visualize import _extract_data_and_labels
+import hashlib
+import os
 
 from utils.ansaetze import Ansaetze
 
@@ -248,6 +250,7 @@ class Instructor:
         ad: float = 0.0,
         pd: float = 0.0,
         dp: float = 0.0,
+        cache=False,
     ) -> np.ndarray:
         """Perform a forward pass of the quantum circuit.
 
@@ -261,6 +264,7 @@ class Instructor:
             ad (float, optional): The amplitude damping rate. Defaults to 0.0.
             pd (float, optional): The phase damping rate. Defaults to 0.0.
             dp (float, optional): The depolarization rate. Defaults to 0.0.
+            cache (bool, optional): Whether to cache the results. Defaults to False.
 
         Returns:
             np.ndarray: The output of the quantum circuit.
@@ -273,7 +277,47 @@ class Instructor:
 
         if type(w) == list:
             w = np.array(w)
-        return self.model(w, x_d, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
+
+        # the qasm representation contains the bound parameters, thus it is ok to hash that
+        hs = hashlib.md5(
+            repr(
+                {
+                    "n_qubits": self.model.n_qubits,
+                    "n_layers": self.model.n_layers,
+                    "pqc": self.model.pqc.__name__,
+                    "dru": self.model.data_reupload,
+                    "w": w,
+                    "x": x_d,
+                    "bf": bf,
+                    "pf": pf,
+                    "ad": ad,
+                    "pd": pd,
+                    "dp": dp,
+                }
+            ).encode("utf-8")
+        ).hexdigest()
+
+        if cache:
+            name = f"pqc_{hs}.npy"
+
+            cache_folder = ".cache"
+            if not os.path.exists(cache_folder):
+                os.mkdir(cache_folder)
+
+            file_path = os.path.join(cache_folder, name)
+
+            if os.path.isfile(file_path):
+                loaded_array = np.load(file_path)
+                return loaded_array
+
+        # execute the PQC circuit with the current set of parameters
+        # ansatz = circuit(params, circuit.num_qubits)
+        result = self.model(w, x_d, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
+
+        if cache:
+            np.save(file_path, result)
+
+        return result
 
     def cost(
         self,

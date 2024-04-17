@@ -3,7 +3,6 @@ import pennylane.numpy as np
 from typing import Tuple
 from scipy import integrate
 import os
-import hashlib
 
 
 def theoretical_haar_probability(fidelity: float, n_qubits: int) -> float:
@@ -115,44 +114,6 @@ class Expressibility_Sampler:
             x_domain[0], x_domain[1], n_input_samples, requires_grad=False
         )
 
-    def get_pqc_statevector(self, w: np.ndarray, x: np.ndarray, cache=True) -> float:
-
-        # the qasm representation contains the bound parameters, thus it is ok to hash that
-        hs = hashlib.md5(
-            repr(
-                {
-                    "n_qubits": self.instructor.model.n_qubits,
-                    "n_layers": self.instructor.model.n_layers,
-                    "pqc": self.instructor.model.pqc.__name__,
-                    "dru": self.instructor.model.data_reupload,
-                    "w": w,
-                    "x": x,
-                }
-            ).encode("utf-8")
-        ).hexdigest()
-
-        if cache:
-            name = f"pqc_{hs}.npy"
-
-            cache_folder = ".cache"
-            if not os.path.exists(cache_folder):
-                os.mkdir(cache_folder)
-
-            file_path = os.path.join(cache_folder, name)
-
-            if os.path.isfile(file_path):
-                loaded_array = np.load(file_path)
-                return loaded_array
-
-        # execute the PQC circuit with the current set of parameters
-        # ansatz = circuit(params, circuit.num_qubits)
-        result = self.instructor.forward(x, w)
-
-        if cache:
-            np.save(file_path, result)
-
-        return result
-
     def sample_state_fidelities(self) -> np.ndarray:
 
         fidelities = np.zeros((len(self.x_samples), self.n_samples))
@@ -173,8 +134,7 @@ class Expressibility_Sampler:
         )
         for idx, x in enumerate(self.x_samples[:-1]):
 
-            # sv = self.instructor.model(w, x)  # n_samples, N
-            sv = self.get_pqc_statevector(w, x)  # n_samples, N
+            sv = self.instructor.forward(x, w, cache=True)  # n_samples, N
 
             fidelity = (
                 np.trace(
