@@ -299,9 +299,9 @@ def update_output_probabilities(main_data, _, page_data):
         template="simple_white",
         scene=dict(
             xaxis=dict(
-                title="Frequency",
+                title="Input",
             ),
-            yaxis=dict(title="Bin"),
+            yaxis=dict(title="Fidelity"),
             zaxis=dict(
                 title="Prob. Density",
             ),
