@@ -85,7 +85,7 @@ class EntanglingCapability_Sampler:
             qb = list(range(n_qubits))
 
             for i in range(samples):
-                U = self.instructor.forward(0, params[i])
+                U = self.instructor.forward(0, params[i], cache=True)
 
                 qb = list(range(n_qubits))
                 entropy = 0

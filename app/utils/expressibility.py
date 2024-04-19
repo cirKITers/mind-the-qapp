@@ -2,6 +2,7 @@ from .instructor import Instructor
 import pennylane.numpy as np
 from typing import Tuple
 from scipy import integrate
+import os
 
 
 def theoretical_haar_probability(fidelity: float, n_qubits: int) -> float:
@@ -41,7 +42,7 @@ def sampled_haar_probability(n_qubits: int, n_bins: int) -> np.ndarray:
 
 
 def get_sampled_haar_probability_histogram(
-    n_qubits, n_bins, n_repetitions
+    n_qubits, n_bins, n_repetitions, cache=True
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Calculates theoretical probability density function for random Haar states
@@ -56,6 +57,26 @@ def get_sampled_haar_probability_histogram(
     """
     x = np.linspace(0, 1, n_bins)
     y = sampled_haar_probability(n_qubits, n_bins)
+
+    if cache:
+        name = f"haar_{n_qubits}q_{n_bins}s.npy"
+
+        cache_folder = ".cache"
+        if not os.path.exists(cache_folder):
+            os.mkdir(cache_folder)
+
+        file_path = os.path.join(cache_folder, name)
+
+        if os.path.isfile(file_path):
+            y = np.load(file_path)
+            return x, y
+
+    # Note that this is a jax rng, so it does not matter if we
+    # call that multiple times
+    y = sampled_haar_probability(n_qubits, n_bins)
+
+    if cache:
+        np.save(file_path, y)
 
     return x, y
 
@@ -113,7 +134,7 @@ class Expressibility_Sampler:
         )
         for idx, x in enumerate(self.x_samples[:-1]):
 
-            sv = self.instructor.model(w, x)  # n_samples, N
+            sv = self.instructor.forward(x, w, cache=True)  # n_samples, N
             sqrt_sv1 = np.sqrt(sv[: self.n_samples])
 
             fidelity = (
