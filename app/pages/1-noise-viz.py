@@ -16,30 +16,52 @@ dash.register_page(__name__, name="Noise Viz")
 
 layout = html.Div(
     [
+        dcc.Store(id="storage-noise-viz", storage_type="session"),
         html.Div(
             [
-                dcc.Store(id="storage-noise-viz", storage_type="session"),
                 html.Div(
                     [
-                        dbc.Label("Bit-Flip Probability"),
-                        dcc.Slider(0, 0.5, 0.05, value=0, id="bit-flip-prob-viz"),
-                        dbc.Label("Phase Flip Probability"),
-                        dcc.Slider(0, 0.5, 0.05, value=0, id="phase-flip-prob-viz"),
-                        dbc.Label(
-                            "Amplitude Damping Probability",
-                        ),
-                        dcc.Slider(
-                            0, 0.5, 0.05, value=0, id="amplitude-damping-prob-viz"
-                        ),
+                        dbc.Row(
+                            [
+                                dbc.Label("Bit-Flip Probability"),
+                                dcc.Slider(
+                                    0, 0.5, 0.05, value=0, id="bit-flip-prob-viz"
+                                ),
+                                dbc.Label("Phase Flip Probability"),
+                                dcc.Slider(
+                                    0, 0.5, 0.05, value=0, id="phase-flip-prob-viz"
+                                ),
+                                dbc.Label(
+                                    "Amplitude Damping Probability",
+                                ),
+                                dcc.Slider(
+                                    0,
+                                    0.5,
+                                    0.05,
+                                    value=0,
+                                    id="amplitude-damping-prob-viz",
+                                ),
+                            ],
+                            className="settingsRow",
+                        )
                     ],
                     style={"width": "49%", "display": "inline-block"},
                 ),
                 html.Div(
                     [
-                        dbc.Label("Phase Damping Probability"),
-                        dcc.Slider(0, 0.5, 0.05, value=0, id="phase-damping-prob-viz"),
-                        dbc.Label("Depolarization Probability"),
-                        dcc.Slider(0, 0.5, 0.05, value=0, id="depolarization-prob-viz"),
+                        dbc.Row(
+                            [
+                                dbc.Label("Phase Damping Probability"),
+                                dcc.Slider(
+                                    0, 0.5, 0.05, value=0, id="phase-damping-prob-viz"
+                                ),
+                                dbc.Label("Depolarization Probability"),
+                                dcc.Slider(
+                                    0, 0.5, 0.05, value=0, id="depolarization-prob-viz"
+                                ),
+                            ],
+                            className="settingsRow",
+                        )
                     ],
                     style={"width": "49%", "display": "inline-block"},
                 ),

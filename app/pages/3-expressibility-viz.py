@@ -75,11 +75,6 @@ layout = html.Div(
                             ],
                             className="settingsRow",
                         ),
-                    ],
-                    style={"width": "49%", "display": "inline-block"},
-                ),
-                html.Div(
-                    [
                         dbc.Row(
                             [
                                 dbc.Label(
@@ -100,12 +95,57 @@ layout = html.Div(
                             ],
                             className="settingsRow",
                         ),
+                    ],
+                    style={"width": "39%", "display": "inline-block"},
+                ),
+                html.Div(
+                    [
+                        dbc.Row(
+                            [
+                                dbc.Label("Phase Damping Probability"),
+                                dcc.Slider(
+                                    0,
+                                    0.5,
+                                    0.05,
+                                    value=0,
+                                    id="phase-damping-prob-expr",
+                                ),
+                            ],
+                            className="settingsRow",
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Label("Depolarization Probability"),
+                                dcc.Slider(
+                                    0,
+                                    0.5,
+                                    0.05,
+                                    value=0,
+                                    id="depolarization-prob-expr",
+                                ),
+                            ],
+                            className="settingsRow",
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Label("Bit-Flip Probability"),
+                                dcc.Slider(
+                                    0, 0.5, 0.05, value=0, id="bit-flip-prob-expr"
+                                ),
+                            ],
+                            className="settingsRow",
+                        ),
+                    ],
+                    style={"width": "30%", "display": "inline-block"},
+                ),
+                html.Div(
+                    [
                         dbc.Row(
                             [
                                 dbc.Label(
                                     "Meyer-Wallach Entangling Capability",
                                     html_for="ent-cap",
-                                    width=4,
+                                    width=8,
                                 ),
                                 dbc.Col(
                                     html.H4(
@@ -121,8 +161,32 @@ layout = html.Div(
                             ],
                             className="settingsRow",
                         ),
+                        dbc.Row(
+                            [
+                                dbc.Label("Phase Flip Probability"),
+                                dcc.Slider(
+                                    0, 0.5, 0.05, value=0, id="phase-flip-prob-expr"
+                                ),
+                            ],
+                            className="settingsRow",
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Label(
+                                    "Amplitude Damping Probability",
+                                ),
+                                dcc.Slider(
+                                    0,
+                                    0.5,
+                                    0.05,
+                                    value=0,
+                                    id="amplitude-damping-prob-expr",
+                                ),
+                            ],
+                            className="settingsRow",
+                        ),
                     ],
-                    style={"width": "49%", "display": "inline-block"},
+                    style={"width": "30%", "display": "inline-block"},
                 ),
             ],
         ),
@@ -134,7 +198,7 @@ layout = html.Div(
                             id="fig-hist-expr",
                             style={
                                 "display": "inline-block",
-                                "height": "80vh",
+                                "height": "70vh",
                                 "width": "100%",
                             },
                         ),
@@ -147,7 +211,7 @@ layout = html.Div(
                             id="fig-hist-haar",
                             style={
                                 "display": "inline-block",
-                                "height": "40vh",
+                                "height": "35vh",
                                 "width": "100%",
                             },
                         ),
@@ -155,7 +219,7 @@ layout = html.Div(
                             id="fig-hist-fourier",
                             style={
                                 "display": "inline-block",
-                                "height": "40vh",
+                                "height": "35vh",
                                 "width": "100%",
                             },
                         ),
@@ -171,24 +235,42 @@ layout = html.Div(
 
 @callback(
     Output("storage-expr-viz", "data"),
-    Output("loading-state", "children", allow_duplicate=True),
     [
         Input("num-param-sample-pairs", "value"),
         Input("num-input-samples", "value"),
         Input("num-histogram-bins", "value"),
+        Input("bit-flip-prob-expr", "value"),
+        Input("phase-flip-prob-expr", "value"),
+        Input("amplitude-damping-prob-expr", "value"),
+        Input("phase-damping-prob-expr", "value"),
+        Input("depolarization-prob-expr", "value"),
     ],
     prevent_initial_call=True,
 )
-def on_preference_changed(n_samples, n_input_samples, n_bins):
+def on_preference_changed(
+    n_samples,
+    n_input_samples,
+    n_bins,
+    bf,
+    pf,
+    ad,
+    pd,
+    dp,
+):
 
     # Give a default data dict with 0 clicks if there's no data.
     data = dict(
         n_samples=n_samples,
         n_input_samples=n_input_samples,
         n_bins=n_bins,
+        bf=bf,
+        pf=pf,
+        ad=ad,
+        pd=pd,
+        dp=dp,
     )
 
-    return data, "Loaded data"
+    return data
 
 
 @callback(
@@ -205,11 +287,15 @@ def on_preference_changed(n_samples, n_input_samples, n_bins):
 def update_hist_fourier(main_data, _, page_data):
     if page_data is None or main_data is None:
         return [go.Figure(), go.Figure(), "Not Ready"]
-    n_samples, n_input_samples, n_bins = (
-        page_data["n_samples"],
-        page_data["n_input_samples"],
-        page_data["n_bins"],
+
+    bf, pf, ad, pd, dp = (
+        page_data["bf"],
+        page_data["pf"],
+        page_data["ad"],
+        page_data["pd"],
+        page_data["dp"],
     )
+
     instructor = Instructor(
         main_data["number_qubits"],
         main_data["number_layers"],
@@ -218,7 +304,7 @@ def update_hist_fourier(main_data, _, page_data):
         data_reupload=main_data["data_reupload"],
     )
     coeffs = coefficients(
-        partial(instructor.forward),
+        partial(instructor.forward, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp),
         1,
         instructor.max_freq,
     )
@@ -325,6 +411,14 @@ def update_output_probabilities(main_data, _, page_data):
     if main_data["circuit_type"] == None:
         return [fig_expr, "Ready"]
 
+    bf, pf, ad, pd, dp = (
+        page_data["bf"],
+        page_data["pf"],
+        page_data["ad"],
+        page_data["pd"],
+        page_data["dp"],
+    )
+
     expr_sampler = Expressibility_Sampler(
         main_data["number_qubits"],
         main_data["number_layers"],
@@ -335,7 +429,9 @@ def update_output_probabilities(main_data, _, page_data):
         n_input_samples,
         n_bins,
     )
-    x_samples, y_samples, z_samples = expr_sampler.sample_hist_state_fidelities()
+    x_samples, y_samples, z_samples = expr_sampler.sample_hist_state_fidelities(
+        bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+    )
 
     fig_expr.add_surface(
         x=x_samples,
@@ -366,6 +462,14 @@ def update_ent_cap(main_data, _, page_data):
     if page_data is None or main_data is None:
         return 0
 
+    bf, pf, ad, pd, dp = (
+        page_data["bf"],
+        page_data["pf"],
+        page_data["ad"],
+        page_data["pd"],
+        page_data["dp"],
+    )
+
     ent_sampler = EntanglingCapability_Sampler(
         main_data["number_qubits"],
         main_data["number_layers"],
@@ -373,5 +477,7 @@ def update_ent_cap(main_data, _, page_data):
         main_data["circuit_type"],
         main_data["data_reupload"],
     )
-    ent_cap = ent_sampler.calculate_entangling_capability(10)
+    ent_cap = ent_sampler.calculate_entangling_capability(
+        10, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+    )
     return [f"{ent_cap:.3f}"]
