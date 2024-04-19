@@ -139,10 +139,11 @@ class Expressibility_Sampler:
             sv = self.instructor.forward(
                 x, w, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=True
             )  # n_samples, N
+            sqrt_sv1 = np.sqrt(sv[: self.n_samples])
 
             fidelity = (
                 np.trace(
-                    np.sqrt(sv[: self.n_samples] * sv[self.n_samples :]),
+                    np.sqrt(sqrt_sv1 * sv[self.n_samples :] * sqrt_sv1),
                     axis1=1,
                     axis2=2,
                 )
