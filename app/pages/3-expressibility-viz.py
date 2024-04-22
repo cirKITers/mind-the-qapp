@@ -1,7 +1,6 @@
 import dash
 import numpy as np
 from dash import (
-    Dash,
     dcc,
     html,
     Input,
@@ -11,7 +10,6 @@ from dash import (
 )
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from dash.exceptions import PreventUpdate
 
 # Fourier coefficients utils
 from pennylane.fourier import coefficients
@@ -234,6 +232,16 @@ layout = html.Div(
 
 
 @callback(
+    Output("storage-expr-viz", "data", allow_duplicate=True),
+    Input("storage-main", "modified_timestamp"),
+    State("storage-expr-viz", "data"),
+    prevent_initial_call=True,
+)
+def update_page_data(_, page_data):
+    return page_data
+
+
+@callback(
     Output("storage-expr-viz", "data"),
     [
         Input("num-param-sample-pairs", "value"),
@@ -245,7 +253,6 @@ layout = html.Div(
         Input("phase-damping-prob-expr", "value"),
         Input("depolarization-prob-expr", "value"),
     ],
-    prevent_initial_call=True,
 )
 def on_preference_changed(
     n_samples,
@@ -278,13 +285,12 @@ def on_preference_changed(
         Output("fig-hist-fourier", "figure"),
     ],
     [
-        Input("storage-main", "data"),
-        Input("storage-expr-viz", "modified_timestamp"),
+        Input("storage-expr-viz", "data"),
     ],
-    State("storage-expr-viz", "data"),
+    State("storage-main", "data"),
     prevent_initial_call=True,
 )
-def update_hist_fourier(main_data, _, page_data):
+def update_hist_fourier(page_data, main_data):
     if page_data is None or main_data is None:
         return [go.Figure(), go.Figure(), "Not Ready"]
 
@@ -332,13 +338,12 @@ def update_hist_fourier(main_data, _, page_data):
         # Output("loading-state", "children", allow_duplicate=True),
     ],
     [
-        Input("storage-main", "data"),
-        Input("storage-expr-viz", "modified_timestamp"),
+        Input("storage-expr-viz", "data"),
     ],
-    State("storage-expr-viz", "data"),
+    State("storage-main", "data"),
     prevent_initial_call=True,
 )
-def update_hist_haar(main_data, _, page_data):
+def update_hist_haar(page_data, main_data):
     if page_data is None or main_data is None:
         return [go.Figure(), "Not Ready"]
     n_samples, n_input_samples, n_bins = (
@@ -372,13 +377,12 @@ def update_hist_haar(main_data, _, page_data):
         Output("loading-state", "children", allow_duplicate=True),
     ],
     [
-        Input("storage-main", "data"),
-        Input("storage-expr-viz", "modified_timestamp"),
+        Input("storage-expr-viz", "data"),
     ],
-    State("storage-expr-viz", "data"),
+    State("storage-main", "data"),
     prevent_initial_call=True,
 )
-def update_output_probabilities(main_data, _, page_data):
+def update_output_probabilities(page_data, main_data):
     fig_expr = go.Figure()
     fig_expr.update_layout(
         title="Expressibility",
@@ -452,13 +456,12 @@ def update_output_probabilities(main_data, _, page_data):
         # Output("loading-state", "children", allow_duplicate=True),
     ],
     [
-        Input("storage-main", "data"),
-        Input("storage-expr-viz", "modified_timestamp"),
+        Input("storage-expr-viz", "data"),
     ],
-    State("storage-expr-viz", "data"),
+    State("storage-main", "data"),
     prevent_initial_call=True,
 )
-def update_ent_cap(main_data, _, page_data):
+def update_ent_cap(page_data, main_data):
     if page_data is None or main_data is None:
         return 0
 

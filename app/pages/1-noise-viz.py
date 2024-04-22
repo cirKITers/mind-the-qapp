@@ -1,7 +1,6 @@
 import dash
 from dash import Input, Output, dcc, html, callback, State
 import dash_bootstrap_components as dbc
-from dash.exceptions import PreventUpdate
 
 import plotly.graph_objects as go
 
@@ -69,12 +68,22 @@ layout = html.Div(
         ),
         html.Div(
             [
-                dcc.Graph(id="fig-hist"),
+                dcc.Graph(id="fig-hist-noise"),
                 dcc.Graph(id="fig-expval"),
             ],
         ),
     ]
 )
+
+
+@callback(
+    Output("storage-noise-viz", "data", allow_duplicate=True),
+    Input("storage-main", "modified_timestamp"),
+    State("storage-noise-viz", "data"),
+    prevent_initial_call=True,
+)
+def update_page_data(_, page_data):
+    return page_data
 
 
 @callback(
@@ -97,18 +106,17 @@ def on_preference_changed(bf, pf, ad, pd, dp):
 
 @callback(
     [
-        Output("fig-hist", "figure"),
+        Output("fig-hist-noise", "figure"),
         Output("fig-expval", "figure"),
         Output("loading-state", "children"),
     ],
     [
-        Input("storage-main", "data"),
-        Input("storage-noise-viz", "modified_timestamp"),
+        Input("storage-noise-viz", "data"),
     ],
-    State("storage-noise-viz", "data"),
+    State("storage-main", "data"),
     prevent_initial_call=True,
 )
-def update_output(main_data, _, page_data):
+def update_output(page_data, main_data):
     bf, pf, ad, pd, dp = (
         page_data["bf"],
         page_data["pf"],

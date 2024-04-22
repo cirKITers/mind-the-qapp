@@ -172,8 +172,20 @@ layout = html.Div(
 
 
 @callback(
-    Output("storage-noise-training-viz", "data"),
-    Output("storage-noise-hist-proc", "data"),
+    Output("storage-noise-training-viz", "data", allow_duplicate=True),
+    Input("storage-main", "modified_timestamp"),
+    State("storage-noise-training-viz", "data"),
+    prevent_initial_call=True,
+)
+def update_page_data(_, page_data):
+    return page_data
+
+
+@callback(
+    [
+        Output("storage-noise-training-viz", "data"),
+        Output("storage-noise-hist-proc", "data"),
+    ],
     [
         Input("bit-flip-prob-training", "value"),
         Input("phase-flip-prob-training", "value"),
@@ -181,12 +193,9 @@ layout = html.Div(
         Input("phase-damping-prob-training", "value"),
         Input("depolarization-prob-training", "value"),
         Input("numeric-input-steps", "value"),
-        Input("storage-main", "modified_timestamp"),
     ],
-    State("storage-noise-training-viz", "data"),
-    State("storage-main", "data"),
 )
-def on_preference_changed(bf, pf, ad, pd, dp, steps, _, page_data, main_data):
+def on_preference_changed(bf, pf, ad, pd, dp, steps):
 
     # Give a default data dict with 0 clicks if there's no data.
     page_data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, steps=steps)
@@ -196,13 +205,17 @@ def on_preference_changed(bf, pf, ad, pd, dp, steps, _, page_data, main_data):
 
 
 @callback(
-    Output("fig-training-hist", "figure"),
-    Output("storage-noise-hist-proc", "data", allow_duplicate=True),
+    [
+        Output("fig-training-hist", "figure"),
+        Output("storage-noise-hist-proc", "data", allow_duplicate=True),
+    ],
     Input("storage-noise-training-proc", "modified_timestamp"),
-    State("storage-noise-training-proc", "data"),
-    State("storage-noise-hist-proc", "data"),
-    State("storage-noise-training-viz", "data"),
-    State("storage-main", "data"),
+    [
+        State("storage-noise-training-proc", "data"),
+        State("storage-noise-hist-proc", "data"),
+        State("storage-noise-training-viz", "data"),
+        State("storage-main", "data"),
+    ],
     prevent_initial_call=True,
 )
 def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
@@ -273,9 +286,11 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
 @callback(
     Output("fig-training-expval", "figure"),
     Input("storage-noise-training-proc", "modified_timestamp"),
-    State("storage-noise-training-proc", "data"),
-    State("storage-noise-training-viz", "data"),
-    State("storage-main", "data"),
+    [
+        State("storage-noise-training-proc", "data"),
+        State("storage-noise-training-viz", "data"),
+        State("storage-main", "data"),
+    ],
     prevent_initial_call=True,
 )
 def update_expval(n, page_log_training, page_data, main_data):
@@ -325,8 +340,10 @@ def update_expval(n, page_log_training, page_data, main_data):
 @callback(
     Output("fig-training-metric", "figure"),
     Input("storage-noise-training-proc", "modified_timestamp"),
-    State("storage-noise-training-proc", "data"),
-    State("storage-noise-training-viz", "data"),
+    [
+        State("storage-noise-training-proc", "data"),
+        State("storage-noise-training-viz", "data"),
+    ],
     prevent_initial_call=True,
 )
 def update_loss(n, page_log_training, data):
@@ -363,8 +380,10 @@ def trigger_training(_):
 @callback(
     Output("training-button", "disabled", allow_duplicate=True),
     Input("storage-noise-training-proc", "modified_timestamp"),
-    State("storage-noise-training-proc", "data"),
-    State("storage-noise-training-viz", "data"),
+    [
+        State("storage-noise-training-proc", "data"),
+        State("storage-noise-training-viz", "data"),
+    ],
     prevent_initial_call=True,
 )
 def stop_training(_, page_log_training, page_data):
@@ -377,11 +396,16 @@ def stop_training(_, page_log_training, page_data):
 @callback(
     Output("storage-noise-training-proc", "data", allow_duplicate=True),
     Input("storage-noise-training-proc", "modified_timestamp"),
-    State("storage-noise-training-proc", "data"),
-    State("storage-noise-training-viz", "data"),
+    [
+        State("storage-noise-training-proc", "data"),
+        State("storage-noise-training-viz", "data"),
+    ],
     prevent_initial_call=True,
 )
 def pong(_, page_log_training, data):
+    if page_log_training is None:
+        raise PreventUpdate()
+
     if len(page_log_training["loss"]) > data["steps"]:
         raise PreventUpdate()
     return page_log_training
@@ -399,6 +423,8 @@ def pong(_, page_log_training, data):
     prevent_initial_call=True,
 )
 def training(page_log_training, page_data, main_data):
+    if page_log_training is None:
+        raise PreventUpdate()
 
     if len(page_log_training["loss"]) > page_data["steps"]:
         page_log_training["loss"] = []
