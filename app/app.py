@@ -8,9 +8,9 @@ app = dash.Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME], use_pages=True
 )
 
-
 sidebar = html.Div(
     [
+        dcc.Store(id="storage-main", storage_type="session"),
         html.Div(
             [
                 html.H2(
@@ -31,7 +31,6 @@ sidebar = html.Div(
         ),
         html.Div(
             [
-                dcc.Store(id="storage-main", storage_type="session"),
                 html.Div(
                     [
                         dbc.Label("# of Qubits (0-10)"),
@@ -126,9 +125,6 @@ sidebar = html.Div(
     id="page-sidebar",
 )
 
-content = html.Div([dash.page_container], className="content", id="page-content")
-app.layout = html.Div([sidebar, content])
-
 
 @callback(
     Output("storage-main", "data"),
@@ -174,6 +170,18 @@ def on_preference_changed(
     data["seed"] = max(min(seed, 999), 100)
 
     return data
+
+
+content = html.Div(
+    [
+        dash.page_container,
+    ],
+    className="content",
+    id="page-content",
+)
+
+
+app.layout = html.Div([sidebar, content])
 
 
 if __name__ == "__main__":
