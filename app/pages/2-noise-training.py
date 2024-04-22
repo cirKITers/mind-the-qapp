@@ -21,7 +21,6 @@ dash.register_page(__name__, name="Noise Training")
 
 layout = html.Div(
     [
-        dcc.Store(id="storage-noise-viz", storage_type="session"),
         dcc.Store(id="storage-noise-training-viz", storage_type="session"),
         dcc.Store(id="storage-noise-training-proc", storage_type="session"),
         dcc.Store(id="storage-noise-hist-proc", storage_type="session"),
