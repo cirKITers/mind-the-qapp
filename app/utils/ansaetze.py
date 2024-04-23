@@ -25,7 +25,10 @@ class Ansaetze:
             n_qubits (int): number of qubits
         """
         if w is None:
-            return n_qubits * 3
+            if n_qubits > 1:
+                return n_qubits * 3
+            else:
+                return 2
 
         w_idx = 0
         for q in range(n_qubits):
