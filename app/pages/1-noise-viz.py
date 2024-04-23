@@ -132,7 +132,7 @@ def update_output(page_data, main_data):
         data_reupload=main_data["data_reupload"],
     )
     coeffs = coefficients(
-        partial(instructor.forward, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp),
+        partial(instructor.forward, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=True),
         1,
         instructor.max_freq,
     )
