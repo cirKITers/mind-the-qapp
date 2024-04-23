@@ -58,7 +58,7 @@ class EntanglingCapability_Sampler:
 
         entropy = min((entropy.real / n_qubits), 1)
 
-        return entropy
+        return 1 - entropy
 
     def calculate_sampled_entangling_capability(
         self, samples_per_qubit: int, bf=0, pf=0, ad=0, pd=0, dp=0
@@ -113,7 +113,7 @@ class EntanglingCapability_Sampler:
                     pd=pd,
                     dp=dp,
                 )
-                mw_measure[i] = 1 - entropy
+                mw_measure[i] = entropy
 
             return 2 * np.sum(mw_measure).real / samples
 

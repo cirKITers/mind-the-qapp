@@ -495,7 +495,7 @@ def training(page_log_training, page_data, main_data):
         main_data["circuit_type"],
         main_data["data_reupload"],
     )
-    ent_cap = ent_sampler.calculate_entangling_capability(
+    mw_measure = ent_sampler.calculate_entangling_capability(
         main_data["number_qubits"],
         page_log_training["weights"],
         bf=bf,
@@ -504,6 +504,7 @@ def training(page_log_training, page_data, main_data):
         pd=pd,
         dp=dp,
     )
+    ent_cap = 2 * np.sum(mw_measure).real
 
     page_log_training["ent_cap"].append(ent_cap)
 
