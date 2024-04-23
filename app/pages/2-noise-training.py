@@ -71,6 +71,7 @@ layout = html.Div(
                                                 dbc.Button(
                                                     "Start Training",
                                                     id="training-button",
+                                                    disabled="true",
                                                 ),
                                             ],
                                             style={
@@ -181,13 +182,21 @@ layout = html.Div(
 
 
 @callback(
-    Output("storage-noise-training-viz", "data", allow_duplicate=True),
+    [
+        Output("storage-noise-training-viz", "data", allow_duplicate=True),
+        Output("training-button", "disabled", allow_duplicate=True),
+    ],
     Input("storage-main", "modified_timestamp"),
+    State("storage-main", "data"),
     State("storage-noise-training-viz", "data"),
     prevent_initial_call=True,
 )
-def update_page_data(_, page_data):
-    return page_data
+def update_page_data(_, main_data, page_data):
+    if main_data["circuit_type"] is None or \
+            main_data["circuit_type"] == "no_ansatz":
+        return page_data, True
+
+    return page_data, False
 
 
 @callback(
@@ -356,7 +365,7 @@ def update_expval(n, page_log_training, page_data, main_data):
 )
 def update_ent_cap(n, page_log_training, data):
     fig_ent_cap = go.Figure()
-    if len(page_log_training["loss"]) > 0:
+    if len(page_log_training["ent_cap"]) > 0:
         fig_ent_cap.add_scatter(y=page_log_training["ent_cap"])
 
     fig_ent_cap.update_layout(
@@ -493,10 +502,11 @@ def training(page_log_training, page_data, main_data):
         main_data["data_reupload"],
     )
 
-    ent_cap = ent_sampler.calculate_entangling_capability(
-        10, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, params=page_log_training["weights"]
-    )
+    if main_data["number_qubits"] > 1:
+        ent_cap = ent_sampler.calculate_entangling_capability(
+            10, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, params=page_log_training["weights"]
+        )
 
-    page_log_training["ent_cap"].append(ent_cap)
+        page_log_training["ent_cap"].append(ent_cap)
 
     return page_log_training
