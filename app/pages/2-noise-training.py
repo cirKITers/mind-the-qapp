@@ -14,6 +14,7 @@ from dash.exceptions import PreventUpdate
 
 
 from utils.instructor import Instructor
+from utils.entangling import EntanglingCapability_Sampler
 
 import dash_bootstrap_components as dbc
 
@@ -136,7 +137,15 @@ layout = html.Div(
                             id="fig-training-hist",
                             style={
                                 "display": "inline-block",
-                                "height": "80vh",
+                                "height": "40vh",
+                                "width": "100%",
+                            },
+                        ),
+                        dcc.Graph(
+                            id="fig-training-ent",
+                            style={
+                                "display": "inline-block",
+                                "height": "40vh",
                                 "width": "100%",
                             },
                         ),
@@ -336,6 +345,30 @@ def update_expval(n, page_log_training, page_data, main_data):
 
     return fig_expval
 
+@callback(
+    Output("fig-training-ent", "figure"),
+    Input("storage-noise-training-proc", "modified_timestamp"),
+    [
+        State("storage-noise-training-proc", "data"),
+        State("storage-noise-training-viz", "data"),
+    ],
+    prevent_initial_call=True,
+)
+def update_ent_cap(n, page_log_training, data):
+    fig_ent_cap = go.Figure()
+    if len(page_log_training["loss"]) > 0:
+        fig_ent_cap.add_scatter(y=page_log_training["ent_cap"])
+
+    fig_ent_cap.update_layout(
+        title="Entangling Capability",
+        template="simple_white",
+        xaxis_title="Step",
+        yaxis_title="Entangling Capability",
+        xaxis_range=[0, data["steps"]],
+        autosize=False,
+    )
+
+    return fig_ent_cap
 
 @callback(
     Output("fig-training-metric", "figure"),
@@ -372,7 +405,7 @@ def update_loss(n, page_log_training, data):
     prevent_initial_call=True,
 )
 def trigger_training(_):
-    page_log = {"loss": [], "weights": []}
+    page_log = {"loss": [], "weights": [], "ent_cap": []}
 
     return [page_log, True]
 
@@ -429,6 +462,7 @@ def training(page_log_training, page_data, main_data):
     if len(page_log_training["loss"]) > page_data["steps"]:
         page_log_training["loss"] = []
         page_log_training["weights"] = []
+        page_log_training["ent_cap"] = []
 
     bf, pf, ad, pd, dp = (
         page_data["bf"],
@@ -450,5 +484,19 @@ def training(page_log_training, page_data, main_data):
         page_log_training["weights"], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
     )
     page_log_training["loss"].append(cost.item())
+
+    ent_sampler = EntanglingCapability_Sampler(
+        main_data["number_qubits"],
+        main_data["number_layers"],
+        main_data["seed"],
+        main_data["circuit_type"],
+        main_data["data_reupload"],
+    )
+
+    ent_cap = ent_sampler.calculate_entangling_capability(
+        10, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, params=page_log_training["weights"]
+    )
+
+    page_log_training["ent_cap"].append(ent_cap)
 
     return page_log_training
