@@ -451,10 +451,7 @@ def update_output_probabilities(page_data, main_data):
 
 
 @callback(
-    [
-        Output("ent-cap", "children"),
-        # Output("loading-state", "children", allow_duplicate=True),
-    ],
+    Output("ent-cap", "children"),
     [
         Input("storage-expr-viz", "data"),
     ],
@@ -462,7 +459,8 @@ def update_output_probabilities(page_data, main_data):
     prevent_initial_call=True,
 )
 def update_ent_cap(page_data, main_data):
-    if page_data is None or main_data is None:
+    if page_data is None or main_data is None or \
+        main_data["number_qubits"] == 1:
         return 0
 
     bf, pf, ad, pd, dp = (
@@ -483,4 +481,4 @@ def update_ent_cap(page_data, main_data):
     ent_cap = ent_sampler.calculate_entangling_capability(
         10, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
     )
-    return [f"{ent_cap:.3f}"]
+    return f"{ent_cap:.3f}"
