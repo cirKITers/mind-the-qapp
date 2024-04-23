@@ -11,6 +11,7 @@ from dash import (
 )
 import plotly.graph_objects as go
 from dash.exceptions import PreventUpdate
+from utils.entangling import EntanglingCapability_Sampler
 
 
 from utils.instructor import Instructor
@@ -149,7 +150,15 @@ layout = html.Div(
                             id="fig-training-expval",
                             style={
                                 "display": "inline-block",
-                                "height": "40vh",
+                                "height": "30vh",
+                                "width": "100%",
+                            },
+                        ),
+                        dcc.Graph(
+                            id="fig-training-ent-cap",
+                            style={
+                                "display": "inline-block",
+                                "height": "30vh",
                                 "width": "100%",
                             },
                         ),
@@ -157,7 +166,7 @@ layout = html.Div(
                             id="fig-training-metric",
                             style={
                                 "display": "inline-block",
-                                "height": "40vh",
+                                "height": "30vh",
                                 "width": "100%",
                             },
                         ),
@@ -338,6 +347,33 @@ def update_expval(n, page_log_training, page_data, main_data):
 
 
 @callback(
+    Output("fig-training-ent-cap", "figure"),
+    Input("storage-noise-training-proc", "modified_timestamp"),
+    [
+        State("storage-noise-training-proc", "data"),
+        State("storage-noise-training-viz", "data"),
+    ],
+    prevent_initial_call=True,
+)
+def update_ent_cap(n, page_log_training, data):
+    fig_expval = go.Figure()
+
+    if len(page_log_training["ent_cap"]) > 0:
+        fig_expval.add_scatter(y=page_log_training["ent_cap"])
+
+    fig_expval.update_layout(
+        title="Entangling Capability",
+        template="simple_white",
+        xaxis_title="Step",
+        yaxis_title="Entangling Capability",
+        xaxis_range=[0, data["steps"]],
+        autosize=False,
+    )
+
+    return fig_expval
+
+
+@callback(
     Output("fig-training-metric", "figure"),
     Input("storage-noise-training-proc", "modified_timestamp"),
     [
@@ -372,7 +408,7 @@ def update_loss(n, page_log_training, data):
     prevent_initial_call=True,
 )
 def trigger_training(_):
-    page_log = {"loss": [], "weights": []}
+    page_log = {"loss": [], "weights": [], "ent_cap": []}
 
     return [page_log, True]
 
@@ -428,6 +464,7 @@ def training(page_log_training, page_data, main_data):
 
     if len(page_log_training["loss"]) > page_data["steps"]:
         page_log_training["loss"] = []
+        page_log_training["ent_cap"] = []
         page_log_training["weights"] = []
 
     bf, pf, ad, pd, dp = (
@@ -450,5 +487,24 @@ def training(page_log_training, page_data, main_data):
         page_log_training["weights"], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
     )
     page_log_training["loss"].append(cost.item())
+
+    ent_sampler = EntanglingCapability_Sampler(
+        main_data["number_qubits"],
+        main_data["number_layers"],
+        main_data["seed"],
+        main_data["circuit_type"],
+        main_data["data_reupload"],
+    )
+    ent_cap = ent_sampler.calculate_entangling_capability(
+        main_data["number_qubits"],
+        page_log_training["weights"],
+        bf=bf,
+        pf=pf,
+        ad=ad,
+        pd=pd,
+        dp=dp,
+    )
+
+    page_log_training["ent_cap"].append(ent_cap)
 
     return page_log_training

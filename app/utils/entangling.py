@@ -42,6 +42,25 @@ class EntanglingCapability_Sampler:
         self.rng = np.random.default_rng(seed)
 
     def calculate_entangling_capability(
+        self, n_qubits, params, bf=0, pf=0, ad=0, pd=0, dp=0
+    ):
+
+        U = self.instructor.forward(
+            0, params, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=True
+        )
+
+        qb = list(range(n_qubits))
+        entropy = 0
+
+        for j in range(n_qubits):
+            density = qml.math.partial_trace(U, qb[:j] + qb[j + 1 :])
+            entropy += np.trace(density**2)
+
+        entropy = min((entropy.real / n_qubits), 1)
+
+        return entropy
+
+    def calculate_sampled_entangling_capability(
         self, samples_per_qubit: int, bf=0, pf=0, ad=0, pd=0, dp=0
     ) -> float:
         """
@@ -84,21 +103,16 @@ class EntanglingCapability_Sampler:
 
             params = rng.uniform(0, 2 * np.pi, size=(samples, *params_shape))
 
-            qb = list(range(n_qubits))
-
             for i in range(samples):
-                U = self.instructor.forward(
-                    0, params[i], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=True
+                entropy = self.calculate_entangling_capability(
+                    n_qubits=n_qubits,
+                    params=params[i],
+                    bf=bf,
+                    pf=pf,
+                    ad=ad,
+                    pd=pd,
+                    dp=dp,
                 )
-
-                qb = list(range(n_qubits))
-                entropy = 0
-
-                for j in range(n_qubits):
-                    density = qml.math.partial_trace(U, qb[:j] + qb[j + 1 :])
-                    entropy += np.trace(density**2)
-
-                entropy = min((entropy.real / n_qubits), 1)
                 mw_measure[i] = 1 - entropy
 
             return 2 * np.sum(mw_measure).real / samples

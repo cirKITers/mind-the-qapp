@@ -480,7 +480,7 @@ def update_ent_cap(page_data, main_data):
         main_data["circuit_type"],
         main_data["data_reupload"],
     )
-    ent_cap = ent_sampler.calculate_entangling_capability(
+    ent_cap = ent_sampler.calculate_sampled_entangling_capability(
         10, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
     )
     return [f"{ent_cap:.3f}"]
