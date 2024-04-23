@@ -39,7 +39,7 @@ class Ansaetze:
 
         if n_qubits > 1:
             for q in range(n_qubits):
-                qml.CRX(w[w_idx], wires=[(q + 1) % n_qubits, q])
+                qml.CRX(w[w_idx], wires=[n_qubits - q - 1, (n_qubits - q) % n_qubits])
                 w_idx += 1
 
     @staticmethod
