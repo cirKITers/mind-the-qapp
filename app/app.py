@@ -13,8 +13,29 @@ sidebar = html.Div(
         dcc.Store(id="storage-main", storage_type="session"),
         html.Div(
             [
+                html.H1(
+                    f"Mind",
+                ),
                 html.H2(
-                    f"Noise App",
+                    f"the",
+                    style={
+                        "padding-left": "6px",
+                    },
+                ),
+                html.Span(
+                    [
+                        html.Img(
+                            src="assets/underground-sign.svg",
+                            width="42",
+                            style={
+                                "display": "inline-block",
+                                "padding-right": "5px",
+                                "padding-bottom": "20px",
+                            },
+                            className="rotate45",
+                        ),
+                        html.H1(f"App", style={"display": "inline-block"}),
+                    ]
                 ),
             ],
             className="infoBox",
