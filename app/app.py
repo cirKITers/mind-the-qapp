@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 app = dash.Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME], use_pages=True
 )
-
+app.title = "Favicon"
 sidebar = html.Div(
     [
         dcc.Store(id="storage-main", storage_type="session"),
