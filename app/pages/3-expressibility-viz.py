@@ -35,156 +35,185 @@ layout = html.Div(
                     [
                         dbc.Row(
                             [
-                                dbc.Label(
-                                    "Sampled Parameter Pairs:",
-                                    html_for="num-param-sample-pairs",
-                                    width=4,
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label(
+                                                "Sampled Parameter Pairs:",
+                                                html_for="num-param-sample-pairs",
+                                            ),
+                                        ),
+                                        dbc.Col(
+                                            dbc.Input(
+                                                type="number",
+                                                min=100,
+                                                max=1000,
+                                                step=1,
+                                                value=200,
+                                                id="num-param-sample-pairs",
+                                            ),
+                                        ),
+                                    ],
                                 ),
-                                dbc.Col(
-                                    dbc.Input(
-                                        type="number",
-                                        min=100,
-                                        max=1000,
-                                        step=1,
-                                        value=200,
-                                        id="num-param-sample-pairs",
-                                    ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label(
+                                                "Input Samples",
+                                                html_for="num-input-samples",
+                                            ),
+                                        ),
+                                        dbc.Col(
+                                            dbc.Input(
+                                                type="number",
+                                                min=2,
+                                                max=100,
+                                                step=1,
+                                                value=5,
+                                                id="num-input-samples",
+                                            ),
+                                        ),
+                                    ],
+                                ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label(
+                                                "Histogram Bins",
+                                                html_for="num-histogram-bins",
+                                            ),
+                                        ),
+                                        dbc.Col(
+                                            dbc.Input(
+                                                type="number",
+                                                min=10,
+                                                max=500,
+                                                step=1,
+                                                value=20,
+                                                id="num-histogram-bins",
+                                            ),
+                                        ),
+                                    ],
+                                ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label(
+                                                "Meyer-Wallach Entangling Capability",
+                                                html_for="ent-cap",
+                                            ),
+                                        ),
+                                        dbc.Col(
+                                            html.H4(
+                                                dbc.Badge(
+                                                    "0.0",
+                                                    color="primary",
+                                                    pill=True,
+                                                    className="me-1",
+                                                    id="ent-cap",
+                                                )
+                                            ),
+                                        ),
+                                    ],
+                                    style={"padding-top": "10px"},
                                 ),
                             ],
                             className="settingsRow",
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Label(
-                                    "Input Samples",
-                                    html_for="num-input-samples",
-                                    width=4,
-                                ),
-                                dbc.Col(
-                                    dbc.Input(
-                                        type="number",
-                                        min=2,
-                                        max=100,
-                                        step=1,
-                                        value=5,
-                                        id="num-input-samples",
-                                    ),
-                                ),
-                            ],
-                            className="settingsRow",
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Label(
-                                    "Histogram Bins",
-                                    html_for="num-histogram-bins",
-                                    width=4,
-                                ),
-                                dbc.Col(
-                                    dbc.Input(
-                                        type="number",
-                                        min=10,
-                                        max=500,
-                                        step=1,
-                                        value=20,
-                                        id="num-histogram-bins",
-                                    ),
-                                ),
-                            ],
-                            className="settingsRow",
-                        ),
+                        )
                     ],
-                    style={"width": "39%", "display": "inline-block"},
+                    style={"width": "49%", "display": "inline-block"},
                 ),
                 html.Div(
                     [
                         dbc.Row(
                             [
-                                dbc.Label("Phase Damping Probability"),
-                                dcc.Slider(
-                                    0,
-                                    0.5,
-                                    0.05,
-                                    value=0,
-                                    id="phase-damping-prob-expr",
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label("Phase Damping Probability"),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="phase-damping-prob-expr",
+                                            ),
+                                        ),
+                                    ],
+                                ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label("Depolarization Probability"),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="depolarization-prob-expr",
+                                            ),
+                                        ),
+                                    ],
+                                ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label("Bit-Flip Probability"),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="bit-flip-prob-expr",
+                                            ),
+                                        ),
+                                    ],
+                                ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label("Phase Flip Probability"),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="phase-flip-prob-expr",
+                                            ),
+                                        ),
+                                    ],
+                                ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label(
+                                                "Amplitude Damping Probability",
+                                            ),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="amplitude-damping-prob-expr",
+                                            ),
+                                        ),
+                                    ],
                                 ),
                             ],
                             className="settingsRow",
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Label("Depolarization Probability"),
-                                dcc.Slider(
-                                    0,
-                                    0.5,
-                                    0.05,
-                                    value=0,
-                                    id="depolarization-prob-expr",
-                                ),
-                            ],
-                            className="settingsRow",
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Label("Bit-Flip Probability"),
-                                dcc.Slider(
-                                    0, 0.5, 0.05, value=0, id="bit-flip-prob-expr"
-                                ),
-                            ],
-                            className="settingsRow",
-                        ),
+                        )
                     ],
-                    style={"width": "30%", "display": "inline-block"},
-                ),
-                html.Div(
-                    [
-                        dbc.Row(
-                            [
-                                dbc.Label(
-                                    "Meyer-Wallach Entangling Capability",
-                                    html_for="ent-cap",
-                                    width=8,
-                                ),
-                                dbc.Col(
-                                    html.H4(
-                                        dbc.Badge(
-                                            "0.0",
-                                            color="primary",
-                                            pill=True,
-                                            className="me-1",
-                                            id="ent-cap",
-                                        )
-                                    ),
-                                ),
-                            ],
-                            className="settingsRow",
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Label("Phase Flip Probability"),
-                                dcc.Slider(
-                                    0, 0.5, 0.05, value=0, id="phase-flip-prob-expr"
-                                ),
-                            ],
-                            className="settingsRow",
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Label(
-                                    "Amplitude Damping Probability",
-                                ),
-                                dcc.Slider(
-                                    0,
-                                    0.5,
-                                    0.05,
-                                    value=0,
-                                    id="amplitude-damping-prob-expr",
-                                ),
-                            ],
-                            className="settingsRow",
-                        ),
-                    ],
-                    style={"width": "30%", "display": "inline-block"},
+                    style={"width": "49%", "display": "inline-block"},
                 ),
             ],
         ),
@@ -459,8 +488,7 @@ def update_output_probabilities(page_data, main_data):
     prevent_initial_call=True,
 )
 def update_ent_cap(page_data, main_data):
-    if page_data is None or main_data is None or \
-        main_data["number_qubits"] == 1:
+    if page_data is None or main_data is None or main_data["number_qubits"] == 1:
         return 0
 
     bf, pf, ad, pd, dp = (

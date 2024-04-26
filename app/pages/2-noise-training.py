@@ -36,23 +36,55 @@ layout = html.Div(
                     [
                         dbc.Row(
                             [
-                                dbc.Label("Bit-Flip Probability"),
-                                dcc.Slider(
-                                    0, 0.5, 0.05, value=0, id="bit-flip-prob-training"
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label("Bit-Flip Probability"),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="bit-flip-prob-training",
+                                            ),
+                                        ),
+                                    ],
                                 ),
-                                dbc.Label("Phase Flip Probability"),
-                                dcc.Slider(
-                                    0, 0.5, 0.05, value=0, id="phase-flip-prob-training"
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label("Phase Flip Probability"),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="phase-flip-prob-training",
+                                            ),
+                                        ),
+                                    ],
                                 ),
-                                dbc.Label(
-                                    "Amplitude Damping Probability",
-                                ),
-                                dcc.Slider(
-                                    0,
-                                    0.5,
-                                    0.05,
-                                    value=0,
-                                    id="amplitude-damping-prob-training",
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label(
+                                                "Amplitude Damping Probability",
+                                            ),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="amplitude-damping-prob-training",
+                                            ),
+                                        ),
+                                    ],
                                 ),
                             ],
                             className="settingsRow",
@@ -64,9 +96,68 @@ layout = html.Div(
                     [
                         dbc.Row(
                             [
-                                html.Div(
+                                dbc.Row(
                                     [
-                                        html.Div(
+                                        dbc.Col(dbc.Label("Phase Damping Probability")),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="phase-damping-prob-training",
+                                            )
+                                        ),
+                                    ]
+                                ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label("Depolarization Probability")
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="depolarization-prob-training",
+                                            )
+                                        ),
+                                    ],
+                                ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            [
+                                                html.Div(
+                                                    [
+                                                        dbc.Label("Steps:"),
+                                                    ],
+                                                    style={
+                                                        "display": "inline-block",
+                                                    },
+                                                ),
+                                                html.Div(
+                                                    [
+                                                        dbc.Input(
+                                                            type="number",
+                                                            min=1,
+                                                            max=101,
+                                                            step=1,
+                                                            value=10,
+                                                            id="numeric-input-steps",
+                                                        ),
+                                                    ],
+                                                    style={
+                                                        "width": "5vw",
+                                                        "display": "inline-block",
+                                                        "padding-left": "20px",
+                                                    },
+                                                ),
+                                            ]
+                                        ),
+                                        dbc.Col(
                                             [
                                                 dbc.Button(
                                                     "Start Training",
@@ -74,53 +165,9 @@ layout = html.Div(
                                                     disabled="true",
                                                 ),
                                             ],
-                                            style={
-                                                # "height": "1vh",
-                                                # "width": "10vh",
-                                                "display": "inline-block",
-                                            },
-                                        ),
-                                        html.Div(
-                                            [dbc.Label("Steps:")],
-                                            style={
-                                                "display": "inline-block",
-                                                "padding": "0 20px",
-                                            },
-                                        ),
-                                        html.Div(
-                                            [
-                                                dbc.Input(
-                                                    type="number",
-                                                    min=1,
-                                                    max=101,
-                                                    step=1,
-                                                    value=10,
-                                                    id="numeric-input-steps",
-                                                ),
-                                            ],
-                                            style={
-                                                "width": "10vw",
-                                                "display": "inline-block",
-                                            },
                                         ),
                                     ],
                                     style={"padding": "15px"},
-                                ),
-                                dbc.Label("Phase Damping Probability"),
-                                dcc.Slider(
-                                    0,
-                                    0.5,
-                                    0.05,
-                                    value=0,
-                                    id="phase-damping-prob-training",
-                                ),
-                                dbc.Label("Depolarization Probability"),
-                                dcc.Slider(
-                                    0,
-                                    0.5,
-                                    0.05,
-                                    value=0,
-                                    id="depolarization-prob-training",
                                 ),
                             ],
                             className="settingsRow",
@@ -138,15 +185,15 @@ layout = html.Div(
                             id="fig-training-hist",
                             style={
                                 "display": "inline-block",
-                                "height": "40vh",
+                                "height": "50vh",
                                 "width": "100%",
                             },
                         ),
                         dcc.Graph(
-                            id="fig-training-ent",
+                            id="fig-training-metric",
                             style={
                                 "display": "inline-block",
-                                "height": "40vh",
+                                "height": "30vh",
                                 "width": "100%",
                             },
                         ),
@@ -164,7 +211,7 @@ layout = html.Div(
                             },
                         ),
                         dcc.Graph(
-                            id="fig-training-metric",
+                            id="fig-training-ent",
                             style={
                                 "display": "inline-block",
                                 "height": "40vh",
@@ -192,8 +239,7 @@ layout = html.Div(
     prevent_initial_call=True,
 )
 def update_page_data(_, main_data, page_data):
-    if main_data["circuit_type"] is None or \
-            main_data["circuit_type"] == "no_ansatz":
+    if main_data["circuit_type"] is None or main_data["circuit_type"] == "no_ansatz":
         return page_data, True
 
     return page_data, False
@@ -291,9 +337,9 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
             ),
         ),
         scene_camera=dict(
-            up=dict(x=0, y=0, z=1),
-            center=dict(x=0.1, y=0, z=0),
-            eye=dict(x=1.15, y=2.05, z=1.05),
+            up=dict(x=0, y=0, z=1.2),
+            center=dict(x=0.1, y=0, z=-0.2),
+            eye=dict(x=0.95, y=1.85, z=0.75),
         ),
         coloraxis_showscale=False,
     )
@@ -354,6 +400,7 @@ def update_expval(n, page_log_training, page_data, main_data):
 
     return fig_expval
 
+
 @callback(
     Output("fig-training-ent", "figure"),
     Input("storage-noise-training-proc", "modified_timestamp"),
@@ -378,6 +425,7 @@ def update_ent_cap(n, page_log_training, data):
     )
 
     return fig_ent_cap
+
 
 @callback(
     Output("fig-training-metric", "figure"),
