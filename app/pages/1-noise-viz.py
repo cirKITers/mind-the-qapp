@@ -22,23 +22,55 @@ layout = html.Div(
                     [
                         dbc.Row(
                             [
-                                dbc.Label("Bit-Flip Probability"),
-                                dcc.Slider(
-                                    0, 0.5, 0.05, value=0, id="bit-flip-prob-viz"
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label("Bit-Flip Probability"),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="bit-flip-prob-viz",
+                                            ),
+                                        ),
+                                    ]
                                 ),
-                                dbc.Label("Phase Flip Probability"),
-                                dcc.Slider(
-                                    0, 0.5, 0.05, value=0, id="phase-flip-prob-viz"
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label("Phase Flip Probability"),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="phase-flip-prob-viz",
+                                            ),
+                                        ),
+                                    ]
                                 ),
-                                dbc.Label(
-                                    "Amplitude Damping Probability",
-                                ),
-                                dcc.Slider(
-                                    0,
-                                    0.5,
-                                    0.05,
-                                    value=0,
-                                    id="amplitude-damping-prob-viz",
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label(
+                                                "Amplitude Damping Probability",
+                                            )
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="amplitude-damping-prob-viz",
+                                            ),
+                                        ),
+                                    ]
                                 ),
                             ],
                             className="settingsRow",
@@ -50,13 +82,35 @@ layout = html.Div(
                     [
                         dbc.Row(
                             [
-                                dbc.Label("Phase Damping Probability"),
-                                dcc.Slider(
-                                    0, 0.5, 0.05, value=0, id="phase-damping-prob-viz"
+                                dbc.Row(
+                                    [
+                                        dbc.Col(dbc.Label("Phase Damping Probability")),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="phase-damping-prob-viz",
+                                            ),
+                                        ),
+                                    ]
                                 ),
-                                dbc.Label("Depolarization Probability"),
-                                dcc.Slider(
-                                    0, 0.5, 0.05, value=0, id="depolarization-prob-viz"
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label("Depolarization Probability")
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="depolarization-prob-viz",
+                                            ),
+                                        ),
+                                    ]
                                 ),
                             ],
                             className="settingsRow",
