@@ -80,6 +80,29 @@ def get_sampled_haar_probability_histogram(
 
     return x, y
 
+def get_kl_divergence_expr(
+    vqc_prob_dist: np.ndarray,
+    haar_dist: np.ndarray,
+) -> np.ndarray:
+    """
+    Calculates the KL divergence between two probability distributions (Haar
+    probability distribution and the fidelity distribution sampled from a VQC).
+
+    :param vqc_prob_dist: np.ndarray: VQC fidelity probability distribution.
+        Should have shape (n_inputs_samples, n_bins)
+    :param haar_dist: np.ndarray: Haar probability distribution with shape.
+        Should have shape (n_bins, )
+    :return: np.ndarray: Array of KL-Divergence values for all values in axis 1
+    """
+    assert all([haar_dist.shape == p.shape for p in vqc_prob_dist]), "All "\
+            "probabilities for inputs should have the same shape as Haar. " \
+            f"Got {haar_dist.shape} for Haar and {vqc_prob_dist.shape} for VQC"
+
+    kl_divergence = np.zeros(vqc_prob_dist.shape[0])
+    for i, p in enumerate(vqc_prob_dist):
+        kl_divergence[i] = np.sum(np.where(p != 0, p * np.log(p / haar_dist), 0))
+
+    return kl_divergence
 
 class Expressibility_Sampler:
     def __init__(
@@ -158,13 +181,13 @@ class Expressibility_Sampler:
         self, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         fidelities = self.sample_state_fidelities(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
-        z_component = np.zeros((len(self.x_samples), self.n_bins - 1))
+        z_component = np.zeros((len(self.x_samples), self.n_bins))
 
         # FIXME: somehow I get nan's in the histogram, when directly creating bins until n
         # workaround hack is to add a small epsilon
         # could it be related to sampling issues?
-        b = np.linspace(0, 1 + self.epsilon, self.n_bins)
+        b = np.linspace(0, 1 + self.epsilon, self.n_bins + 1)
         for i, f in enumerate(fidelities):
-            z_component[i], _ = np.histogram(f, bins=b, density=True)
-        z_component = np.transpose(z_component)
+            z_component[i], _ = np.histogram(f, bins=b)
+        z_component = np.transpose(z_component) / self.n_samples
         return self.x_samples, b, z_component

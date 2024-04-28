@@ -20,6 +20,7 @@ from utils.instructor import Instructor
 from utils.expressibility import (
     Expressibility_Sampler,
     get_sampled_haar_probability_histogram,
+    get_kl_divergence_expr,
 )
 from utils.validation import data_is_valid
 
@@ -226,7 +227,15 @@ layout = html.Div(
                             id="fig-hist-expr",
                             style={
                                 "display": "inline-block",
-                                "height": "70vh",
+                                "height": "50vh",
+                                "width": "100%",
+                            },
+                        ),
+                        dcc.Graph(
+                            id="fig-expr-kl",
+                            style={
+                                "display": "inline-block",
+                                "height": "30vh",
                                 "width": "100%",
                             },
                         ),
@@ -404,6 +413,7 @@ def update_hist_haar(page_data, main_data):
 @callback(
     [
         Output("fig-hist-expr", "figure"),
+        Output("fig-expr-kl", "figure"),
         Output("loading-state", "children", allow_duplicate=True),
     ],
     [
@@ -414,7 +424,7 @@ def update_hist_haar(page_data, main_data):
 )
 def update_output_probabilities(page_data, main_data):
     if not data_is_valid(page_data, main_data):
-        return [go.Figure(), "Not Ready"]
+        return [go.Figure(), go.Figure(), "Not Ready"]
     fig_expr = go.Figure()
     fig_expr.update_layout(
         title="Expressibility",
@@ -477,7 +487,24 @@ def update_output_probabilities(page_data, main_data):
         showlegend=False,
     )
 
-    return [fig_expr, "Ready"]
+    fig_kl = go.Figure()
+    _, y_haar = get_sampled_haar_probability_histogram(
+        main_data["number_qubits"], n_bins, n_input_samples
+    )
+
+    kl_divergence = get_kl_divergence_expr(np.transpose(z_samples), y_haar)
+
+    fig_kl.update_layout(
+        title="KL Divergence",
+        template="simple_white",
+        xaxis_title="X Domain",
+        yaxis_title="KL Divergence",
+        yaxis_range=[0, max(kl_divergence) + 0.2],
+    )
+
+    fig_kl.add_scatter(x=x_samples, y=kl_divergence)
+
+    return [fig_expr, fig_kl, "Ready"]
 
 
 @callback(
