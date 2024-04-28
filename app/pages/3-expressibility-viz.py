@@ -489,7 +489,7 @@ def update_output_probabilities(page_data, main_data):
     prevent_initial_call=True,
 )
 def update_ent_cap(page_data, main_data):
-    if not data_is_valid(page_data, main_data) and main_data["number_qubits"] == 1:
+    if not data_is_valid(page_data, main_data) or main_data["number_qubits"] == 1:
         return 0
 
     bf, pf, ad, pd, dp = (
