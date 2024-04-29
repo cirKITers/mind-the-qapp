@@ -5,12 +5,12 @@ import pennylane as qml
 class Ansaetze:
     def get_available():
         return [
-                Ansaetze.no_ansatz,
-                Ansaetze.circuit01,
-                Ansaetze.circuit19,
-                Ansaetze.no_entangling,
-                Ansaetze.strongly_entangling,
-                Ansaetze.idle
+            Ansaetze.no_ansatz,
+            Ansaetze.circuit01,
+            Ansaetze.circuit19,
+            Ansaetze.no_entangling,
+            Ansaetze.strongly_entangling,
+            Ansaetze.idle,
         ]
 
     @staticmethod
@@ -80,9 +80,26 @@ class Ansaetze:
             n_qubits (int): number of qubits
         """
         if w is None:
-            return n_qubits * 3
+            return n_qubits * 6
 
-        qml.StronglyEntanglingLayers(w.reshape(-1, n_qubits, 3), wires=range(n_qubits))
+        w_idx = 0
+        for q in range(n_qubits):
+            qml.Rot(w[w_idx], w[w_idx + 1], w[w_idx + 2], wires=q)
+            w_idx += 3
+
+        if n_qubits > 1:
+            for q in range(n_qubits):
+                qml.CNOT(wires=[q, (q + 1) % n_qubits])
+
+        for q in range(n_qubits):
+            qml.Rot(w[w_idx], w[w_idx + 1], w[w_idx + 2], wires=q)
+            w_idx += 3
+
+        if n_qubits > 1:
+            for q in range(n_qubits):
+                qml.CNOT(wires=[q, (q + n_qubits // 2) % n_qubits])
+
+        # qml.StronglyEntanglingLayers(w.reshape(-1, n_qubits, 3), wires=range(n_qubits))
 
     @staticmethod
     def no_entangling(w: np.ndarray, n_qubits: int):
@@ -100,9 +117,8 @@ class Ansaetze:
 
         w_idx = 0
         for q in range(n_qubits):
-            qml.Rot(w[w_idx], w[w_idx+1], w[w_idx+2], wires=q)
+            qml.Rot(w[w_idx], w[w_idx + 1], w[w_idx + 2], wires=q)
             w_idx += 3
-
 
     @staticmethod
     def idle(w: np.ndarray, n_qubits: int) -> None:
@@ -122,4 +138,3 @@ class Ansaetze:
 
         for q in range(n_qubits):
             qml.RX(w[0], wires=q)
-
