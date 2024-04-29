@@ -98,7 +98,7 @@ class EntanglingCapability_Sampler:
 
             for i in range(samples):
                 U = self.instructor.forward(
-                    0, params[i], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=False
+                    0, params[i], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=True
                 )
 
                 qb = list(range(n_qubits))
