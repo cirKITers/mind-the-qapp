@@ -142,7 +142,7 @@ class Model:
             self.pqc(w[-1], self.n_qubits)
 
         if self.state_vector:
-            return qml.density_matrix()
+            return qml.density_matrix(wires=list(range(self.n_qubits)))
         else:
             return qml.expval(qml.PauliZ(wires=0))
 
