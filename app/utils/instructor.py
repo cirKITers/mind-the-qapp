@@ -163,7 +163,11 @@ class Instructor:
         """
         self.max_freq = n_qubits * n_layers
 
-        impl_n_layers = n_layers + 1  # we need L+1 according to Schuld et al.
+        if data_reupload:
+            impl_n_layers = n_layers + 1  # we need L+1 according to Schuld et al.
+        else:
+            impl_n_layers = n_layers
+
         self.model = Model(
             n_qubits,
             impl_n_layers,
@@ -184,7 +188,8 @@ class Instructor:
         y_fct = lambda x: 1 / np.linalg.norm(omega_d) * np.sum(np.cos(omega_d * x))
         self.y_d = np.array([y_fct(x) for x in self.x_d])
 
-        self.weights = 2 * np.pi * rng.random(size=(impl_n_layers, n_qubits * 3))
+        # self.weights = 2 * np.pi * rng.random(size=(impl_n_layers, n_qubits * 3))
+        self.weights = 2 * np.pi * rng.random(size=self.model.n_params)
 
         self.opt = qml.AdamOptimizer(stepsize=0.01)
 
