@@ -54,7 +54,6 @@ class Model:
         state_vector: bool = False,
     ) -> None:
         self.n_qubits = n_qubits
-        self.n_layers = n_layers
         self.state_vector = state_vector
         self.data_reupload = data_reupload
         self.tffm = tffm
@@ -62,7 +61,12 @@ class Model:
             circuit_type = "no_ansatz"
         self.pqc = getattr(Ansaetze, circuit_type)
 
-        self.n_params = (self.n_layers, self.pqc(None, self.n_qubits))
+        if data_reupload:
+            impl_n_layers = n_layers + 1  # we need L+1 according to Schuld et al.
+        else:
+            impl_n_layers = n_layers
+
+        self.n_params = (impl_n_layers, self.pqc(None, self.n_qubits))
 
         self.dev = qml.device("default.mixed", wires=n_qubits)
 
@@ -116,7 +120,12 @@ class Model:
         #     "Number of parameters do not match. "
         #     f"Expected parameters of shape {self.n_params}, got {w.shape}"
         # )
-        for l in range(0, self.n_layers - 1):
+        if self.data_reupload:
+            n_layers = w.shape[0] - 1
+        else:
+            n_layers = w.shape[0]
+
+        for l in range(0, n_layers):
             self.pqc(w[l], self.n_qubits)
 
             if self.data_reupload or l == 0:
@@ -128,10 +137,12 @@ class Model:
                 qml.AmplitudeDamping(ad, wires=q)
                 qml.PhaseDamping(pd, wires=q)
                 qml.DepolarizingChannel(dp, wires=q)
-        self.pqc(w[-1], self.n_qubits)
+
+        if self.data_reupload:
+            self.pqc(w[-1], self.n_qubits)
 
         if self.state_vector:
-            return qml.state()
+            return qml.density_matrix()
         else:
             return qml.expval(qml.PauliZ(wires=0))
 
@@ -163,14 +174,9 @@ class Instructor:
         """
         self.max_freq = n_qubits * n_layers
 
-        if data_reupload:
-            impl_n_layers = n_layers + 1  # we need L+1 according to Schuld et al.
-        else:
-            impl_n_layers = n_layers
-
         self.model = Model(
-            n_qubits,
-            impl_n_layers,
+            n_qubits=n_qubits,
+            n_layers=n_layers,
             circuit_type=circuit_type,
             data_reupload=data_reupload,
             tffm=tffm,
@@ -288,7 +294,7 @@ class Instructor:
             repr(
                 {
                     "n_qubits": self.model.n_qubits,
-                    "n_layers": self.model.n_layers,
+                    "n_layers": self.model.n_params[0],
                     "pqc": self.model.pqc.__name__,
                     "dru": self.model.data_reupload,
                     "w": w,
