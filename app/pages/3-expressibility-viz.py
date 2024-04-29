@@ -21,6 +21,7 @@ from utils.expressibility import (
     Expressibility_Sampler,
     get_sampled_haar_probability_histogram,
 )
+from utils.validation import data_is_valid
 
 from utils.entangling import EntanglingCapability_Sampler
 
@@ -320,8 +321,8 @@ def on_preference_changed(
     prevent_initial_call=True,
 )
 def update_hist_fourier(page_data, main_data):
-    if page_data is None or main_data is None:
-        return [go.Figure(), go.Figure(), "Not Ready"]
+    if not data_is_valid(page_data, main_data):
+        return [go.Figure()]
 
     bf, pf, ad, pd, dp = (
         page_data["bf"],
@@ -364,7 +365,6 @@ def update_hist_fourier(page_data, main_data):
 @callback(
     [
         Output("fig-hist-haar", "figure"),
-        # Output("loading-state", "children", allow_duplicate=True),
     ],
     [
         Input("storage-expr-viz", "data"),
@@ -373,8 +373,9 @@ def update_hist_fourier(page_data, main_data):
     prevent_initial_call=True,
 )
 def update_hist_haar(page_data, main_data):
-    if page_data is None or main_data is None:
-        return [go.Figure(), "Not Ready"]
+    if not data_is_valid(page_data, main_data):
+        return [go.Figure()]
+
     n_samples, n_input_samples, n_bins = (
         page_data["n_samples"],
         page_data["n_input_samples"],
@@ -412,6 +413,8 @@ def update_hist_haar(page_data, main_data):
     prevent_initial_call=True,
 )
 def update_output_probabilities(page_data, main_data):
+    if not data_is_valid(page_data, main_data):
+        return [go.Figure(), "Not Ready"]
     fig_expr = go.Figure()
     fig_expr.update_layout(
         title="Expressibility",
@@ -433,8 +436,6 @@ def update_output_probabilities(page_data, main_data):
         coloraxis_showscale=False,
     )
 
-    if page_data is None or main_data is None:
-        return [fig_expr, "Not Ready"]
     n_samples, n_input_samples, n_bins = (
         page_data["n_samples"],
         page_data["n_input_samples"],
@@ -488,7 +489,7 @@ def update_output_probabilities(page_data, main_data):
     prevent_initial_call=True,
 )
 def update_ent_cap(page_data, main_data):
-    if page_data is None or main_data is None or main_data["number_qubits"] == 1:
+    if not data_is_valid(page_data, main_data) or main_data["number_qubits"] == 1:
         return 0
 
     bf, pf, ad, pd, dp = (
