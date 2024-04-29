@@ -42,7 +42,13 @@ class EntanglingCapability_Sampler:
         self.rng = np.random.default_rng(seed)
 
     def calculate_entangling_capability(
-        self, samples_per_qubit: int, bf=0, pf=0, ad=0, pd=0, dp=0,
+        self,
+        samples_per_qubit: int,
+        bf=0,
+        pf=0,
+        ad=0,
+        pd=0,
+        dp=0,
         params: Optional[np.ndarray] = None,
     ) -> float:
         """
@@ -92,7 +98,7 @@ class EntanglingCapability_Sampler:
 
             for i in range(samples):
                 U = self.instructor.forward(
-                    0, params[i], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=True
+                    0, params[i], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=False
                 )
 
                 qb = list(range(n_qubits))
@@ -100,25 +106,28 @@ class EntanglingCapability_Sampler:
 
                 for j in range(n_qubits):
                     density = qml.math.partial_trace(U, qb[:j] + qb[j + 1 :])
-                    entropy += np.trace(density**2)
+                    # density = qi.partial_trace(U.numpy(), qb[:j] + qb[j + 1 :])
+                    entropy += np.trace((density**2).real)
 
-                entropy = min((entropy.real / n_qubits), 1)
-                mw_measure[i] = 1 - entropy
+                mw_measure[i] = 1 - entropy / n_qubits
 
-            return 2 * np.sum(mw_measure).real / samples
+            return 2 * np.sum(mw_measure.real) / samples
 
         circuit = self.instructor.model.circuit
         samples = samples_per_qubit * len(circuit.device.wires)
 
         if params is not None:
-            assert params.shape == self.instructor.model.n_params, \
-                "Parameter shape of instructor, and that provided for " \
-                "entangling capability should be equal, but are " \
-                f"{params.shape} and {self.instructor.model.n_params} " \
+            assert params.shape == self.instructor.model.n_params, (
+                "Parameter shape of instructor, and that provided for "
+                "entangling capability should be equal, but are "
+                f"{params.shape} and {self.instructor.model.n_params} "
                 "respectively"
+            )
             p = np.repeat(np.expand_dims(params, axis=0), samples, axis=0)
         else:
-            p = self.rng.uniform(0, 2 * np.pi, size=(samples, *self.instructor.model.n_params))
+            p = self.rng.uniform(
+                0, 2 * np.pi, size=(samples, *self.instructor.model.n_params)
+            )
 
         # TODO: propagate precision to kedro parameters
         entangling_capability = meyer_wallach(
@@ -128,4 +137,3 @@ class EntanglingCapability_Sampler:
         )
 
         return float(entangling_capability)
-
