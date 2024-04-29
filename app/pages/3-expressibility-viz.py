@@ -248,7 +248,7 @@ layout = html.Div(
                             id="fig-hist-haar",
                             style={
                                 "display": "inline-block",
-                                "height": "35vh",
+                                "height": "40vh",
                                 "width": "100%",
                             },
                         ),
@@ -256,7 +256,7 @@ layout = html.Div(
                             id="fig-hist-fourier",
                             style={
                                 "display": "inline-block",
-                                "height": "35vh",
+                                "height": "40vh",
                                 "width": "100%",
                             },
                         ),
