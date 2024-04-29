@@ -330,8 +330,16 @@ def on_preference_changed(
     prevent_initial_call=True,
 )
 def update_hist_fourier(page_data, main_data):
+    fig_coeffs = go.Figure()
+    fig_coeffs.update_layout(
+        title="Histogram (Absolute Value)",
+        template="simple_white",
+        xaxis_title="Frequency",
+        yaxis_title="Amplitude",
+    )
+
     if not data_is_valid(page_data, main_data):
-        return [go.Figure()]
+        return [fig_coeffs]
 
     bf, pf, ad, pd, dp = (
         page_data["bf"],
@@ -357,15 +365,8 @@ def update_hist_fourier(page_data, main_data):
     data_len = len(data["real"][0])
     data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
 
-    fig_coeffs = go.Figure()
     fig_coeffs.add_bar(
         x=np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1), y=data["comb"][0]
-    )
-    fig_coeffs.update_layout(
-        title="Histogram (Absolute Value)",
-        template="simple_white",
-        xaxis_title="Frequency",
-        yaxis_title="Amplitude",
     )
 
     return [fig_coeffs]
@@ -382,8 +383,16 @@ def update_hist_fourier(page_data, main_data):
     prevent_initial_call=True,
 )
 def update_hist_haar(page_data, main_data):
+    fig_haar = go.Figure()
+    fig_haar.update_layout(
+        title="Haar Probability Densities",
+        template="simple_white",
+        xaxis_title="Fidelity",
+        yaxis_title="Probability",
+    )
+
     if not data_is_valid(page_data, main_data):
-        return [go.Figure()]
+        return [fig_haar]
 
     n_samples, n_input_samples, n_bins = (
         page_data["n_samples"],
@@ -395,16 +404,9 @@ def update_hist_haar(page_data, main_data):
         main_data["number_qubits"], n_bins, n_input_samples
     )
 
-    fig_haar = go.Figure()
     fig_haar.add_bar(
         x=x_haar,
         y=y_haar,
-    )
-    fig_haar.update_layout(
-        title="Haar Probability Densities",
-        template="simple_white",
-        xaxis_title="Fidelity",
-        yaxis_title="Probability",
     )
 
     return [fig_haar]
@@ -423,8 +425,6 @@ def update_hist_haar(page_data, main_data):
     prevent_initial_call=True,
 )
 def update_output_probabilities(page_data, main_data):
-    if not data_is_valid(page_data, main_data):
-        return [go.Figure(), go.Figure(), "Not Ready"]
     fig_expr = go.Figure()
     fig_expr.update_layout(
         title="Expressibility",
@@ -445,6 +445,17 @@ def update_output_probabilities(page_data, main_data):
         ),
         coloraxis_showscale=False,
     )
+
+    fig_kl = go.Figure()
+    fig_kl.update_layout(
+        title="KL Divergence",
+        template="simple_white",
+        xaxis_title="X Domain",
+        yaxis_title="KL Divergence",
+    )
+
+    if not data_is_valid(page_data, main_data):
+        return [fig_expr, fig_kl, "Not Ready"]
 
     n_samples, n_input_samples, n_bins = (
         page_data["n_samples"],
@@ -487,22 +498,16 @@ def update_output_probabilities(page_data, main_data):
         showlegend=False,
     )
 
-    fig_kl = go.Figure()
     _, y_haar = get_sampled_haar_probability_histogram(
         main_data["number_qubits"], n_bins, n_input_samples
     )
 
     kl_divergence = get_kl_divergence_expr(np.transpose(z_samples), y_haar)
 
+    fig_kl.add_scatter(x=x_samples, y=kl_divergence)
     fig_kl.update_layout(
-        title="KL Divergence",
-        template="simple_white",
-        xaxis_title="X Domain",
-        yaxis_title="KL Divergence",
         yaxis_range=[0, max(kl_divergence) + 0.2],
     )
-
-    fig_kl.add_scatter(x=x_samples, y=kl_divergence)
 
     return [fig_expr, fig_kl, "Ready"]
 
