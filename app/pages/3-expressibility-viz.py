@@ -492,7 +492,7 @@ def update_output_probabilities(page_data, main_data):
         x=x_samples,
         y=y_samples,
         z=z_samples,
-        cmax=1,
+        cmax=z_samples.max().item(),
         cmin=0,
         showscale=False,
         showlegend=False,
