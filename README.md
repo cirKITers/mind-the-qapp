@@ -28,10 +28,10 @@ To improve the performance, we utilize caching strategies.
 ## :rocket: Getting Started
 
 1. Clone this repository
-2. Run `poetry install` or install the requirements specified in `pyproject.toml` manually
+2. Run `poetry install` or install the dependencies specified in `pyproject.toml` manually
 3. Run `python app/app.py`
 4. Navigate to `http://0.0.0.0:8050` and play around
-5. 
+
 ## :camera: Screenshots
 
 ![Noise Visualization](docs/page1.png)
