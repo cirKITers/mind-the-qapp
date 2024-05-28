@@ -101,17 +101,20 @@ class EntanglingCapability_Sampler:
                     0, params[i], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=True
                 )
 
-                qb = list(range(n_qubits))
                 entropy = 0
 
                 for j in range(n_qubits):
                     density = qml.math.partial_trace(U, qb[:j] + qb[j + 1 :])
-                    # density = qi.partial_trace(U.numpy(), qb[:j] + qb[j + 1 :])
-                    entropy += np.trace((density**2).real)
+                    entropy += np.trace((density @ density).real)
 
                 mw_measure[i] = 1 - entropy / n_qubits
 
-            return 2 * np.sum(mw_measure.real) / samples
+            mw = 2 * np.sum(mw_measure.real) / samples
+
+            # catch floating point errors
+            if mw < 0.:
+                mw = 0.
+            return mw
 
         circuit = self.instructor.model.circuit
         samples = samples_per_qubit * len(circuit.device.wires)
