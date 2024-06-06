@@ -183,10 +183,12 @@ def on_preference_changed(
     """
     # Give a default data dict with 0 clicks if there's no data.
     data = data or {}
-    data["number_qubits"] = max(min(number_qubits, 10), 0) \
-            if number_qubits is not None else None
-    data["number_layers"] = max(min(number_layers, 10), 0) \
-            if number_layers is not None else None
+    data["number_qubits"] = (
+        max(min(number_qubits, 10), 0) if number_qubits is not None else None
+    )
+    data["number_layers"] = (
+        max(min(number_layers, 10), 0) if number_layers is not None else None
+    )
     data["circuit_type"] = circuit_type
     data["data_reupload"] = data_reupload
     data["tffm"] = False  # tffm
@@ -208,4 +210,4 @@ app.layout = html.Div([sidebar, content])
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", debug=False)

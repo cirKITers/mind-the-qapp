@@ -285,9 +285,7 @@ def on_preference_changed(bf, pf, ad, pd, dp, steps):
 def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
     fig_hist = go.Figure()
 
-    if page_log_hist is None or len(page_log_training["loss"]) == 0:
-        page_log_hist = {"x": [], "y": [], "z": []}
-    else:
+    if page_log_training is not None and len(page_log_training["loss"]) > 0:
         instructor = Instructor(
             main_data["number_qubits"],
             main_data["number_layers"],
@@ -324,6 +322,9 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
             showscale=False,
             showlegend=False,
         )
+    else:
+        page_log_hist = {"x": [], "y": [], "z": []}
+
     fig_hist.update_layout(
         title="Histogram (Absolute Value)",
         template="simple_white",
@@ -360,7 +361,7 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
 def update_expval(n, page_log_training, page_data, main_data):
     fig_expval = go.Figure()
 
-    if len(page_log_training["loss"]) > 0:
+    if page_log_training is not None and len(page_log_training["loss"]) > 0:
         instructor = Instructor(
             main_data["number_qubits"],
             main_data["number_layers"],
@@ -389,6 +390,7 @@ def update_expval(n, page_log_training, page_data, main_data):
 
         fig_expval.add_scatter(x=instructor.x_d, y=y_pred, name="Prediction")
         fig_expval.add_scatter(x=instructor.x_d, y=instructor.y_d, name="Target")
+
     fig_expval.update_layout(
         title="Output",
         template="simple_white",
@@ -412,7 +414,7 @@ def update_expval(n, page_log_training, page_data, main_data):
 )
 def update_ent_cap(n, page_log_training, data):
     fig_ent_cap = go.Figure()
-    if len(page_log_training["ent_cap"]) > 0:
+    if page_log_training is not None and len(page_log_training["ent_cap"]) > 0:
         fig_ent_cap.add_scatter(y=page_log_training["ent_cap"])
 
     fig_ent_cap.update_layout(
@@ -438,7 +440,7 @@ def update_ent_cap(n, page_log_training, data):
 )
 def update_loss(n, page_log_training, data):
     fig_expval = go.Figure()
-    if len(page_log_training["loss"]) > 0:
+    if page_log_training is not None and len(page_log_training["loss"]) > 0:
         fig_expval.add_scatter(y=page_log_training["loss"])
 
     fig_expval.update_layout(
@@ -477,7 +479,10 @@ def trigger_training(_):
     prevent_initial_call=True,
 )
 def stop_training(_, page_log_training, page_data):
-    if len(page_log_training["loss"]) <= page_data["steps"]:
+    if (
+        page_log_training is not None
+        and len(page_log_training["loss"]) <= page_data["steps"]
+    ):
         raise PreventUpdate()
 
     return False
@@ -493,10 +498,7 @@ def stop_training(_, page_log_training, page_data):
     prevent_initial_call=True,
 )
 def pong(_, page_log_training, data):
-    if page_log_training is None:
-        raise PreventUpdate()
-
-    if len(page_log_training["loss"]) > data["steps"]:
+    if page_log_training is None or len(page_log_training["loss"]) > data["steps"]:
         raise PreventUpdate()
     return page_log_training
 
