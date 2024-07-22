@@ -45,7 +45,7 @@ layout = html.Div(
                                             dcc.Slider(
                                                 0,
                                                 0.1,
-                                                0.01,
+                                                0.005,
                                                 value=0,
                                                 id="bit-flip-prob-training",
                                             ),
@@ -61,7 +61,7 @@ layout = html.Div(
                                             dcc.Slider(
                                                 0,
                                                 0.1,
-                                                0.01,
+                                                0.005,
                                                 value=0,
                                                 id="phase-flip-prob-training",
                                             ),
@@ -79,7 +79,7 @@ layout = html.Div(
                                             dcc.Slider(
                                                 0,
                                                 0.1,
-                                                0.01,
+                                                0.005,
                                                 value=0,
                                                 id="amplitude-damping-prob-training",
                                             ),
@@ -103,7 +103,7 @@ layout = html.Div(
                                             dcc.Slider(
                                                 0,
                                                 0.1,
-                                                0.01,
+                                                0.005,
                                                 value=0,
                                                 id="phase-damping-prob-training",
                                             )
@@ -119,7 +119,7 @@ layout = html.Div(
                                             dcc.Slider(
                                                 0,
                                                 0.1,
-                                                0.01,
+                                                0.005,
                                                 value=0,
                                                 id="depolarization-prob-training",
                                             )
