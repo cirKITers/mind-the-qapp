@@ -43,9 +43,9 @@ layout = html.Div(
                                         ),
                                         dbc.Col(
                                             dcc.Slider(
-                                                0,
-                                                0.1,
-                                                0.005,
+                                                min=0,
+                                                max=0.1,
+                                                step=0.01,
                                                 value=0,
                                                 id="bit-flip-prob-training",
                                             ),
@@ -59,9 +59,9 @@ layout = html.Div(
                                         ),
                                         dbc.Col(
                                             dcc.Slider(
-                                                0,
-                                                0.1,
-                                                0.005,
+                                                min=0,
+                                                max=0.1,
+                                                step=0.01,
                                                 value=0,
                                                 id="phase-flip-prob-training",
                                             ),
@@ -77,9 +77,9 @@ layout = html.Div(
                                         ),
                                         dbc.Col(
                                             dcc.Slider(
-                                                0,
-                                                0.1,
-                                                0.005,
+                                                min=0,
+                                                max=0.1,
+                                                step=0.01,
                                                 value=0,
                                                 id="amplitude-damping-prob-training",
                                             ),
@@ -101,9 +101,9 @@ layout = html.Div(
                                         dbc.Col(dbc.Label("Phase Damping Probability")),
                                         dbc.Col(
                                             dcc.Slider(
-                                                0,
-                                                0.1,
-                                                0.005,
+                                                min=0,
+                                                max=0.1,
+                                                step=0.01,
                                                 value=0,
                                                 id="phase-damping-prob-training",
                                             )
@@ -117,9 +117,9 @@ layout = html.Div(
                                         ),
                                         dbc.Col(
                                             dcc.Slider(
-                                                0,
-                                                0.1,
-                                                0.005,
+                                                min=0,
+                                                max=0.1,
+                                                step=0.01,
                                                 value=0,
                                                 id="depolarization-prob-training",
                                             )
