@@ -10,7 +10,7 @@ app = dash.Dash(
 app.title = "Favicon"
 sidebar = html.Div(
     [
-        dcc.Store(id="storage-main", storage_type="session"),
+        dcc.Store(id="main-storage", storage_type="session"),
         html.Div(
             [
                 html.H1(
@@ -61,7 +61,7 @@ sidebar = html.Div(
                             max=10,
                             step=1,
                             value=1,
-                            id="numeric-input-qubits",
+                            id="main-qubits-input",
                         ),
                     ],
                     className="numeric-input",
@@ -75,7 +75,7 @@ sidebar = html.Div(
                             max=10,
                             step=1,
                             value=1,
-                            id="numeric-input-layers",
+                            id="main-layers-input",
                         ),
                     ],
                     className="numeric-input",
@@ -93,7 +93,7 @@ sidebar = html.Div(
                             ],
                             placeholder="No Ansatz",
                             required=True,
-                            id="select-input-circuit-ident",
+                            id="main-circuit-ident-select",
                         ),
                     ],
                     className="numeric-input",
@@ -101,9 +101,7 @@ sidebar = html.Div(
                 html.Div(
                     [
                         dbc.Label("Data-Reupload"),
-                        dbc.Switch(
-                            id="switch-data-reupload", value=True, className="fs-4"
-                        ),
+                        dbc.Switch(id="main-dru-switch", value=True, className="fs-4"),
                     ],
                 ),
                 # html.Div(
@@ -121,7 +119,7 @@ sidebar = html.Div(
                             max=999,
                             step=1,
                             value=100,
-                            id="numeric-input-seed",
+                            id="main-seed-input",
                         ),
                     ],
                     className="numeric-input",
@@ -133,10 +131,10 @@ sidebar = html.Div(
         html.Div(
             [
                 dbc.Spinner(
-                    [html.H6("", id="loading-state")],
+                    [html.H6("", id="main-loading-state")],
                     color="primary",
                     type="grow",
-                    id="loading-spinner",
+                    id="main-loading-spinner",
                 )
             ],
             className="spinnerBox",
@@ -148,16 +146,16 @@ sidebar = html.Div(
 
 
 @callback(
-    Output("storage-main", "data"),
+    Output("main-storage", "data"),
     [
-        Input("numeric-input-qubits", "value"),
-        Input("numeric-input-layers", "value"),
-        Input("select-input-circuit-ident", "value"),
-        Input("switch-data-reupload", "value"),
+        Input("main-qubits-input", "value"),
+        Input("main-layers-input", "value"),
+        Input("main-circuit-ident-select", "value"),
+        Input("main-dru-switch", "value"),
         # Input("switch-tffm", "value"),
-        Input("numeric-input-seed", "value"),
+        Input("main-seed-input", "value"),
     ],
-    State("storage-main", "data"),
+    State("main-storage", "data"),
     # prevent_initial_call=True,
 )
 def on_preference_changed(
