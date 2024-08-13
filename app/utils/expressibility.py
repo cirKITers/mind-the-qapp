@@ -80,6 +80,7 @@ def get_sampled_haar_probability_histogram(
 
     return x, y
 
+
 def get_kl_divergence_expr(
     vqc_prob_dist: np.ndarray,
     haar_dist: np.ndarray,
@@ -94,15 +95,18 @@ def get_kl_divergence_expr(
         Should have shape (n_bins, )
     :return: np.ndarray: Array of KL-Divergence values for all values in axis 1
     """
-    assert all([haar_dist.shape == p.shape for p in vqc_prob_dist]), "All "\
-            "probabilities for inputs should have the same shape as Haar. " \
-            f"Got {haar_dist.shape} for Haar and {vqc_prob_dist.shape} for VQC"
+    assert all([haar_dist.shape == p.shape for p in vqc_prob_dist]), (
+        "All "
+        "probabilities for inputs should have the same shape as Haar. "
+        f"Got {haar_dist.shape} for Haar and {vqc_prob_dist.shape} for VQC"
+    )
 
     kl_divergence = np.zeros(vqc_prob_dist.shape[0])
     for i, p in enumerate(vqc_prob_dist):
         kl_divergence[i] = np.sum(np.where(p != 0, p * np.log(p / haar_dist), 0))
 
     return kl_divergence
+
 
 class Expressibility_Sampler:
     def __init__(
@@ -126,7 +130,6 @@ class Expressibility_Sampler:
             seed=seed,
             circuit_type=circuit_type,
             data_reupload=data_reupload,
-            state_vector=True,
         )
         self.rng = np.random.default_rng(seed)
 
@@ -153,14 +156,29 @@ class Expressibility_Sampler:
                 1
                 - 2
                 * self.rng.random(
-                    size=[*self.instructor.model.n_params, self.n_samples * 2]
+                    size=[*self.instructor.model.params.shape, self.n_samples * 2]
                 )
             )
         )
-        for idx, x in enumerate(self.x_samples[:-1]):
 
-            sv = self.instructor.forward(
-                x, w, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=True
+        x_samples_batched = self.x_samples.reshape(1, -1).repeat(
+            self.n_samples * 2, axis=0
+        )
+
+        for idx in range(len(self.x_samples)):
+
+            sv = self.instructor.model(
+                params=w,
+                inputs=x_samples_batched[:, idx],
+                noise_params={
+                    "BitFlip": bf,
+                    "PhaseFlip": pf,
+                    "AmplitudeDamping": ad,
+                    "PhaseDamping": pd,
+                    "Depolarization": dp,
+                },
+                cache=True,
+                execution_type="density",
             )  # n_samples, N
             sqrt_sv1 = np.sqrt(sv[: self.n_samples])
 
