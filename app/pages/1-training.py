@@ -418,7 +418,11 @@ def update_expval(n, page_log_training, page_data, main_data):
 )
 def update_ent_cap(n, page_log_training, data):
     fig_ent_cap = go.Figure()
-    if page_log_training is not None and len(page_log_training["ent_cap"]) > 0:
+    if (
+        page_log_training is not None
+        and len(page_log_training["ent_cap"]) > 0
+        and data is not None
+    ):
         fig_ent_cap.add_scatter(y=page_log_training["ent_cap"])
 
     fig_ent_cap.update_layout(
