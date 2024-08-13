@@ -303,7 +303,7 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
         )
 
         data_len, data = instructor.calc_hist(
-            page_log_training["weights"],
+            page_log_training["params"],
             bf=bf,
             pf=pf,
             ad=ad,
@@ -476,7 +476,7 @@ def update_loss(n, page_log_training, data):
     prevent_initial_call=True,
 )
 def trigger_training(_):
-    page_log = {"loss": [], "weights": [], "ent_cap": []}
+    page_log = {"loss": [], "params": [], "ent_cap": []}
 
     return [page_log, True]
 
@@ -532,7 +532,7 @@ def training(page_log_training, page_data, main_data):
 
     if len(page_log_training["loss"]) > page_data["steps"]:
         page_log_training["loss"] = []
-        page_log_training["weights"] = []
+        page_log_training["params"] = []
         page_log_training["ent_cap"] = []
 
     bf, pf, ad, pd, dp = (
@@ -551,8 +551,8 @@ def training(page_log_training, page_data, main_data):
         data_reupload=main_data["data_reupload"],
     )
 
-    page_log_training["weights"], cost = instructor.step(
-        page_log_training["weights"], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+    page_log_training["params"], cost = instructor.step(
+        page_log_training["params"], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
     )
     page_log_training["loss"].append(cost.item())
 
@@ -566,7 +566,7 @@ def training(page_log_training, page_data, main_data):
 
     if main_data["number_qubits"] > 1:
         ent_cap = ent_sampler.calculate_entangling_capability(
-            10, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, params=page_log_training["weights"]
+            10, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, params=page_log_training["params"]
         )
 
         page_log_training["ent_cap"].append(ent_cap)
