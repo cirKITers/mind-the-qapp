@@ -378,14 +378,18 @@ def update_expval(n, page_log_training, page_data, main_data):
             page_data["dp"],
         )
 
-        y_pred = instructor.forward(
-            instructor.x_d,
-            weights=page_log_training["weights"],
-            bf=bf,
-            pf=pf,
-            ad=ad,
-            pd=pd,
-            dp=dp,
+        y_pred = instructor.model(
+            params=page_log_training["params"],
+            inputs=instructor.x_d,
+            noise_params={
+                "BitFlip": bf,
+                "PhaseFlip": pf,
+                "AmplitudeDamping": ad,
+                "PhaseDamping": pd,
+                "Depolarization": dp,
+            },
+            cache=True,
+            execution_type="expval",
         )
 
         fig_expval.add_scatter(x=instructor.x_d, y=y_pred, name="Prediction")
