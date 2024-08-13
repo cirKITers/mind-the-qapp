@@ -20,6 +20,8 @@ import dash_bootstrap_components as dbc
 
 dash.register_page(__name__, name="Training")
 
+DEFAULT_N_STEPS = 10
+
 layout = html.Div(
     [
         dcc.Store(id="training-page-storage", storage_type="session"),
@@ -145,7 +147,7 @@ layout = html.Div(
                                                             min=1,
                                                             max=101,
                                                             step=1,
-                                                            value=10,
+                                                            value=DEFAULT_N_STEPS,
                                                             id="training-steps-numeric-input",
                                                         ),
                                                     ],
@@ -239,7 +241,7 @@ layout = html.Div(
     prevent_initial_call=True,
 )
 def update_page_data(_, main_data, page_data):
-    if main_data["circuit_type"] is None or main_data["circuit_type"] == "circuit_1":
+    if main_data["circuit_type"] is None or main_data["circuit_type"] == "no_ansatz":
         return page_data, True
 
     return page_data, False
@@ -430,7 +432,7 @@ def update_ent_cap(n, page_log_training, data):
         template="simple_white",
         xaxis_title="Step",
         yaxis_title="Entangling Capability",
-        xaxis_range=[0, data["steps"]],
+        xaxis_range=[0, data["steps"] if data is not None else DEFAULT_N_STEPS],
         autosize=False,
     )
 
@@ -460,7 +462,7 @@ def update_loss(n, page_log_training, data):
         template="simple_white",
         xaxis_title="Step",
         yaxis_title="Loss",
-        xaxis_range=[0, data["steps"]],
+        xaxis_range=[0, data["steps"] if data is not None else DEFAULT_N_STEPS],
         autosize=False,
     )
 
