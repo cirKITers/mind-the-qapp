@@ -356,14 +356,8 @@ def update_hist_fourier(page_data, main_data):
         circuit_type=main_data["circuit_type"],
         data_reupload=main_data["data_reupload"],
     )
-    coeffs = coefficients(
-        partial(instructor.forward, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp),
-        1,
-        instructor.max_freq,
-    )
-    nvecs_formatted, data = _extract_data_and_labels(np.array([coeffs]))
-    data_len = len(data["real"][0])
-    data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
+
+    data_len, data = instructor.calc_hist(instructor.model.params, bf, pf, ad, pd, dp)
 
     fig_coeffs.add_bar(
         x=np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1), y=data["comb"][0]
@@ -394,7 +388,7 @@ def update_hist_haar(page_data, main_data):
     if not data_is_valid(page_data, main_data):
         return [fig_haar]
 
-    n_samples, n_input_samples, n_bins = (
+    _, n_input_samples, n_bins = (
         page_data["n_samples"],
         page_data["n_input_samples"],
         page_data["n_bins"],
