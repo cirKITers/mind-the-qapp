@@ -264,7 +264,17 @@ def update_page_data(_, main_data, page_data):
 def on_preference_changed(bf, pf, ad, pd, dp, steps):
 
     # Give a default data dict with 0 clicks if there's no data.
-    page_data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, steps=steps)
+    # page_data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, steps=steps)
+    page_data = {
+        "noise_params": {
+            "BitFlip": bf,
+            "PhaseFlip": pf,
+            "AmplitudeDamping": ad,
+            "PhaseDamping": pd,
+            "Depolarization": dp,
+        },
+        "steps": steps,
+    }
     page_log_hist = {"x": [], "y": [], "z": []}
 
     return page_data, page_log_hist
@@ -296,21 +306,9 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
             data_reupload=main_data["data_reupload"],
         )
 
-        bf, pf, ad, pd, dp = (
-            page_data["bf"],
-            page_data["pf"],
-            page_data["ad"],
-            page_data["pd"],
-            page_data["dp"],
-        )
-
         data_len, data = instructor.calc_hist(
             page_log_training["params"],
-            bf=bf,
-            pf=pf,
-            ad=ad,
-            pd=pd,
-            dp=dp,
+            noise_params=page_data["noise_params"],
         )
 
         page_log_hist["x"] = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
@@ -372,24 +370,10 @@ def update_expval(n, page_log_training, page_data, main_data):
             data_reupload=main_data["data_reupload"],
         )
 
-        bf, pf, ad, pd, dp = (
-            page_data["bf"],
-            page_data["pf"],
-            page_data["ad"],
-            page_data["pd"],
-            page_data["dp"],
-        )
-
         y_pred = instructor.model(
             params=page_log_training["params"],
             inputs=instructor.x_d,
-            noise_params={
-                "BitFlip": bf,
-                "PhaseFlip": pf,
-                "AmplitudeDamping": ad,
-                "PhaseDamping": pd,
-                "Depolarization": dp,
-            },
+            noise_params=page_data["noise_params"],
             cache=True,
             execution_type="expval",
         )
@@ -537,14 +521,6 @@ def training(page_log_training, page_data, main_data):
         page_log_training["params"] = []
         page_log_training["ent_cap"] = []
 
-    bf, pf, ad, pd, dp = (
-        page_data["bf"],
-        page_data["pf"],
-        page_data["ad"],
-        page_data["pd"],
-        page_data["dp"],
-    )
-
     instructor = Instructor(
         main_data["number_qubits"],
         main_data["number_layers"],
@@ -554,7 +530,7 @@ def training(page_log_training, page_data, main_data):
     )
 
     page_log_training["params"], cost = instructor.step(
-        page_log_training["params"], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+        page_log_training["params"], page_data["noise_params"]
     )
     page_log_training["loss"].append(cost.item())
 
@@ -568,7 +544,9 @@ def training(page_log_training, page_data, main_data):
 
     if main_data["number_qubits"] > 1:
         ent_cap = ent_sampler.calculate_entangling_capability(
-            10, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, params=page_log_training["params"]
+            samples_per_qubit=10,
+            params=page_log_training["params"],
+            noise_params=page_data["noise_params"],
         )
 
         page_log_training["ent_cap"].append(ent_cap)

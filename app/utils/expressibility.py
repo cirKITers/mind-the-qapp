@@ -1,6 +1,6 @@
 from .instructor import Instructor
 import pennylane.numpy as np
-from typing import Tuple
+from typing import Tuple, Dict, Optional
 from scipy import integrate
 import os
 
@@ -141,7 +141,8 @@ class Expressibility_Sampler:
         )
 
     def sample_state_fidelities(
-        self, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0
+        self,
+        noise_params: Optional[Dict[str, float]] = None,
     ) -> np.ndarray:
 
         fidelities = np.zeros((len(self.x_samples), self.n_samples))
@@ -170,13 +171,7 @@ class Expressibility_Sampler:
             sv = self.instructor.model(
                 params=w,
                 inputs=x_samples_batched[:, idx],
-                noise_params={
-                    "BitFlip": bf,
-                    "PhaseFlip": pf,
-                    "AmplitudeDamping": ad,
-                    "PhaseDamping": pd,
-                    "Depolarization": dp,
-                },
+                noise_params=noise_params,
                 cache=True,
                 execution_type="density",
             )  # n_samples, N
@@ -196,9 +191,9 @@ class Expressibility_Sampler:
         return fidelities
 
     def sample_hist_state_fidelities(
-        self, bf=0.0, pf=0.0, ad=0.0, pd=0.0, dp=0.0
+        self, noise_params: dict
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        fidelities = self.sample_state_fidelities(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp)
+        fidelities = self.sample_state_fidelities(noise_params)
         z_component = np.zeros((len(self.x_samples), self.n_bins))
 
         # FIXME: somehow I get nan's in the histogram, when directly creating bins until n

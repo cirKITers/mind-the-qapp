@@ -43,12 +43,8 @@ class EntanglingCapability_Sampler:
     def calculate_entangling_capability(
         self,
         samples_per_qubit: int,
-        bf=0,
-        pf=0,
-        ad=0,
-        pd=0,
-        dp=0,
         params: Optional[np.ndarray] = None,
+        noise_params: Optional[Dict[str, float]] = None,
     ) -> float:
         """
         Calculates the entangling capacity of a given quantum circuit
@@ -99,13 +95,7 @@ class EntanglingCapability_Sampler:
                 U = self.instructor.model(
                     inputs=None,
                     params=params[i],
-                    noise_params={
-                        "BitFlip": bf,
-                        "PhaseFlip": pf,
-                        "AmplitudeDamping": ad,
-                        "PhaseDamping": pd,
-                        "Depolarization": dp,
-                    },
+                    noise_params=noise_params,
                     cache=True,
                     execution_type="density",
                 )

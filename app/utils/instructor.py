@@ -57,11 +57,7 @@ class Instructor:
     def calc_hist(
         self,
         params: np.ndarray,
-        bf: float = 0.0,
-        pf: float = 0.0,
-        ad: float = 0.0,
-        pd: float = 0.0,
-        dp: float = 0.0,
+        noise_params: Optional[Dict[str, float]] = None,
     ) -> Tuple[int, Dict[str, np.ndarray]]:
         """Calculate the histogram of the coefficients of the circuit output.
 
@@ -83,13 +79,7 @@ class Instructor:
             partial(
                 self.model,
                 params,
-                noise_params={
-                    "BitFlip": bf,
-                    "PhaseFlip": pf,
-                    "AmplitudeDamping": ad,
-                    "PhaseDamping": pd,
-                    "Depolarization": dp,
-                },
+                noise_params=noise_params,
                 cache=True,
                 execution_type="expval",
             ),
@@ -98,22 +88,7 @@ class Instructor:
         )
         _, data = _extract_data_and_labels(np.array([coeffs]))
         data_len = len(data["real"][0])
-        """Calculate the histogram of the coefficients of the circuit output.
 
-        Args:
-            p (np.ndarray): The params of the quantum circuit.
-            bf (float): The bit flip rate.
-            pf (float): The phase flip rate.
-            ad (float): The amplitude damping rate.
-            pd (float): The phase damping rate.
-            dp (float): The depolarization rate.
-
-        Returns:
-            A tuple of (int, Dict[str, np.ndarray]): The length of the histogram and a
-            dictionary with the histogram data. The dictionary has the keys "real" and
-            "imag" containing the real and imaginary part of the coefficients
-            respectively, and "comb" containing the combination of the two.
-        """
         data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
 
         return data_len, data
@@ -122,11 +97,7 @@ class Instructor:
         self,
         params: np.ndarray,
         y_d: np.ndarray,
-        bf: float = 0.0,
-        pf: float = 0.0,
-        ad: float = 0.0,
-        pd: float = 0.0,
-        dp: float = 0.0,
+        noise_params: Optional[Dict[str, float]] = None,
     ) -> float:
         """Compute the cost of the model.
 
@@ -145,13 +116,7 @@ class Instructor:
         y_pred = self.model(
             params=params,
             inputs=self.x_d,
-            noise_params={
-                "BitFlip": bf,
-                "PhaseFlip": pf,
-                "AmplitudeDamping": ad,
-                "PhaseDamping": pd,
-                "Depolarization": dp,
-            },
+            noise_params=noise_params,
             cache=False,
             execution_type="expval",
         )
@@ -161,11 +126,7 @@ class Instructor:
     def step(
         self,
         params: List[float],
-        bf: float = 0.0,
-        pf: float = 0.0,
-        ad: float = 0.0,
-        pd: float = 0.0,
-        dp: float = 0.0,
+        noise_params: Optional[Dict[str, float]] = None,
     ) -> Tuple[np.ndarray, float]:
         """Perform a single optimization step.
 
@@ -186,7 +147,7 @@ class Instructor:
         params = np.array(params, requires_grad=True)
 
         params, cost = self.opt.step_and_cost(
-            self.cost, params, y_d=self.y_d, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+            self.cost, params, y_d=self.y_d, noise_params=noise_params
         )
 
         return params, cost
