@@ -18,13 +18,13 @@ from utils.entangling import EntanglingCapability_Sampler
 
 import dash_bootstrap_components as dbc
 
-dash.register_page(__name__, name="Noise Training")
+dash.register_page(__name__, name="Training")
 
 layout = html.Div(
     [
-        dcc.Store(id="storage-noise-training-viz", storage_type="session"),
-        dcc.Store(id="storage-noise-training-proc", storage_type="session"),
-        dcc.Store(id="storage-noise-hist-proc", storage_type="session"),
+        dcc.Store(id="training-page-storage", storage_type="session"),
+        dcc.Store(id="training-log-storage", storage_type="session"),
+        dcc.Store(id="training-log-hist-storage", storage_type="session"),
         dcc.Interval(
             id="interval-component",
             interval=1 * 1000,  # in milliseconds
@@ -47,7 +47,7 @@ layout = html.Div(
                                                 max=0.1,
                                                 step=0.01,
                                                 value=0,
-                                                id="bit-flip-prob-training",
+                                                id="training-bit-flip-prob-slider",
                                             ),
                                         ),
                                     ],
@@ -63,7 +63,7 @@ layout = html.Div(
                                                 max=0.1,
                                                 step=0.01,
                                                 value=0,
-                                                id="phase-flip-prob-training",
+                                                id="training-phase-flip-prob-slider",
                                             ),
                                         ),
                                     ],
@@ -81,7 +81,7 @@ layout = html.Div(
                                                 max=0.1,
                                                 step=0.01,
                                                 value=0,
-                                                id="amplitude-damping-prob-training",
+                                                id="training-amplitude-damping-prob-slider",
                                             ),
                                         ),
                                     ],
@@ -105,7 +105,7 @@ layout = html.Div(
                                                 max=0.1,
                                                 step=0.01,
                                                 value=0,
-                                                id="phase-damping-prob-training",
+                                                id="training-phase-damping-prob-slider",
                                             )
                                         ),
                                     ]
@@ -121,7 +121,7 @@ layout = html.Div(
                                                 max=0.1,
                                                 step=0.01,
                                                 value=0,
-                                                id="depolarization-prob-training",
+                                                id="training-depolarization-prob-slider",
                                             )
                                         ),
                                     ],
@@ -146,7 +146,7 @@ layout = html.Div(
                                                             max=101,
                                                             step=1,
                                                             value=10,
-                                                            id="numeric-input-steps",
+                                                            id="training-steps-numeric-input",
                                                         ),
                                                     ],
                                                     style={
@@ -161,7 +161,7 @@ layout = html.Div(
                                             [
                                                 dbc.Button(
                                                     "Start Training",
-                                                    id="training-button",
+                                                    id="training-start-button",
                                                     disabled="true",
                                                 ),
                                             ],
@@ -182,7 +182,7 @@ layout = html.Div(
                 html.Div(
                     [
                         dcc.Graph(
-                            id="fig-training-hist",
+                            id="training-hist-fig",
                             style={
                                 "display": "inline-block",
                                 "height": "50vh",
@@ -190,7 +190,7 @@ layout = html.Div(
                             },
                         ),
                         dcc.Graph(
-                            id="fig-training-metric",
+                            id="training-metric-figure",
                             style={
                                 "display": "inline-block",
                                 "height": "30vh",
@@ -203,7 +203,7 @@ layout = html.Div(
                 html.Div(
                     [
                         dcc.Graph(
-                            id="fig-training-expval",
+                            id="training-expval-figure",
                             style={
                                 "display": "inline-block",
                                 "height": "40vh",
@@ -230,12 +230,12 @@ layout = html.Div(
 
 @callback(
     [
-        Output("storage-noise-training-viz", "data", allow_duplicate=True),
-        Output("training-button", "disabled", allow_duplicate=True),
+        Output("training-page-storage", "data", allow_duplicate=True),
+        Output("training-start-button", "disabled", allow_duplicate=True),
     ],
-    Input("storage-main", "modified_timestamp"),
-    State("storage-main", "data"),
-    State("storage-noise-training-viz", "data"),
+    Input("main-storage", "modified_timestamp"),
+    State("main-storage", "data"),
+    State("training-page-storage", "data"),
     prevent_initial_call=True,
 )
 def update_page_data(_, main_data, page_data):
@@ -247,16 +247,16 @@ def update_page_data(_, main_data, page_data):
 
 @callback(
     [
-        Output("storage-noise-training-viz", "data"),
-        Output("storage-noise-hist-proc", "data"),
+        Output("training-page-storage", "data"),
+        Output("training-log-hist-storage", "data"),
     ],
     [
-        Input("bit-flip-prob-training", "value"),
-        Input("phase-flip-prob-training", "value"),
-        Input("amplitude-damping-prob-training", "value"),
-        Input("phase-damping-prob-training", "value"),
-        Input("depolarization-prob-training", "value"),
-        Input("numeric-input-steps", "value"),
+        Input("training-bit-flip-prob-slider", "value"),
+        Input("training-phase-flip-prob-slider", "value"),
+        Input("training-amplitude-damping-prob-slider", "value"),
+        Input("training-phase-damping-prob-slider", "value"),
+        Input("training-depolarization-prob-slider", "value"),
+        Input("training-steps-numeric-input", "value"),
     ],
 )
 def on_preference_changed(bf, pf, ad, pd, dp, steps):
@@ -270,15 +270,15 @@ def on_preference_changed(bf, pf, ad, pd, dp, steps):
 
 @callback(
     [
-        Output("fig-training-hist", "figure"),
-        Output("storage-noise-hist-proc", "data", allow_duplicate=True),
+        Output("training-hist-fig", "figure"),
+        Output("training-log-hist-storage", "data", allow_duplicate=True),
     ],
-    Input("storage-noise-training-proc", "modified_timestamp"),
+    Input("training-log-storage", "modified_timestamp"),
     [
-        State("storage-noise-training-proc", "data"),
-        State("storage-noise-hist-proc", "data"),
-        State("storage-noise-training-viz", "data"),
-        State("storage-main", "data"),
+        State("training-log-storage", "data"),
+        State("training-log-hist-storage", "data"),
+        State("training-page-storage", "data"),
+        State("main-storage", "data"),
     ],
     prevent_initial_call=True,
 )
@@ -349,12 +349,12 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
 
 
 @callback(
-    Output("fig-training-expval", "figure"),
-    Input("storage-noise-training-proc", "modified_timestamp"),
+    Output("training-expval-figure", "figure"),
+    Input("training-log-storage", "modified_timestamp"),
     [
-        State("storage-noise-training-proc", "data"),
-        State("storage-noise-training-viz", "data"),
-        State("storage-main", "data"),
+        State("training-log-storage", "data"),
+        State("training-page-storage", "data"),
+        State("main-storage", "data"),
     ],
     prevent_initial_call=True,
 )
@@ -405,10 +405,10 @@ def update_expval(n, page_log_training, page_data, main_data):
 
 @callback(
     Output("fig-training-ent", "figure"),
-    Input("storage-noise-training-proc", "modified_timestamp"),
+    Input("training-log-storage", "modified_timestamp"),
     [
-        State("storage-noise-training-proc", "data"),
-        State("storage-noise-training-viz", "data"),
+        State("training-log-storage", "data"),
+        State("training-page-storage", "data"),
     ],
     prevent_initial_call=True,
 )
@@ -430,11 +430,11 @@ def update_ent_cap(n, page_log_training, data):
 
 
 @callback(
-    Output("fig-training-metric", "figure"),
-    Input("storage-noise-training-proc", "modified_timestamp"),
+    Output("training-metric-figure", "figure"),
+    Input("training-log-storage", "modified_timestamp"),
     [
-        State("storage-noise-training-proc", "data"),
-        State("storage-noise-training-viz", "data"),
+        State("training-log-storage", "data"),
+        State("training-page-storage", "data"),
     ],
     prevent_initial_call=True,
 )
@@ -457,10 +457,10 @@ def update_loss(n, page_log_training, data):
 
 @callback(
     [
-        Output("storage-noise-training-proc", "data", allow_duplicate=True),
-        Output("training-button", "disabled", allow_duplicate=True),
+        Output("training-log-storage", "data", allow_duplicate=True),
+        Output("training-start-button", "disabled", allow_duplicate=True),
     ],
-    Input("training-button", "n_clicks"),
+    Input("training-start-button", "n_clicks"),
     prevent_initial_call=True,
 )
 def trigger_training(_):
@@ -470,11 +470,11 @@ def trigger_training(_):
 
 
 @callback(
-    Output("training-button", "disabled", allow_duplicate=True),
-    Input("storage-noise-training-proc", "modified_timestamp"),
+    Output("training-start-button", "disabled", allow_duplicate=True),
+    Input("training-log-storage", "modified_timestamp"),
     [
-        State("storage-noise-training-proc", "data"),
-        State("storage-noise-training-viz", "data"),
+        State("training-log-storage", "data"),
+        State("training-page-storage", "data"),
     ],
     prevent_initial_call=True,
 )
@@ -489,11 +489,11 @@ def stop_training(_, page_log_training, page_data):
 
 
 @callback(
-    Output("storage-noise-training-proc", "data", allow_duplicate=True),
-    Input("storage-noise-training-proc", "modified_timestamp"),
+    Output("training-log-storage", "data", allow_duplicate=True),
+    Input("training-log-storage", "modified_timestamp"),
     [
-        State("storage-noise-training-proc", "data"),
-        State("storage-noise-training-viz", "data"),
+        State("training-log-storage", "data"),
+        State("training-page-storage", "data"),
     ],
     prevent_initial_call=True,
 )
@@ -504,13 +504,13 @@ def pong(_, page_log_training, data):
 
 
 @callback(
-    Output("storage-noise-training-proc", "data"),
+    Output("training-log-storage", "data"),
     [
-        Input("storage-noise-training-proc", "data"),
+        Input("training-log-storage", "data"),
     ],
     [
-        State("storage-noise-training-viz", "data"),
-        State("storage-main", "data"),
+        State("training-page-storage", "data"),
+        State("main-storage", "data"),
     ],
     prevent_initial_call=True,
 )
