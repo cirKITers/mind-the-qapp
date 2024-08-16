@@ -17,7 +17,6 @@ class Instructor:
         seed: int = 100,
         circuit_type: int = 19,
         data_reupload: bool = True,
-        tffm: bool = False,
         **kwargs,
     ) -> None:
         """
@@ -31,14 +30,11 @@ class Instructor:
             data_reupload: Whether or not to reupload data in the circuit.
             tffm: Whether or not to use trainable frequency feature mapping.
         """
-        self.max_freq = n_qubits * n_layers
-
         self.model = Model(
             n_qubits=n_qubits,
             n_layers=n_layers,
             circuit_type=circuit_type,
             data_reupload=data_reupload,
-            # tffm=tffm,
             random_seed=seed,
             **kwargs,
         )
