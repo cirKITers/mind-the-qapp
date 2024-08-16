@@ -1,12 +1,7 @@
 import dash
 from dash import (
-    Dash,
     dcc,
     html,
-    Input,
-    State,
-    Output,
-    callback,
 )
 
 dash.register_page(__name__, name="Home", path="/")
