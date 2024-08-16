@@ -38,12 +38,17 @@ layout = html.Div(
         ## Getting started
 
         On the left you can see two pages:
-        - [Training](/training)
-        - [Expressibility](/expressibility)
+        - [Training](/1-training)
+        - [Expressibility](/2-expressibility)
 
         The first one allows you to run a training of a data-reuploading enabled model on a simple Fourier series dataset.
         During training you can observe how the loss changes and the model output gets closer to the target.
         Play around with the number of qubits and layers as well as the circuit type to see which model performs best.
+        Besides the loss and the model output, you can also observe how the Fourier spectrum changes during training (3D Histogram) and how the entangling capability of the chosen Ansatz changes.
+        
+        On the second page you can evaluate the expressibility of a chosen Ansatz and how it compares to the Haar measure.
+        
+        Both pages offer settings to adjust various types of noise that apply directly to the model used in the experiments.
 
 
         ## References
