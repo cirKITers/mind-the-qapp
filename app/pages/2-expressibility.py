@@ -30,7 +30,7 @@ dash.register_page(__name__, name="Expressibility")
 
 layout = html.Div(
     [
-        dcc.Store(id="storage-expr-viz", storage_type="session"),
+        dcc.Store(id="expr-page-storage", storage_type="session"),
         html.Div(
             [
                 html.Div(
@@ -42,7 +42,7 @@ layout = html.Div(
                                         dbc.Col(
                                             dbc.Label(
                                                 "Sampled Parameter Pairs:",
-                                                html_for="num-param-sample-pairs",
+                                                html_for="expr-param-sample-pairs-input",
                                             ),
                                         ),
                                         dbc.Col(
@@ -52,7 +52,7 @@ layout = html.Div(
                                                 max=1000,
                                                 step=1,
                                                 value=200,
-                                                id="num-param-sample-pairs",
+                                                id="expr-param-sample-pairs-input",
                                             ),
                                         ),
                                     ],
@@ -62,7 +62,7 @@ layout = html.Div(
                                         dbc.Col(
                                             dbc.Label(
                                                 "Input Samples",
-                                                html_for="num-input-samples",
+                                                html_for="expr-samples-input",
                                             ),
                                         ),
                                         dbc.Col(
@@ -72,7 +72,7 @@ layout = html.Div(
                                                 max=100,
                                                 step=1,
                                                 value=5,
-                                                id="num-input-samples",
+                                                id="expr-samples-input",
                                             ),
                                         ),
                                     ],
@@ -82,7 +82,7 @@ layout = html.Div(
                                         dbc.Col(
                                             dbc.Label(
                                                 "Histogram Bins",
-                                                html_for="num-histogram-bins",
+                                                html_for="expr-histogram-bins-input",
                                             ),
                                         ),
                                         dbc.Col(
@@ -92,7 +92,7 @@ layout = html.Div(
                                                 max=500,
                                                 step=1,
                                                 value=20,
-                                                id="num-histogram-bins",
+                                                id="expr-histogram-bins-input",
                                             ),
                                         ),
                                     ],
@@ -102,7 +102,7 @@ layout = html.Div(
                                         dbc.Col(
                                             dbc.Label(
                                                 "Meyer-Wallach Entangling Capability",
-                                                html_for="ent-cap",
+                                                html_for="expr-ent-cap-badge",
                                             ),
                                         ),
                                         dbc.Col(
@@ -112,7 +112,7 @@ layout = html.Div(
                                                     color="primary",
                                                     pill=True,
                                                     className="me-1",
-                                                    id="ent-cap",
+                                                    id="expr-ent-cap-badge",
                                                 )
                                             ),
                                         ),
@@ -140,7 +140,7 @@ layout = html.Div(
                                                 0.5,
                                                 0.05,
                                                 value=0,
-                                                id="phase-damping-prob-expr",
+                                                id="expr-phase-damping-prob-slider",
                                             ),
                                         ),
                                     ],
@@ -156,7 +156,7 @@ layout = html.Div(
                                                 0.5,
                                                 0.05,
                                                 value=0,
-                                                id="depolarization-prob-expr",
+                                                id="expr-depolarization-prob-slider",
                                             ),
                                         ),
                                     ],
@@ -172,7 +172,7 @@ layout = html.Div(
                                                 0.5,
                                                 0.05,
                                                 value=0,
-                                                id="bit-flip-prob-expr",
+                                                id="expr-bit-flip-prob-slider",
                                             ),
                                         ),
                                     ],
@@ -188,7 +188,7 @@ layout = html.Div(
                                                 0.5,
                                                 0.05,
                                                 value=0,
-                                                id="phase-flip-prob-expr",
+                                                id="expr-phase-flip-prob-slider",
                                             ),
                                         ),
                                     ],
@@ -206,7 +206,7 @@ layout = html.Div(
                                                 0.5,
                                                 0.05,
                                                 value=0,
-                                                id="amplitude-damping-prob-expr",
+                                                id="expr-amplitude-damping-prob-slider",
                                             ),
                                         ),
                                     ],
@@ -224,7 +224,7 @@ layout = html.Div(
                 html.Div(
                     [
                         dcc.Graph(
-                            id="fig-hist-expr",
+                            id="expr-hist-figure",
                             style={
                                 "display": "inline-block",
                                 "height": "50vh",
@@ -232,7 +232,7 @@ layout = html.Div(
                             },
                         ),
                         dcc.Graph(
-                            id="fig-expr-kl",
+                            id="expr-kl-figure",
                             style={
                                 "display": "inline-block",
                                 "height": "30vh",
@@ -245,7 +245,7 @@ layout = html.Div(
                 html.Div(
                     [
                         dcc.Graph(
-                            id="fig-hist-haar",
+                            id="expr-haar-figure",
                             style={
                                 "display": "inline-block",
                                 "height": "40vh",
@@ -271,9 +271,9 @@ layout = html.Div(
 
 
 @callback(
-    Output("storage-expr-viz", "data", allow_duplicate=True),
-    Input("storage-main", "modified_timestamp"),
-    State("storage-expr-viz", "data"),
+    Output("expr-page-storage", "data", allow_duplicate=True),
+    Input("main-storage", "modified_timestamp"),
+    State("expr-page-storage", "data"),
     prevent_initial_call=True,
 )
 def update_page_data(_, page_data):
@@ -281,16 +281,16 @@ def update_page_data(_, page_data):
 
 
 @callback(
-    Output("storage-expr-viz", "data"),
+    Output("expr-page-storage", "data"),
     [
-        Input("num-param-sample-pairs", "value"),
-        Input("num-input-samples", "value"),
-        Input("num-histogram-bins", "value"),
-        Input("bit-flip-prob-expr", "value"),
-        Input("phase-flip-prob-expr", "value"),
-        Input("amplitude-damping-prob-expr", "value"),
-        Input("phase-damping-prob-expr", "value"),
-        Input("depolarization-prob-expr", "value"),
+        Input("expr-param-sample-pairs-input", "value"),
+        Input("expr-samples-input", "value"),
+        Input("expr-histogram-bins-input", "value"),
+        Input("expr-bit-flip-prob-slider", "value"),
+        Input("expr-phase-flip-prob-slider", "value"),
+        Input("expr-amplitude-damping-prob-slider", "value"),
+        Input("expr-phase-damping-prob-slider", "value"),
+        Input("expr-depolarization-prob-slider", "value"),
     ],
 )
 def on_preference_changed(
@@ -305,16 +305,18 @@ def on_preference_changed(
 ):
 
     # Give a default data dict with 0 clicks if there's no data.
-    data = dict(
-        n_samples=n_samples,
-        n_input_samples=n_input_samples,
-        n_bins=n_bins,
-        bf=bf,
-        pf=pf,
-        ad=ad,
-        pd=pd,
-        dp=dp,
-    )
+    data = {
+        "n_samples": n_samples,
+        "n_input_samples": n_input_samples,
+        "n_bins": n_bins,
+        "noise_params": {
+            "BitFlip": bf,
+            "PhaseFlip": pf,
+            "AmplitudeDamping": ad,
+            "PhaseDamping": pd,
+            "Depolarization": dp,
+        },
+    }
 
     return data
 
@@ -324,9 +326,9 @@ def on_preference_changed(
         Output("fig-hist-fourier", "figure"),
     ],
     [
-        Input("storage-expr-viz", "data"),
+        Input("expr-page-storage", "data"),
     ],
-    State("storage-main", "data"),
+    State("main-storage", "data"),
     prevent_initial_call=True,
 )
 def update_hist_fourier(page_data, main_data):
@@ -341,14 +343,6 @@ def update_hist_fourier(page_data, main_data):
     if not data_is_valid(page_data, main_data):
         return [fig_coeffs]
 
-    bf, pf, ad, pd, dp = (
-        page_data["bf"],
-        page_data["pf"],
-        page_data["ad"],
-        page_data["pd"],
-        page_data["dp"],
-    )
-
     instructor = Instructor(
         main_data["number_qubits"],
         main_data["number_layers"],
@@ -356,14 +350,10 @@ def update_hist_fourier(page_data, main_data):
         circuit_type=main_data["circuit_type"],
         data_reupload=main_data["data_reupload"],
     )
-    coeffs = coefficients(
-        partial(instructor.forward, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp),
-        1,
-        instructor.max_freq,
+
+    data_len, data = instructor.calc_hist(
+        instructor.model.params, noise_params=page_data["noise_params"]
     )
-    nvecs_formatted, data = _extract_data_and_labels(np.array([coeffs]))
-    data_len = len(data["real"][0])
-    data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
 
     fig_coeffs.add_bar(
         x=np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1), y=data["comb"][0]
@@ -374,12 +364,12 @@ def update_hist_fourier(page_data, main_data):
 
 @callback(
     [
-        Output("fig-hist-haar", "figure"),
+        Output("expr-haar-figure", "figure"),
     ],
     [
-        Input("storage-expr-viz", "data"),
+        Input("expr-page-storage", "data"),
     ],
-    State("storage-main", "data"),
+    State("main-storage", "data"),
     prevent_initial_call=True,
 )
 def update_hist_haar(page_data, main_data):
@@ -394,7 +384,7 @@ def update_hist_haar(page_data, main_data):
     if not data_is_valid(page_data, main_data):
         return [fig_haar]
 
-    n_samples, n_input_samples, n_bins = (
+    _, n_input_samples, n_bins = (
         page_data["n_samples"],
         page_data["n_input_samples"],
         page_data["n_bins"],
@@ -414,14 +404,14 @@ def update_hist_haar(page_data, main_data):
 
 @callback(
     [
-        Output("fig-hist-expr", "figure"),
-        Output("fig-expr-kl", "figure"),
-        Output("loading-state", "children", allow_duplicate=True),
+        Output("expr-hist-figure", "figure"),
+        Output("expr-kl-figure", "figure"),
+        Output("main-loading-state", "children", allow_duplicate=True),
     ],
     [
-        Input("storage-expr-viz", "data"),
+        Input("expr-page-storage", "data"),
     ],
-    State("storage-main", "data"),
+    State("main-storage", "data"),
     prevent_initial_call=True,
 )
 def update_output_probabilities(page_data, main_data):
@@ -466,14 +456,6 @@ def update_output_probabilities(page_data, main_data):
     if main_data["circuit_type"] == None:
         return [fig_expr, "Ready"]
 
-    bf, pf, ad, pd, dp = (
-        page_data["bf"],
-        page_data["pf"],
-        page_data["ad"],
-        page_data["pd"],
-        page_data["dp"],
-    )
-
     expr_sampler = Expressibility_Sampler(
         main_data["number_qubits"],
         main_data["number_layers"],
@@ -485,7 +467,7 @@ def update_output_probabilities(page_data, main_data):
         n_bins,
     )
     x_samples, y_samples, z_samples = expr_sampler.sample_hist_state_fidelities(
-        bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+        noise_params=page_data["noise_params"],
     )
 
     fig_expr.add_surface(
@@ -513,24 +495,16 @@ def update_output_probabilities(page_data, main_data):
 
 
 @callback(
-    Output("ent-cap", "children"),
+    Output("expr-ent-cap-badge", "children"),
     [
-        Input("storage-expr-viz", "data"),
+        Input("expr-page-storage", "data"),
     ],
-    State("storage-main", "data"),
+    State("main-storage", "data"),
     prevent_initial_call=True,
 )
 def update_ent_cap(page_data, main_data):
     if not data_is_valid(page_data, main_data) or main_data["number_qubits"] == 1:
         return 0
-
-    bf, pf, ad, pd, dp = (
-        page_data["bf"],
-        page_data["pf"],
-        page_data["ad"],
-        page_data["pd"],
-        page_data["dp"],
-    )
 
     ent_sampler = EntanglingCapability_Sampler(
         main_data["number_qubits"],
@@ -540,6 +514,6 @@ def update_ent_cap(page_data, main_data):
         main_data["data_reupload"],
     )
     ent_cap = ent_sampler.calculate_entangling_capability(
-        10, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+        samples_per_qubit=10, params=None, noise_params=page_data["noise_params"]
     )
     return f"{ent_cap:.3f}"

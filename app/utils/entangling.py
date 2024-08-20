@@ -37,19 +37,14 @@ class EntanglingCapability_Sampler:
             seed=seed,
             circuit_type=circuit_type,
             data_reupload=data_reupload,
-            state_vector=True,
         )
         self.rng = np.random.default_rng(seed)
 
     def calculate_entangling_capability(
         self,
         samples_per_qubit: int,
-        bf=0,
-        pf=0,
-        ad=0,
-        pd=0,
-        dp=0,
         params: Optional[np.ndarray] = None,
+        noise_params: Optional[Dict[str, float]] = None,
     ) -> float:
         """
         Calculates the entangling capacity of a given quantum circuit
@@ -97,8 +92,12 @@ class EntanglingCapability_Sampler:
             qb = list(range(n_qubits))
 
             for i in range(samples):
-                U = self.instructor.forward(
-                    0, params[i], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, cache=True
+                U = self.instructor.model(
+                    inputs=None,
+                    params=params[i],
+                    noise_params=noise_params,
+                    cache=True,
+                    execution_type="density",
                 )
 
                 entropy = 0
@@ -112,24 +111,24 @@ class EntanglingCapability_Sampler:
             mw = 2 * np.sum(mw_measure.real) / samples
 
             # catch floating point errors
-            if mw < 0.:
-                mw = 0.
+            if mw < 0.0:
+                mw = 0.0
             return mw
 
         circuit = self.instructor.model.circuit
         samples = samples_per_qubit * len(circuit.device.wires)
 
         if params is not None:
-            assert params.shape == self.instructor.model.n_params, (
+            assert params.shape == self.instructor.model.params.shape, (
                 "Parameter shape of instructor, and that provided for "
                 "entangling capability should be equal, but are "
-                f"{params.shape} and {self.instructor.model.n_params} "
+                f"{params.shape} and {self.instructor.model.params.shape} "
                 "respectively"
             )
             p = np.repeat(np.expand_dims(params, axis=0), samples, axis=0)
         else:
             p = self.rng.uniform(
-                0, 2 * np.pi, size=(samples, *self.instructor.model.n_params)
+                0, 2 * np.pi, size=(samples, *self.instructor.model.params.shape)
             )
 
         # TODO: propagate precision to kedro parameters
