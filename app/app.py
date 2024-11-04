@@ -91,7 +91,7 @@ sidebar = html.Div(
                                 }
                                 for fct in Ansaetze.get_available()
                             ],
-                            placeholder="Circuit 1",
+                            placeholder="No Ansatz",
                             required=True,
                             id="main-circuit-ident-select",
                         ),
@@ -187,7 +187,7 @@ def on_preference_changed(
     data["number_layers"] = (
         max(min(number_layers, 10), 0) if number_layers is not None else None
     )
-    data["circuit_type"] = circuit_type
+    data["circuit_type"] = circuit_type if circuit_type is not None else "No_Ansatz"
     data["data_reupload"] = data_reupload
     data["tffm"] = False  # tffm
     data["seed"] = max(min(seed, 999), 100)
