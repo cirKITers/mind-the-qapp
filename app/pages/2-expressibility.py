@@ -305,16 +305,18 @@ def on_preference_changed(
 ):
 
     # Give a default data dict with 0 clicks if there's no data.
-    data = dict(
-        n_samples=n_samples,
-        n_input_samples=n_input_samples,
-        n_bins=n_bins,
-        bf=bf,
-        pf=pf,
-        ad=ad,
-        pd=pd,
-        dp=dp,
-    )
+    data = {
+        "n_samples": n_samples,
+        "n_input_samples": n_input_samples,
+        "n_bins": n_bins,
+        "noise_params": {
+            "BitFlip": bf,
+            "PhaseFlip": pf,
+            "AmplitudeDamping": ad,
+            "PhaseDamping": pd,
+            "Depolarization": dp,
+        },
+    }
 
     return data
 
@@ -341,14 +343,6 @@ def update_hist_fourier(page_data, main_data):
     if not data_is_valid(page_data, main_data):
         return [fig_coeffs]
 
-    bf, pf, ad, pd, dp = (
-        page_data["bf"],
-        page_data["pf"],
-        page_data["ad"],
-        page_data["pd"],
-        page_data["dp"],
-    )
-
     instructor = Instructor(
         main_data["number_qubits"],
         main_data["number_layers"],
@@ -356,14 +350,10 @@ def update_hist_fourier(page_data, main_data):
         circuit_type=main_data["circuit_type"],
         data_reupload=main_data["data_reupload"],
     )
-    coeffs = coefficients(
-        partial(instructor.forward, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp),
-        1,
-        instructor.max_freq,
+
+    data_len, data = instructor.calc_hist(
+        instructor.model.params, noise_params=page_data["noise_params"]
     )
-    nvecs_formatted, data = _extract_data_and_labels(np.array([coeffs]))
-    data_len = len(data["real"][0])
-    data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
 
     fig_coeffs.add_bar(
         x=np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1), y=data["comb"][0]
@@ -394,7 +384,7 @@ def update_hist_haar(page_data, main_data):
     if not data_is_valid(page_data, main_data):
         return [fig_haar]
 
-    n_samples, n_input_samples, n_bins = (
+    _, n_input_samples, n_bins = (
         page_data["n_samples"],
         page_data["n_input_samples"],
         page_data["n_bins"],
@@ -466,14 +456,6 @@ def update_output_probabilities(page_data, main_data):
     if main_data["circuit_type"] == None:
         return [fig_expr, "Ready"]
 
-    bf, pf, ad, pd, dp = (
-        page_data["bf"],
-        page_data["pf"],
-        page_data["ad"],
-        page_data["pd"],
-        page_data["dp"],
-    )
-
     expr_sampler = Expressibility_Sampler(
         main_data["number_qubits"],
         main_data["number_layers"],
@@ -485,7 +467,7 @@ def update_output_probabilities(page_data, main_data):
         n_bins,
     )
     x_samples, y_samples, z_samples = expr_sampler.sample_hist_state_fidelities(
-        bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+        noise_params=page_data["noise_params"],
     )
 
     fig_expr.add_surface(
@@ -524,14 +506,6 @@ def update_ent_cap(page_data, main_data):
     if not data_is_valid(page_data, main_data) or main_data["number_qubits"] == 1:
         return 0
 
-    bf, pf, ad, pd, dp = (
-        page_data["bf"],
-        page_data["pf"],
-        page_data["ad"],
-        page_data["pd"],
-        page_data["dp"],
-    )
-
     ent_sampler = EntanglingCapability_Sampler(
         main_data["number_qubits"],
         main_data["number_layers"],
@@ -540,6 +514,6 @@ def update_ent_cap(page_data, main_data):
         main_data["data_reupload"],
     )
     ent_cap = ent_sampler.calculate_entangling_capability(
-        10, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+        samples_per_qubit=10, params=None, noise_params=page_data["noise_params"]
     )
     return f"{ent_cap:.3f}"

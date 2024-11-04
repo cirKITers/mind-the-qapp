@@ -20,6 +20,8 @@ import dash_bootstrap_components as dbc
 
 dash.register_page(__name__, name="Training")
 
+DEFAULT_N_STEPS = 10
+
 layout = html.Div(
     [
         dcc.Store(id="training-page-storage", storage_type="session"),
@@ -145,7 +147,7 @@ layout = html.Div(
                                                             min=1,
                                                             max=101,
                                                             step=1,
-                                                            value=10,
+                                                            value=DEFAULT_N_STEPS,
                                                             id="training-steps-numeric-input",
                                                         ),
                                                     ],
@@ -262,7 +264,17 @@ def update_page_data(_, main_data, page_data):
 def on_preference_changed(bf, pf, ad, pd, dp, steps):
 
     # Give a default data dict with 0 clicks if there's no data.
-    page_data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, steps=steps)
+    # page_data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, steps=steps)
+    page_data = {
+        "noise_params": {
+            "BitFlip": bf,
+            "PhaseFlip": pf,
+            "AmplitudeDamping": ad,
+            "PhaseDamping": pd,
+            "Depolarization": dp,
+        },
+        "steps": steps,
+    }
     page_log_hist = {"x": [], "y": [], "z": []}
 
     return page_data, page_log_hist
@@ -294,21 +306,9 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
             data_reupload=main_data["data_reupload"],
         )
 
-        bf, pf, ad, pd, dp = (
-            page_data["bf"],
-            page_data["pf"],
-            page_data["ad"],
-            page_data["pd"],
-            page_data["dp"],
-        )
-
         data_len, data = instructor.calc_hist(
-            page_log_training["weights"],
-            bf=bf,
-            pf=pf,
-            ad=ad,
-            pd=pd,
-            dp=dp,
+            page_log_training["params"],
+            noise_params=page_data["noise_params"],
         )
 
         page_log_hist["x"] = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
@@ -370,22 +370,12 @@ def update_expval(n, page_log_training, page_data, main_data):
             data_reupload=main_data["data_reupload"],
         )
 
-        bf, pf, ad, pd, dp = (
-            page_data["bf"],
-            page_data["pf"],
-            page_data["ad"],
-            page_data["pd"],
-            page_data["dp"],
-        )
-
-        y_pred = instructor.forward(
-            instructor.x_d,
-            weights=page_log_training["weights"],
-            bf=bf,
-            pf=pf,
-            ad=ad,
-            pd=pd,
-            dp=dp,
+        y_pred = instructor.model(
+            params=page_log_training["params"],
+            inputs=instructor.x_d,
+            noise_params=page_data["noise_params"],
+            cache=True,
+            execution_type="expval",
         )
 
         fig_expval.add_scatter(x=instructor.x_d, y=y_pred, name="Prediction")
@@ -414,7 +404,11 @@ def update_expval(n, page_log_training, page_data, main_data):
 )
 def update_ent_cap(n, page_log_training, data):
     fig_ent_cap = go.Figure()
-    if page_log_training is not None and len(page_log_training["ent_cap"]) > 0:
+    if (
+        page_log_training is not None
+        and len(page_log_training["ent_cap"]) > 0
+        and data is not None
+    ):
         fig_ent_cap.add_scatter(y=page_log_training["ent_cap"])
 
     fig_ent_cap.update_layout(
@@ -422,7 +416,7 @@ def update_ent_cap(n, page_log_training, data):
         template="simple_white",
         xaxis_title="Step",
         yaxis_title="Entangling Capability",
-        xaxis_range=[0, data["steps"]],
+        xaxis_range=[0, data["steps"] if data is not None else DEFAULT_N_STEPS],
         autosize=False,
     )
 
@@ -440,7 +434,11 @@ def update_ent_cap(n, page_log_training, data):
 )
 def update_loss(n, page_log_training, data):
     fig_expval = go.Figure()
-    if page_log_training is not None and len(page_log_training["loss"]) > 0:
+    if (
+        page_log_training is not None
+        and len(page_log_training["loss"]) > 0
+        and data is not None
+    ):
         fig_expval.add_scatter(y=page_log_training["loss"])
 
     fig_expval.update_layout(
@@ -448,7 +446,7 @@ def update_loss(n, page_log_training, data):
         template="simple_white",
         xaxis_title="Step",
         yaxis_title="Loss",
-        xaxis_range=[0, data["steps"]],
+        xaxis_range=[0, data["steps"] if data is not None else DEFAULT_N_STEPS],
         autosize=False,
     )
 
@@ -464,7 +462,7 @@ def update_loss(n, page_log_training, data):
     prevent_initial_call=True,
 )
 def trigger_training(_):
-    page_log = {"loss": [], "weights": [], "ent_cap": []}
+    page_log = {"loss": [], "params": [], "ent_cap": []}
 
     return [page_log, True]
 
@@ -520,16 +518,8 @@ def training(page_log_training, page_data, main_data):
 
     if len(page_log_training["loss"]) > page_data["steps"]:
         page_log_training["loss"] = []
-        page_log_training["weights"] = []
+        page_log_training["params"] = []
         page_log_training["ent_cap"] = []
-
-    bf, pf, ad, pd, dp = (
-        page_data["bf"],
-        page_data["pf"],
-        page_data["ad"],
-        page_data["pd"],
-        page_data["dp"],
-    )
 
     instructor = Instructor(
         main_data["number_qubits"],
@@ -539,8 +529,8 @@ def training(page_log_training, page_data, main_data):
         data_reupload=main_data["data_reupload"],
     )
 
-    page_log_training["weights"], cost = instructor.step(
-        page_log_training["weights"], bf=bf, pf=pf, ad=ad, pd=pd, dp=dp
+    page_log_training["params"], cost = instructor.step(
+        page_log_training["params"], page_data["noise_params"]
     )
     page_log_training["loss"].append(cost.item())
 
@@ -554,7 +544,9 @@ def training(page_log_training, page_data, main_data):
 
     if main_data["number_qubits"] > 1:
         ent_cap = ent_sampler.calculate_entangling_capability(
-            10, bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, params=page_log_training["weights"]
+            samples_per_qubit=10,
+            params=page_log_training["params"],
+            noise_params=page_data["noise_params"],
         )
 
         page_log_training["ent_cap"].append(ent_cap)

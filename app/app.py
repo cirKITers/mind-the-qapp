@@ -1,7 +1,7 @@
 import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html, callback, State
-from utils.ansaetze import Ansaetze
+from qml_essentials.ansaetze import Ansaetze
 from typing import Any, Dict, Optional
 
 app = dash.Dash(
@@ -91,7 +91,7 @@ sidebar = html.Div(
                                 }
                                 for fct in Ansaetze.get_available()
                             ],
-                            placeholder="No Ansatz",
+                            placeholder="Circuit 1",
                             required=True,
                             id="main-circuit-ident-select",
                         ),

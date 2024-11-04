@@ -4,15 +4,21 @@ version = "0.1.0"
 description = ""
 authors = ["lc3267 <melvin.strobl@kit.edu>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
-pennylane = "^0.35.1"
+python = ">=3.11,<3.12"
 plotly = "^5.18.0"
 dash = "^2.16.1"
 dash-bootstrap-components = "^1.5.0"
 matplotlib = "^3.8.4"
+qml-essentials = {version = "^0.1.11", source = "quantum"}
 
+
+[[tool.poetry.source]]
+name = "quantum"
+url = "https://ea3a0fbb-599f-4d83-86f1-0e71abe27513.ka.bw-cloud-instance.org/lc3267/quantum/+simple/"
+priority = "supplemental"
 
 [build-system]
 requires = ["poetry-core"]
