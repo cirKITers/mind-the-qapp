@@ -51,7 +51,7 @@ layout = html.Div(
                                 """
                                         ),
                                     ],
-                                    className="h-100 p-5 text-white bg-primary rounded-3",
+                                    className="h-100 p-5 text-white bg-info rounded-3",
                                 ),
                             ],
                             gap=3,
