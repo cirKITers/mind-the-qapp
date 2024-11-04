@@ -12,13 +12,8 @@ plotly = "^5.18.0"
 dash = "^2.16.1"
 dash-bootstrap-components = "^1.5.0"
 matplotlib = "^3.8.4"
-qml-essentials = {version = "^0.1.11", source = "quantum"}
+qml-essentials = "^0.1.15"
 
-
-[[tool.poetry.source]]
-name = "quantum"
-url = "https://ea3a0fbb-599f-4d83-86f1-0e71abe27513.ka.bw-cloud-instance.org/lc3267/quantum/+simple/"
-priority = "supplemental"
 
 [build-system]
 requires = ["poetry-core"]

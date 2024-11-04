@@ -899,12 +899,12 @@ files = [
 
 [[package]]
 name = "pennylane"
-version = "0.37.0"
+version = "0.38.0"
 description = "PennyLane is a cross-platform Python library for quantum computing, quantum machine learning, and quantum chemistry. Train a quantum computer the same way as a neural network."
 optional = false
 python-versions = "*"
 files = [
-    {file = "PennyLane-0.37.0-py3-none-any.whl", hash = "sha256:0ee5e468918c9e4c757ede70f9b87723020e457984779d2b06117f395669e9e4"},
+    {file = "PennyLane-0.38.0-py3-none-any.whl", hash = "sha256:6a6f4e96feaffa0aafbf460be901140d6c14481cf26dc92fd050d74aaa793b47"},
 ]
 
 [package.dependencies]
@@ -915,11 +915,10 @@ cachetools = "*"
 networkx = "*"
 numpy = "<2.0"
 packaging = "*"
-pennylane-lightning = ">=0.37"
+pennylane-lightning = ">=0.38"
 requests = "*"
-rustworkx = "*"
+rustworkx = ">=0.14.0"
 scipy = "*"
-semantic-version = ">=2.7"
 toml = "*"
 typing-extensions = "*"
 
@@ -1105,22 +1104,17 @@ six = ">=1.5"
 
 [[package]]
 name = "qml-essentials"
-version = "0.1.13"
+version = "0.1.15"
 description = ""
 optional = false
-python-versions = ">=3.11,<4.0"
+python-versions = "<3.12,>=3.10"
 files = [
-    {file = "qml_essentials-0.1.13-py3-none-any.whl", hash = "sha256:4b60ef9bb8ec3054177738eab35df74830fe9f2c94aa0bb5789a7eba7a884301"},
-    {file = "qml_essentials-0.1.13.tar.gz", hash = "sha256:ad9610735dd04c55bbeacb7c5cd7a82240475043d6b9856a1bd2b8d3e95fff8f"},
+    {file = "qml_essentials-0.1.15-py3-none-any.whl", hash = "sha256:98bb1f9dced206047c1350fc1aba35552d726129fbc649640388b27c9ab41194"},
+    {file = "qml_essentials-0.1.15.tar.gz", hash = "sha256:30e30ef925cade449531b6f01b6859add04ec6ce5f52c7d955c3b3f8a091ec25"},
 ]
 
 [package.dependencies]
-pennylane = ">=0.37.0,<0.38.0"
-
-[package.source]
-type = "legacy"
-url = "https://ea3a0fbb-599f-4d83-86f1-0e71abe27513.ka.bw-cloud-instance.org/lc3267/quantum/+simple"
-reference = "quantum"
+pennylane = ">=0.38.0,<0.39.0"
 
 [[package]]
 name = "requests"
@@ -1235,21 +1229,6 @@ numpy = ">=1.23.5,<2.3"
 dev = ["cython-lint (>=0.12.2)", "doit (>=0.36.0)", "mypy (==1.10.0)", "pycodestyle", "pydevtool", "rich-click", "ruff (>=0.0.292)", "types-psutil", "typing_extensions"]
 doc = ["jupyterlite-pyodide-kernel", "jupyterlite-sphinx (>=0.13.1)", "jupytext", "matplotlib (>=3.5)", "myst-nb", "numpydoc", "pooch", "pydata-sphinx-theme (>=0.15.2)", "sphinx (>=5.0.0,<=7.3.7)", "sphinx-design (>=0.4.0)"]
 test = ["Cython", "array-api-strict (>=2.0)", "asv", "gmpy2", "hypothesis (>=6.30)", "meson", "mpmath", "ninja", "pooch", "pytest", "pytest-cov", "pytest-timeout", "pytest-xdist", "scikit-umfpack", "threadpoolctl"]
-
-[[package]]
-name = "semantic-version"
-version = "2.10.0"
-description = "A library implementing the 'SemVer' scheme."
-optional = false
-python-versions = ">=2.7"
-files = [
-    {file = "semantic_version-2.10.0-py2.py3-none-any.whl", hash = "sha256:de78a3b8e0feda74cabc54aab2da702113e33ac9d9eb9d2389bcf1f58b7d9177"},
-    {file = "semantic_version-2.10.0.tar.gz", hash = "sha256:bdabb6d336998cbb378d4b9db3a4b56a1e3235701dc05ea2690d9a997ed5041c"},
-]
-
-[package.extras]
-dev = ["Django (>=1.11)", "check-manifest", "colorama (<=0.4.1)", "coverage", "flake8", "nose2", "readme-renderer (<25.0)", "tox", "wheel", "zest.releaser[recommended]"]
-doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 name = "setuptools"
@@ -1375,4 +1354,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "fcb8cd281ef5d300d55082a2a2e7fb2fbbf88c7a1f62b38a5cbbfbd0512c6b8b"
+content-hash = "d00dda3f5def1a84eb58721f4a452d747a1658e8b8fcf3f7a059a4da6c3e274b"
