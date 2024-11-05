@@ -241,7 +241,7 @@ layout = html.Div(
     prevent_initial_call=True,
 )
 def update_page_data(_, main_data, page_data):
-    if main_data["circuit_type"] is None or main_data["circuit_type"] == "no_ansatz":
+    if main_data["circuit_type"] is None or main_data["circuit_type"] == "No_Ansatz":
         return page_data, True
 
     return page_data, False

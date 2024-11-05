@@ -2,11 +2,9 @@ from typing import Any, Dict, Optional, Tuple, List
 
 import pennylane as qml
 import pennylane.numpy as np
-from pennylane.fourier import coefficients
-from functools import partial
-from pennylane.fourier.visualize import _extract_data_and_labels
 
 from qml_essentials.model import Model
+from qml_essentials.coefficients import Coefficients
 
 
 class Instructor:
@@ -71,23 +69,14 @@ class Instructor:
             the real and imaginary part of the coefficients respectively, and "comb"
             containing the combination of the two.
         """
-        coeffs = coefficients(
-            partial(
-                self.model,
-                params,
-                noise_params=noise_params,
-                cache=True,
-                execution_type="expval",
-            ),
-            1,
-            self.model.degree,
+        self.model.params = params
+        data = (
+            Coefficients()
+            .sample_coefficients(self.model, noise_params=noise_params, cache=False)
+            .real
         )
-        _, data = _extract_data_and_labels(np.array([coeffs]))
-        data_len = len(data["real"][0])
 
-        data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
-
-        return data_len, data
+        return data
 
     def cost(
         self,
