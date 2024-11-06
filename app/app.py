@@ -3,6 +3,9 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html, callback, State
 from qml_essentials.ansaetze import Ansaetze
 from typing import Any, Dict, Optional
+import sys
+
+import logging
 
 app = dash.Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME], use_pages=True
@@ -208,4 +211,17 @@ app.layout = html.Div([sidebar, content])
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    args = sys.argv
+    if "--debug" in args:
+        logging.basicConfig(
+            level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s"
+        )
+        logging.info("Running in debug mode")
+    else:
+        logging.basicConfig(
+            level=logging.ERROR, format="%(levelname)s:%(name)s:%(message)s"
+        )
+
+    logging.info("(Re-)launching Application..")
+
+    app.run(host="0.0.0.0", port="8050", threaded=True, debug="--debug" in args)
