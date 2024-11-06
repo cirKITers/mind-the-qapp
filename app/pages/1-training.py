@@ -26,11 +26,6 @@ layout = html.Div(
         dcc.Store(id="training-page-storage", storage_type="session"),
         dcc.Store(id="training-log-storage", storage_type="session"),
         dcc.Store(id="training-log-hist-storage", storage_type="session"),
-        dcc.Interval(
-            id="interval-component",
-            interval=1 * 1000,  # in milliseconds
-            n_intervals=0,
-        ),
         html.Div(
             [
                 html.Div(
@@ -163,7 +158,6 @@ layout = html.Div(
                                                 dbc.Button(
                                                     "Start Training",
                                                     id="training-start-button",
-                                                    disabled="true",
                                                 ),
                                             ],
                                         ),
@@ -229,29 +223,29 @@ layout = html.Div(
 )
 
 
-@callback(
-    [
-        Output("training-page-storage", "data", allow_duplicate=True),
-        Output("training-start-button", "disabled", allow_duplicate=True),
-    ],
-    Input("main-storage", "modified_timestamp"),
-    State("main-storage", "data"),
-    State("training-page-storage", "data"),
-    prevent_initial_call=True,
-)
-def update_page_data(_, main_data, page_data):
-    if main_data["circuit_type"] is None or main_data["circuit_type"] == "No_Ansatz":
-        return page_data, True
+# @callback(
+#     [
+#         Output("training-log-hist-storage", "data"),
+#         Output("training-start-button", "children", allow_duplicate=True),
+#     ],
+#     Input("main-storage", "modified_timestamp"),
+#     State("main-storage", "data"),
+#     prevent_initial_call=True,
+# )
+# def update_page_data(_, main_data):
+#     page_log_hist = {"x": [], "y": [], "z": []}
 
-    return page_data, False
+#     return page_log_hist, "Start Training"
 
 
 @callback(
     [
         Output("training-page-storage", "data"),
         Output("training-log-hist-storage", "data"),
+        Output("training-start-button", "children", allow_duplicate=True),
     ],
     [
+        Input("main-storage", "modified_timestamp"),
         Input("training-bit-flip-prob-slider", "value"),
         Input("training-phase-flip-prob-slider", "value"),
         Input("training-amplitude-damping-prob-slider", "value"),
@@ -259,8 +253,9 @@ def update_page_data(_, main_data, page_data):
         Input("training-depolarization-prob-slider", "value"),
         Input("training-steps-numeric-input", "value"),
     ],
+    prevent_initial_call=True,
 )
-def on_preference_changed(bf, pf, ad, pd, dp, steps):
+def on_preference_changed(_, bf, pf, ad, pd, dp, steps):
 
     # Give a default data dict with 0 clicks if there's no data.
     # page_data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, steps=steps)
@@ -276,7 +271,7 @@ def on_preference_changed(bf, pf, ad, pd, dp, steps):
     }
     page_log_hist = {"x": [], "y": [], "z": []}
 
-    return page_data, page_log_hist
+    return page_data, page_log_hist, "Start Training"
 
 
 @callback(
@@ -456,19 +451,23 @@ def update_loss(n, page_log_training, data):
 @callback(
     [
         Output("training-log-storage", "data", allow_duplicate=True),
-        Output("training-start-button", "disabled", allow_duplicate=True),
+        Output("training-start-button", "children", allow_duplicate=True),
     ],
     Input("training-start-button", "n_clicks"),
+    State("training-start-button", "children"),
     prevent_initial_call=True,
 )
-def trigger_training(_):
+def trigger_training(_, state):
     page_log = {"loss": [], "params": [], "ent_cap": []}
 
-    return [page_log, True]
+    if state == "Start Training":
+        return [page_log, "Reset Training"]
+    else:
+        raise PreventUpdate()
 
 
 @callback(
-    Output("training-start-button", "disabled", allow_duplicate=True),
+    Output("training-start-button", "children", allow_duplicate=True),
     Input("training-log-storage", "modified_timestamp"),
     [
         State("training-log-storage", "data"),
@@ -484,7 +483,7 @@ def stop_training(_, page_log_training, page_data):
     ):
         raise PreventUpdate()
 
-    return False
+    return "Start Training"
 
 
 @callback(
@@ -549,11 +548,14 @@ def training(page_log_training, page_data, main_data):
             main_data["data_reupload"],
         )
         # TODO: sometimes this fails, not sure why
-        ent_cap = ent_sampler.calculate_entangling_capability(
-            samples_per_qubit=10,
-            params=page_log_training["params"],
-            noise_params=page_data["noise_params"],
-        )
+        try:
+            ent_cap = ent_sampler.calculate_entangling_capability(
+                samples_per_qubit=1,
+                params=page_log_training["params"],
+                noise_params=page_data["noise_params"],
+            )
+        except Exception:
+            ent_cap = 0
 
         page_log_training["ent_cap"].append(ent_cap)
 
