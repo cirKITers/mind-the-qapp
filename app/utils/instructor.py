@@ -65,9 +65,7 @@ class Instructor:
 
         Returns:
             A tuple containing the length of the histogram and a dictionary with the
-            histogram data. The dictionary has the keys "real" and "imag" containing
-            the real and imaginary part of the coefficients respectively, and "comb"
-            containing the combination of the two.
+            histogram data.
         """
         self.model.params = params
         data = (
@@ -76,7 +74,12 @@ class Instructor:
             .real
         )
 
-        return data
+        # rearange data such that the zero coefficient from the first
+        # index goes to the center of the array
+        data = np.array(
+            [*data[1 : len(data) // 2 + 1], data[0], *data[len(data) // 2 + 1 :]]
+        )
+        return np.abs(data)
 
     def cost(
         self,
