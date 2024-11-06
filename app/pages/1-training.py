@@ -13,7 +13,6 @@ from dash.exceptions import PreventUpdate
 
 
 from utils.instructor import Instructor
-from utils.entangling import EntanglingCapability_Sampler
 
 import dash_bootstrap_components as dbc
 
@@ -541,17 +540,8 @@ def training(page_log_training, page_data, main_data):
     page_log_training["loss"].append(cost.item())
 
     if main_data["number_qubits"] > 1:
-        ent_sampler = EntanglingCapability_Sampler(
-            main_data["number_qubits"],
-            main_data["number_layers"],
-            main_data["seed"],
-            main_data["circuit_type"],
-            main_data["data_reupload"],
-        )
-        # TODO: sometimes this fails, not sure why
-        ent_cap = ent_sampler.calculate_entangling_capability(
-            samples_per_qubit=10,
-            params=page_log_training["params"],
+        instructor.model.params = page_log_training["params"]
+        ent_cap = instructor.meyer_wallach(
             noise_params=page_data["noise_params"],
         )
 
