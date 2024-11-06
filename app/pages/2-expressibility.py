@@ -351,13 +351,13 @@ def update_hist_fourier(page_data, main_data):
         data_reupload=main_data["data_reupload"],
     )
 
-    data_len, data = instructor.calc_hist(
+    data = instructor.calc_hist(
         instructor.model.params, noise_params=page_data["noise_params"]
     )
 
-    fig_coeffs.add_bar(
-        x=np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1), y=data["comb"][0]
-    )
+    data_len = len(data)
+
+    fig_coeffs.add_bar(x=np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1), y=data)
 
     return [fig_coeffs]
 
