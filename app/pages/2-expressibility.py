@@ -11,11 +11,6 @@ from dash import (
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
-# Fourier coefficients utils
-from pennylane.fourier import coefficients
-from functools import partial
-from pennylane.fourier.visualize import _extract_data_and_labels
-
 from utils.instructor import Instructor
 from utils.expressibility import (
     Expressibility_Sampler,
@@ -453,7 +448,7 @@ def update_output_probabilities(page_data, main_data):
         page_data["n_bins"],
     )
 
-    if main_data["circuit_type"] == None:
+    if main_data["circuit_type"] is None:
         return [fig_expr, "Ready"]
 
     expr_sampler = Expressibility_Sampler(

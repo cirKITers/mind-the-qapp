@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Tuple, List
+from typing import Dict, Optional, Tuple, List
 
 import pennylane as qml
 import pennylane.numpy as np
@@ -43,7 +43,9 @@ class Instructor:
         n_d = int(np.ceil(2 * np.max(np.abs(x_domain)) * np.max(omega_d)))
         self.x_d = np.linspace(x_domain[0], x_domain[1], n_d, requires_grad=False)
 
-        y_fct = lambda x: 1 / np.linalg.norm(omega_d) * np.sum(np.cos(omega_d * x))
+        def y_fct(x):
+            return 1 / np.linalg.norm(omega_d) * np.sum(np.cos(omega_d * x))
+
         self.y_d = np.array([y_fct(x) for x in self.x_d], requires_grad=False)
 
         self.opt = qml.AdamOptimizer(stepsize=0.01)

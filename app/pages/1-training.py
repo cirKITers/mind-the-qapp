@@ -1,7 +1,6 @@
 import dash
 import numpy as np
 from dash import (
-    Dash,
     dcc,
     html,
     Input,

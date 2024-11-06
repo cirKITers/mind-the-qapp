@@ -17,10 +17,10 @@ sidebar = html.Div(
         html.Div(
             [
                 html.H1(
-                    f"Mind",
+                    "Mind",
                 ),
                 html.H2(
-                    f"the",
+                    "the",
                     style={
                         "padding-left": "6px",
                     },
@@ -37,7 +37,7 @@ sidebar = html.Div(
                             },
                             className="rotate45",
                         ),
-                        html.H1(f"App", style={"display": "inline-block"}),
+                        html.H1("App", style={"display": "inline-block"}),
                     ]
                 ),
             ],

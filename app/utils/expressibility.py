@@ -31,11 +31,11 @@ def sampled_haar_probability(n_qubits: int, n_bins: int) -> np.ndarray:
     :return: float: probability distribution for all fidelities
     """
     dist = np.zeros(n_bins)
-    for i in range(n_bins):
-        l = (1 / n_bins) * i
-        u = l + (1 / n_bins)
-        dist[i], _ = integrate.quad(
-            theoretical_haar_probability, l, u, args=(n_qubits,)
+    for bin_idx in range(n_bins):
+        l_idx = (1 / n_bins) * bin_idx
+        u = l_idx + (1 / n_bins)
+        dist[bin_idx], _ = integrate.quad(
+            theoretical_haar_probability, l_idx, u, args=(n_qubits,)
         )
 
     return dist
@@ -196,7 +196,8 @@ class Expressibility_Sampler:
         fidelities = self.sample_state_fidelities(noise_params)
         z_component = np.zeros((len(self.x_samples), self.n_bins))
 
-        # FIXME: somehow I get nan's in the histogram, when directly creating bins until n
+        # FIXME: somehow I get nan's in the histogram,
+        # when directly creating bins until n
         # workaround hack is to add a small epsilon
         # could it be related to sampling issues?
         b = np.linspace(0, 1 + self.epsilon, self.n_bins + 1)
