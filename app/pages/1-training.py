@@ -280,72 +280,73 @@ def on_preference_changed(bf, pf, ad, pd, dp, steps):
     return page_data, page_log_hist
 
 
-@callback(
-    [
-        Output("training-hist-fig", "figure"),
-        Output("training-log-hist-storage", "data", allow_duplicate=True),
-    ],
-    Input("training-log-storage", "modified_timestamp"),
-    [
-        State("training-log-storage", "data"),
-        State("training-log-hist-storage", "data"),
-        State("training-page-storage", "data"),
-        State("main-storage", "data"),
-    ],
-    prevent_initial_call=True,
-)
-def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
-    fig_hist = go.Figure()
+# @callback(
+#     [
+#         Output("training-hist-fig", "figure"),
+#         Output("training-log-hist-storage", "data", allow_duplicate=True),
+#     ],
+#     Input("training-log-storage", "modified_timestamp"),
+#     [
+#         State("training-log-storage", "data"),
+#         State("training-log-hist-storage", "data"),
+#         State("training-page-storage", "data"),
+#         State("main-storage", "data"),
+#     ],
+#     prevent_initial_call=True,
+# )
+# def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
+#     fig_hist = go.Figure()
 
-    if page_log_training is not None and len(page_log_training["loss"]) > 0:
-        instructor = Instructor(
-            main_data["number_qubits"],
-            main_data["number_layers"],
-            seed=main_data["seed"],
-            circuit_type=main_data["circuit_type"],
-            data_reupload=main_data["data_reupload"],
-        )
+#     if page_log_training is not None and len(page_log_training["loss"]) > 0:
+#         instructor = Instructor(
+#             main_data["number_qubits"],
+#             main_data["number_layers"],
+#             seed=main_data["seed"],
+#             circuit_type=main_data["circuit_type"],
+#             data_reupload=main_data["data_reupload"],
+#         )
 
-        data_len, data = instructor.calc_hist(
-            page_log_training["params"],
-            noise_params=page_data["noise_params"],
-        )
+#         data = instructor.calc_hist(
+#             page_log_training["params"],
+#             noise_params=page_data["noise_params"],
+#         )
+#         data_len = len(data)
 
-        page_log_hist["x"] = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
-        page_log_hist["y"] = [i for i in range(len(page_log_training["loss"]))]
-        page_log_hist["z"].append(data["comb"][0].tolist())
+#         page_log_hist["x"] = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
+#         page_log_hist["y"] = [i for i in range(len(page_log_training["loss"]))]
+#         page_log_hist["z"].append(data.tolist())
 
-        fig_hist.add_surface(
-            x=np.array(page_log_hist["x"]),
-            y=np.array(page_log_hist["y"]),
-            z=np.array(page_log_hist["z"]),
-            showscale=False,
-            showlegend=False,
-        )
-    else:
-        page_log_hist = {"x": [], "y": [], "z": []}
+#         fig_hist.add_surface(
+#             x=np.array(page_log_hist["x"]),
+#             y=np.array(page_log_hist["y"]),
+#             z=np.array(page_log_hist["z"]),
+#             showscale=False,
+#             showlegend=False,
+#         )
+#     else:
+#         page_log_hist = {"x": [], "y": [], "z": []}
 
-    fig_hist.update_layout(
-        title="Histogram (Absolute Value)",
-        template="simple_white",
-        scene=dict(
-            xaxis=dict(
-                title="Frequency",
-            ),
-            yaxis=dict(title="Step"),
-            zaxis=dict(
-                title="Amplitude",
-            ),
-        ),
-        scene_camera=dict(
-            up=dict(x=0, y=0, z=1.2),
-            center=dict(x=0.1, y=0, z=-0.2),
-            eye=dict(x=0.95, y=1.85, z=0.75),
-        ),
-        coloraxis_showscale=False,
-    )
+#     fig_hist.update_layout(
+#         title="Histogram (Absolute Value)",
+#         template="simple_white",
+#         scene=dict(
+#             xaxis=dict(
+#                 title="Frequency",
+#             ),
+#             yaxis=dict(title="Step"),
+#             zaxis=dict(
+#                 title="Amplitude",
+#             ),
+#         ),
+#         scene_camera=dict(
+#             up=dict(x=0, y=0, z=1.2),
+#             center=dict(x=0.1, y=0, z=-0.2),
+#             eye=dict(x=0.95, y=1.85, z=0.75),
+#         ),
+#         coloraxis_showscale=False,
+#     )
 
-    return fig_hist, page_log_hist
+#     return fig_hist, page_log_hist
 
 
 @callback(
@@ -374,11 +375,9 @@ def update_expval(n, page_log_training, page_data, main_data):
             params=page_log_training["params"],
             inputs=instructor.x_d,
             noise_params=page_data["noise_params"],
-            cache=True,
-            execution_type="expval",
         )
 
-        fig_expval.add_scatter(x=instructor.x_d, y=y_pred, name="Prediction")
+        fig_expval.add_scatter(x=instructor.x_d, y=y_pred[0], name="Prediction")
         fig_expval.add_scatter(x=instructor.x_d, y=instructor.y_d, name="Target")
 
     fig_expval.update_layout(
@@ -393,34 +392,34 @@ def update_expval(n, page_log_training, page_data, main_data):
     return fig_expval
 
 
-@callback(
-    Output("fig-training-ent", "figure"),
-    Input("training-log-storage", "modified_timestamp"),
-    [
-        State("training-log-storage", "data"),
-        State("training-page-storage", "data"),
-    ],
-    prevent_initial_call=True,
-)
-def update_ent_cap(n, page_log_training, data):
-    fig_ent_cap = go.Figure()
-    if (
-        page_log_training is not None
-        and len(page_log_training["ent_cap"]) > 0
-        and data is not None
-    ):
-        fig_ent_cap.add_scatter(y=page_log_training["ent_cap"])
+# @callback(
+#     Output("fig-training-ent", "figure"),
+#     Input("training-log-storage", "modified_timestamp"),
+#     [
+#         State("training-log-storage", "data"),
+#         State("training-page-storage", "data"),
+#     ],
+#     prevent_initial_call=True,
+# )
+# def update_ent_cap(n, page_log_training, data):
+#     fig_ent_cap = go.Figure()
+#     if (
+#         page_log_training is not None
+#         and len(page_log_training["ent_cap"]) > 0
+#         and data is not None
+#     ):
+#         fig_ent_cap.add_scatter(y=page_log_training["ent_cap"])
 
-    fig_ent_cap.update_layout(
-        title="Entangling Capability",
-        template="simple_white",
-        xaxis_title="Step",
-        yaxis_title="Entangling Capability",
-        xaxis_range=[0, data["steps"] if data is not None else DEFAULT_N_STEPS],
-        autosize=False,
-    )
+#     fig_ent_cap.update_layout(
+#         title="Entangling Capability",
+#         template="simple_white",
+#         xaxis_title="Step",
+#         yaxis_title="Entangling Capability",
+#         xaxis_range=[0, data["steps"] if data is not None else DEFAULT_N_STEPS],
+#         autosize=False,
+#     )
 
-    return fig_ent_cap
+#     return fig_ent_cap
 
 
 @callback(
@@ -479,6 +478,7 @@ def trigger_training(_):
 def stop_training(_, page_log_training, page_data):
     if (
         page_log_training is not None
+        and page_data is not None
         and len(page_log_training["loss"]) <= page_data["steps"]
     ):
         raise PreventUpdate()
@@ -495,8 +495,12 @@ def stop_training(_, page_log_training, page_data):
     ],
     prevent_initial_call=True,
 )
-def pong(_, page_log_training, data):
-    if page_log_training is None or len(page_log_training["loss"]) > data["steps"]:
+def pong(_, page_log_training, page_data):
+    if (
+        page_log_training is None
+        or page_data is None
+        or len(page_log_training["loss"]) > page_data["steps"]
+    ):
         raise PreventUpdate()
     return page_log_training
 
@@ -513,7 +517,7 @@ def pong(_, page_log_training, data):
     prevent_initial_call=True,
 )
 def training(page_log_training, page_data, main_data):
-    if page_log_training is None:
+    if page_log_training is None or page_data is None:
         raise PreventUpdate()
 
     if len(page_log_training["loss"]) > page_data["steps"]:
@@ -532,23 +536,24 @@ def training(page_log_training, page_data, main_data):
     page_log_training["params"], cost = instructor.step(
         page_log_training["params"], page_data["noise_params"]
     )
+
     page_log_training["loss"].append(cost.item())
 
-    ent_sampler = EntanglingCapability_Sampler(
-        main_data["number_qubits"],
-        main_data["number_layers"],
-        main_data["seed"],
-        main_data["circuit_type"],
-        main_data["data_reupload"],
-    )
+    # ent_sampler = EntanglingCapability_Sampler(
+    #     main_data["number_qubits"],
+    #     main_data["number_layers"],
+    #     main_data["seed"],
+    #     main_data["circuit_type"],
+    #     main_data["data_reupload"],
+    # )
 
-    if main_data["number_qubits"] > 1:
-        ent_cap = ent_sampler.calculate_entangling_capability(
-            samples_per_qubit=10,
-            params=page_log_training["params"],
-            noise_params=page_data["noise_params"],
-        )
+    # if main_data["number_qubits"] > 1:
+    #     ent_cap = ent_sampler.calculate_entangling_capability(
+    #         samples_per_qubit=10,
+    #         params=page_log_training["params"],
+    #         noise_params=page_data["noise_params"],
+    #     )
 
-        page_log_training["ent_cap"].append(ent_cap)
+    #     page_log_training["ent_cap"].append(ent_cap)
 
     return page_log_training
