@@ -9,7 +9,10 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceRoot}/app/app.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "args": [
+                "--debug"
+            ],
         }
     ]
 }

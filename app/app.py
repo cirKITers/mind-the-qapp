@@ -3,6 +3,9 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html, callback, State
 from qml_essentials.ansaetze import Ansaetze
 from typing import Any, Dict, Optional
+import sys
+
+import logging
 
 app = dash.Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME], use_pages=True
@@ -14,10 +17,10 @@ sidebar = html.Div(
         html.Div(
             [
                 html.H1(
-                    f"Mind",
+                    "Mind",
                 ),
                 html.H2(
-                    f"the",
+                    "the",
                     style={
                         "padding-left": "6px",
                     },
@@ -34,7 +37,7 @@ sidebar = html.Div(
                             },
                             className="rotate45",
                         ),
-                        html.H1(f"App", style={"display": "inline-block"}),
+                        html.H1("App", style={"display": "inline-block"}),
                     ]
                 ),
             ],
@@ -91,7 +94,7 @@ sidebar = html.Div(
                                 }
                                 for fct in Ansaetze.get_available()
                             ],
-                            placeholder="Circuit 1",
+                            placeholder="No Ansatz",
                             required=True,
                             id="main-circuit-ident-select",
                         ),
@@ -187,7 +190,7 @@ def on_preference_changed(
     data["number_layers"] = (
         max(min(number_layers, 10), 0) if number_layers is not None else None
     )
-    data["circuit_type"] = circuit_type
+    data["circuit_type"] = circuit_type if circuit_type is not None else "No_Ansatz"
     data["data_reupload"] = data_reupload
     data["tffm"] = False  # tffm
     data["seed"] = max(min(seed, 999), 100)
@@ -208,4 +211,17 @@ app.layout = html.Div([sidebar, content])
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    args = sys.argv
+    if "--debug" in args:
+        logging.basicConfig(
+            level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s"
+        )
+        logging.info("Running in debug mode")
+    else:
+        logging.basicConfig(
+            level=logging.ERROR, format="%(levelname)s:%(name)s:%(message)s"
+        )
+
+    logging.info("(Re-)launching Application..")
+
+    app.run(host="0.0.0.0", port="8050", threaded=True, debug="--debug" in args)

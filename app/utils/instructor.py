@@ -1,12 +1,12 @@
-from typing import Any, Dict, Optional, Tuple, List
+from typing import Dict, Optional, Tuple, List
 
 import pennylane as qml
 import pennylane.numpy as np
-from pennylane.fourier import coefficients
-from functools import partial
-from pennylane.fourier.visualize import _extract_data_and_labels
 
 from qml_essentials.model import Model
+from qml_essentials.coefficients import Coefficients
+from qml_essentials.entanglement import Entanglement
+from qml_essentials.expressibility import Expressibility
 
 
 class Instructor:
@@ -30,6 +30,8 @@ class Instructor:
             data_reupload: Whether or not to reupload data in the circuit.
             tffm: Whether or not to use trainable frequency feature mapping.
         """
+        self.seed = seed
+
         self.model = Model(
             n_qubits=n_qubits,
             n_layers=n_layers,
@@ -38,14 +40,17 @@ class Instructor:
             random_seed=seed,
             **kwargs,
         )
-
-        x_domain = [-1 * np.pi, 1 * np.pi]  # [-4 * np.pi, 4 * np.pi]
+        self.x_domain = [-1 * np.pi, 1 * np.pi]  # [-4 * np.pi, 4 * np.pi]
         omega_d = np.array([1, 2, 3])
 
-        n_d = int(np.ceil(2 * np.max(np.abs(x_domain)) * np.max(omega_d)))
-        self.x_d = np.linspace(x_domain[0], x_domain[1], n_d, requires_grad=False)
+        n_d = int(np.ceil(2 * np.max(np.abs(self.x_domain)) * np.max(omega_d)))
+        self.x_d = np.linspace(
+            self.x_domain[0], self.x_domain[1], n_d, requires_grad=False
+        )
 
-        y_fct = lambda x: 1 / np.linalg.norm(omega_d) * np.sum(np.cos(omega_d * x))
+        def y_fct(x):
+            return 1 / np.linalg.norm(omega_d) * np.sum(np.cos(omega_d * x))
+
         self.y_d = np.array([y_fct(x) for x in self.x_d], requires_grad=False)
 
         self.opt = qml.AdamOptimizer(stepsize=0.01)
@@ -67,27 +72,69 @@ class Instructor:
 
         Returns:
             A tuple containing the length of the histogram and a dictionary with the
-            histogram data. The dictionary has the keys "real" and "imag" containing
-            the real and imaginary part of the coefficients respectively, and "comb"
-            containing the combination of the two.
+            histogram data.
         """
-        coeffs = coefficients(
-            partial(
-                self.model,
-                params,
-                noise_params=noise_params,
-                cache=True,
-                execution_type="expval",
-            ),
-            1,
-            self.model.degree,
+        self.model.params = params
+        data = (
+            Coefficients()
+            .sample_coefficients(self.model, noise_params=noise_params, cache=False)
+            .real
         )
-        _, data = _extract_data_and_labels(np.array([coeffs]))
-        data_len = len(data["real"][0])
 
-        data["comb"] = np.sqrt(data["real"] ** 2 + data["imag"] ** 2)
+        # rearange data such that the zero coefficient from the first
+        # index goes to the center of the array
+        data = np.array(
+            [*data[1 : len(data) // 2 + 1], data[0], *data[len(data) // 2 + 1 :]]
+        )
+        return np.abs(data)
 
-        return data_len, data
+    def meyer_wallach(
+        self,
+        n_samples: Optional[int | None] = None,
+        noise_params: Optional[Dict[str, float]] = None,
+    ) -> Tuple[int, Dict[str, np.ndarray]]:
+        """Calculate the entanglement of the circuit output.
+
+        Args:
+            p: The params of the quantum circuit.
+            bf: The bit flip rate.
+            pf: The phase flip rate.
+            ad: The amplitude damping rate.
+            pd: The phase damping rate.
+            dp: The depolarization rate.
+
+        Returns:
+            A tuple containing the length of the histogram and a dictionary with the
+            histogram data.
+        """
+        return Entanglement().meyer_wallach(
+            self.model, n_samples=n_samples, seed=self.seed, noise_params=noise_params
+        )
+
+    def state_fidelities(
+        self,
+        n_samples,
+        n_bins,
+        n_input_samples,
+        noise_params: Optional[Dict[str, float]] = None,
+    ):
+        return Expressibility().state_fidelities(
+            seed=self.seed,
+            n_samples=n_samples,
+            n_bins=n_bins,
+            n_input_samples=n_input_samples,
+            input_domain=self.x_domain,
+            model=self.model,
+            noise_params=noise_params,
+        )
+
+    def haar_integral(self, n_bins):
+        return Expressibility().haar_integral(
+            n_qubits=self.model.n_qubits, n_bins=n_bins
+        )
+
+    def kullback_leibler(self, a, b):
+        return Expressibility().kullback_leibler_divergence(a, b)
 
     def cost(
         self,
@@ -145,5 +192,4 @@ class Instructor:
         params, cost = self.opt.step_and_cost(
             self.cost, params, y_d=self.y_d, noise_params=noise_params
         )
-
         return params, cost

@@ -8,17 +8,17 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
-plotly = "^5.18.0"
-dash = "^2.16.1"
-dash-bootstrap-components = "^1.5.0"
-matplotlib = "^3.8.4"
-qml-essentials = {version = "^0.1.11", source = "quantum"}
+plotly = "^5.24.1"
+dash = "^2.18.2"
+dash-bootstrap-components = "^1.6.0"
+qml-essentials = "^0.1.16"
+matplotlib = "^3.9.2"
 
 
-[[tool.poetry.source]]
-name = "quantum"
-url = "https://ea3a0fbb-599f-4d83-86f1-0e71abe27513.ka.bw-cloud-instance.org/lc3267/quantum/+simple/"
-priority = "supplemental"
+[tool.poetry.group.dev.dependencies]
+black = "^24.10.0"
+flake8 = "^7.1.1"
+pre-commit = "^4.0.1"
 
 [build-system]
 requires = ["poetry-core"]

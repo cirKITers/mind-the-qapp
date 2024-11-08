@@ -1,7 +1,6 @@
 import dash
 import numpy as np
 from dash import (
-    Dash,
     dcc,
     html,
     Input,
@@ -14,7 +13,6 @@ from dash.exceptions import PreventUpdate
 
 
 from utils.instructor import Instructor
-from utils.entangling import EntanglingCapability_Sampler
 
 import dash_bootstrap_components as dbc
 
@@ -241,7 +239,7 @@ layout = html.Div(
     prevent_initial_call=True,
 )
 def update_page_data(_, main_data, page_data):
-    if main_data["circuit_type"] is None or main_data["circuit_type"] == "no_ansatz":
+    if main_data["circuit_type"] is None or main_data["circuit_type"] == "No_Ansatz":
         return page_data, True
 
     return page_data, False
@@ -306,14 +304,17 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
             data_reupload=main_data["data_reupload"],
         )
 
-        data_len, data = instructor.calc_hist(
+        data = instructor.calc_hist(
             page_log_training["params"],
             noise_params=page_data["noise_params"],
         )
+        data_len = len(data)
 
-        page_log_hist["x"] = np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1)
+        page_log_hist["x"] = np.arange(
+            -data_len // 2 + 1, data_len // 2 + 1, 1
+        ).tolist()
         page_log_hist["y"] = [i for i in range(len(page_log_training["loss"]))]
-        page_log_hist["z"].append(data["comb"][0].tolist())
+        page_log_hist["z"].append(data.tolist())
 
         fig_hist.add_surface(
             x=np.array(page_log_hist["x"]),
@@ -374,11 +375,9 @@ def update_expval(n, page_log_training, page_data, main_data):
             params=page_log_training["params"],
             inputs=instructor.x_d,
             noise_params=page_data["noise_params"],
-            cache=True,
-            execution_type="expval",
         )
 
-        fig_expval.add_scatter(x=instructor.x_d, y=y_pred, name="Prediction")
+        fig_expval.add_scatter(x=instructor.x_d, y=y_pred[0], name="Prediction")
         fig_expval.add_scatter(x=instructor.x_d, y=instructor.y_d, name="Target")
 
     fig_expval.update_layout(
@@ -479,6 +478,7 @@ def trigger_training(_):
 def stop_training(_, page_log_training, page_data):
     if (
         page_log_training is not None
+        and page_data is not None
         and len(page_log_training["loss"]) <= page_data["steps"]
     ):
         raise PreventUpdate()
@@ -495,8 +495,12 @@ def stop_training(_, page_log_training, page_data):
     ],
     prevent_initial_call=True,
 )
-def pong(_, page_log_training, data):
-    if page_log_training is None or len(page_log_training["loss"]) > data["steps"]:
+def pong(_, page_log_training, page_data):
+    if (
+        page_log_training is None
+        or page_data is None
+        or len(page_log_training["loss"]) > page_data["steps"]
+    ):
         raise PreventUpdate()
     return page_log_training
 
@@ -513,7 +517,7 @@ def pong(_, page_log_training, data):
     prevent_initial_call=True,
 )
 def training(page_log_training, page_data, main_data):
-    if page_log_training is None:
+    if page_log_training is None or page_data is None:
         raise PreventUpdate()
 
     if len(page_log_training["loss"]) > page_data["steps"]:
@@ -532,20 +536,12 @@ def training(page_log_training, page_data, main_data):
     page_log_training["params"], cost = instructor.step(
         page_log_training["params"], page_data["noise_params"]
     )
+
     page_log_training["loss"].append(cost.item())
 
-    ent_sampler = EntanglingCapability_Sampler(
-        main_data["number_qubits"],
-        main_data["number_layers"],
-        main_data["seed"],
-        main_data["circuit_type"],
-        main_data["data_reupload"],
-    )
-
     if main_data["number_qubits"] > 1:
-        ent_cap = ent_sampler.calculate_entangling_capability(
-            samples_per_qubit=10,
-            params=page_log_training["params"],
+        instructor.model.params = page_log_training["params"]
+        ent_cap = instructor.meyer_wallach(
             noise_params=page_data["noise_params"],
         )
 
