@@ -370,9 +370,9 @@ def update_output_probabilities(page_data, main_data):
         template="simple_white",
         scene=dict(
             xaxis=dict(
-                title="Input",
+                title="Fidelity",
             ),
-            yaxis=dict(title="Fidelity"),
+            yaxis=dict(title="Input"),
             zaxis=dict(
                 title="Prob. Density",
             ),
@@ -421,7 +421,7 @@ def update_output_probabilities(page_data, main_data):
         data_reupload=main_data["data_reupload"],
     )
 
-    x_samples, y_samples, z_samples = instructor.state_fidelities(
+    inputs, fidelity_values, fidelity_score = instructor.state_fidelities(
         n_samples=n_samples,
         n_bins=n_bins,
         n_input_samples=n_input_samples,
@@ -429,10 +429,10 @@ def update_output_probabilities(page_data, main_data):
     )
 
     fig_expr.add_surface(
-        x=x_samples,
-        y=y_samples,
-        z=z_samples,
-        cmax=z_samples.max().item(),
+        x=fidelity_values,
+        y=inputs,
+        z=fidelity_score,
+        cmax=fidelity_score.max().item(),
         cmin=0,
         showscale=False,
         showlegend=False,
@@ -445,9 +445,9 @@ def update_output_probabilities(page_data, main_data):
         y=y_haar,
     )
 
-    kl_divergence = instructor.kullback_leibler(np.transpose(z_samples), y_haar)
+    kl_divergence = instructor.kullback_leibler(fidelity_score, y_haar)
 
-    fig_kl.add_scatter(x=x_samples, y=kl_divergence)
+    fig_kl.add_scatter(x=inputs, y=kl_divergence)
     fig_kl.update_layout(
         yaxis_range=[0, max(kl_divergence) + 0.2],
     )
