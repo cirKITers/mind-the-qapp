@@ -14,6 +14,7 @@ class Instructor:
         self,
         n_qubits: int,
         n_layers: int,
+        n_freqs: int,
         seed: int = 100,
         circuit_type: int = 19,
         data_reupload: bool = True,
@@ -41,7 +42,7 @@ class Instructor:
             **kwargs,
         )
         self.x_domain = [-1 * np.pi, 1 * np.pi]  # [-4 * np.pi, 4 * np.pi]
-        omega_d = np.array([1, 2, 3])
+        omega_d = np.array([i for i in range(1, n_freqs + 1)])
 
         n_d = int(np.ceil(2 * np.max(np.abs(self.x_domain)) * np.max(omega_d)))
         self.x_d = np.linspace(
