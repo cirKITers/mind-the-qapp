@@ -269,12 +269,12 @@ def on_preference_changed(_, bf, pf, ad, pd, dp, steps, n, state):
         "steps": steps,
         "running": state != "Reset Training",
     }
-    page_log = reset_log()
+    page_log_training = reset_log()
 
     if state == "Reset Training":
-        return [page_data, page_log, "Start Training"]
+        return [page_data, page_log_training, "Start Training"]
     else:
-        return [page_data, page_log, "Reset Training"]
+        return [page_data, page_log_training, "Reset Training"]
 
 
 @callback(
@@ -286,12 +286,12 @@ def on_preference_changed(_, bf, pf, ad, pd, dp, steps, n, state):
     ],
     prevent_initial_call=True,
 )
-def update_loss(n, page_log_training, data):
+def update_loss(n, page_log_training, page_data):
     fig_expval = go.Figure()
     if (
         page_log_training is not None
         and len(page_log_training["loss"]) > 0
-        and data is not None
+        and page_data is not None
     ):
         fig_expval.add_scatter(y=page_log_training["loss"])
 
@@ -300,7 +300,10 @@ def update_loss(n, page_log_training, data):
         template="simple_white",
         xaxis_title="Step",
         yaxis_title="Loss",
-        xaxis_range=[0, data["steps"] if data is not None else DEFAULT_N_STEPS],
+        xaxis_range=[
+            0,
+            page_data["steps"] if page_data is not None else DEFAULT_N_STEPS,
+        ],
         autosize=False,
     )
 
@@ -406,12 +409,12 @@ def update_expval(n, page_log_training):
     ],
     prevent_initial_call=True,
 )
-def update_ent_cap(n, page_log_training, data):
+def update_ent_cap(n, page_log_training, page_data):
     fig_ent_cap = go.Figure()
     if (
         page_log_training is not None
         and len(page_log_training["ent_cap"]) > 0
-        and data is not None
+        and page_data is not None
     ):
         fig_ent_cap.add_scatter(y=page_log_training["ent_cap"])
 
@@ -420,7 +423,10 @@ def update_ent_cap(n, page_log_training, data):
         template="simple_white",
         xaxis_title="Step",
         yaxis_title="Entangling Capability",
-        xaxis_range=[0, data["steps"] if data is not None else DEFAULT_N_STEPS],
+        xaxis_range=[
+            0,
+            page_data["steps"] if page_data is not None else DEFAULT_N_STEPS,
+        ],
         autosize=False,
     )
 
@@ -429,9 +435,7 @@ def update_ent_cap(n, page_log_training, data):
 
 @callback(
     Output("training-log-storage", "data"),
-    [
-        Input("training-log-storage", "data"),
-    ],
+    Input("training-log-storage", "data"),
     [
         State("training-page-storage", "data"),
         State("main-storage", "data"),
