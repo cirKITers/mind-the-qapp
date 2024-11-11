@@ -221,7 +221,22 @@ layout = html.Div(
 )
 
 
-def reset_log():
+def reset_log() -> Dict[str, list]:
+    """
+    Resets the training log to contain empty lists for the following keys:
+    - loss
+    - y_hat
+    - params
+    - ent_cap
+    - x
+    - y
+    - X
+    - Y
+    - steps
+
+    Returns:
+        A dictionary with the given keys and empty lists as values.
+    """
     return {
         "loss": [],
         "y_hat": [],
@@ -254,10 +269,37 @@ def reset_log():
     State("training-start-button", "children"),
     prevent_initial_call="initial_duplicate",
 )
-def on_preference_changed(_, bf, pf, ad, pd, dp, steps, n, state):
+def on_preference_changed(
+    _: int,
+    bf: float,
+    pf: float,
+    ad: float,
+    pd: float,
+    dp: float,
+    steps: int,
+    n: int,
+    state: str,
+) -> list:
+    """
+    Handles the preference change events and updates the training configuration.
 
-    # Give a default data dict with 0 clicks if there's no data.
-    # page_data = dict(bf=bf, pf=pf, ad=ad, pd=pd, dp=dp, steps=steps)
+    Args:
+        _: Unused, represents the modified timestamp of the main storage.
+        bf: Bit flip probability from the slider input.
+        pf: Phase flip probability from the slider input.
+        ad: Amplitude damping probability from the slider input.
+        pd: Phase damping probability from the slider input.
+        dp: Depolarization probability from the slider input.
+        steps: Number of training steps from the numeric input.
+        n: Number of clicks on the start button.
+        state: The current text on the training start button.
+
+    Returns:
+        A list containing:
+            - Updated page data dictionary.
+            - Reset log dictionary.
+            - Button text indicating the next state.
+    """
     page_data = {
         "noise_params": {
             "BitFlip": bf,
@@ -278,15 +320,31 @@ def on_preference_changed(_, bf, pf, ad, pd, dp, steps, n, state):
 
 
 @callback(
-    Output("training-metric-figure", "figure"),
+    Output("training-metric-figure", "figure"),  # type: ignore
     Input("training-log-storage", "modified_timestamp"),
     [
-        State("training-log-storage", "data"),
-        State("training-page-storage", "data"),
+        State("training-log-storage", "data"),  # type: ignore
+        State("training-page-storage", "data"),  # type: ignore
     ],
     prevent_initial_call=True,
 )
-def update_loss(n, page_log_training, page_data):
+def update_loss(
+    n: int,  # modified_timestamp
+    page_log_training: Dict[str, List[float]],  # type: ignore
+    page_data: Dict[str, Any],  # type: ignore
+) -> go.Figure:
+    """
+    Update the "Loss" figure with the latest loss values stored in the
+    training-log-storage.
+
+    Args:
+        n: The number of times the training-log-storage has been modified.
+        page_log_training: The log of the training process.
+        page_data: The current page data.
+
+    Returns:
+        The updated figure.
+    """
     fig_expval = go.Figure()
     if (
         page_log_training is not None
@@ -319,7 +377,23 @@ def update_loss(n, page_log_training, page_data):
     ],
     prevent_initial_call=True,
 )
-def pong(_, page_log_training, page_data):
+def pong(
+    modified_timestamp: int,
+    page_log_training: Optional[Dict[str, Any]],
+    page_data: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """
+    This callback ensures that the training log is updated continuously.
+
+    The function takes the modified timestamp of the training log and the current data
+    of the page log and page data as inputs. It returns the current data of the page log.
+
+    If the page log is None, the page data is None, the length of the loss in page log
+    is greater than the steps in page data, or the running flag in page data is False,
+    the function raises a PreventUpdate exception.
+
+    Otherwise, the function returns the current page log.
+    """
     if (
         page_log_training is None
         or page_data is None
@@ -333,10 +407,20 @@ def pong(_, page_log_training, page_data):
 @callback(
     Output("training-hist-fig", "figure"),
     Input("training-log-storage", "modified_timestamp"),
-    State("training-log-storage", "data"),
+    State("training-log-storage", "data"),  # type: Dict[str, Any]
     prevent_initial_call=True,
 )
-def update_hist(n, page_log_training):
+def update_hist(
+    n: int,  # modified_timestamp
+    page_log_training: Optional[Dict[str, Any]],  # page_log_storage
+) -> go.Figure:  # return type
+    """
+    Updates the histogram plot with the latest data from the training log.
+
+    :param n: modified_timestamp from the dcc.Store
+    :param page_log_training: data from the dcc.Store
+    :return: a go.Figure with the latest data
+    """
     fig_hist = go.Figure()
 
     if page_log_training is not None and len(page_log_training["loss"]) > 0:
@@ -372,12 +456,22 @@ def update_hist(n, page_log_training):
 
 
 @callback(
-    Output("training-expval-figure", "figure"),
+    Output("training-expval-figure", "figure"),  # type: ignore
     Input("training-log-storage", "modified_timestamp"),
-    State("training-log-storage", "data"),
+    State("training-log-storage", "data"),  # type: Dict[str, Any]
     prevent_initial_call=True,
 )
-def update_expval(n, page_log_training):
+def update_expval(
+    n: int,  # modified_timestamp
+    page_log_training: Optional[Dict[str, Any]],  # page_log_storage
+) -> go.Figure:  # return type
+    """
+    Updates the expectation value plot with the latest data from the training log.
+
+    :param n: modified_timestamp from the dcc.Store
+    :param page_log_training: data from the dcc.Store
+    :return: a go.Figure with the latest data
+    """
     fig_expval = go.Figure()
 
     if page_log_training is not None and len(page_log_training["loss"]) > 0:
@@ -404,12 +498,28 @@ def update_expval(n, page_log_training):
     Output("fig-training-ent", "figure"),
     Input("training-log-storage", "modified_timestamp"),
     [
-        State("training-log-storage", "data"),
+        State("training-log-storage", "data", allow_duplicate=True),
         State("training-page-storage", "data"),
     ],
     prevent_initial_call=True,
 )
-def update_ent_cap(n, page_log_training, page_data):
+def update_ent_cap(
+    n: int,  # The modified timestamp of the training log storage
+    page_log_training: Dict[str, Any],  # The data in the training log storage
+    page_data: Dict[str, Any],  # The data in the training page storage
+) -> go.Figure:  # The updated figure
+    """
+    This function is called when the data in the training log storage changes.
+    It creates a line plot of the entangling capability over the training steps.
+
+    Args:
+        n: The modified timestamp of the training log storage.
+        page_log_training: The current data in the training log storage.
+        page_data: The current data in the training page storage.
+
+    Returns:
+        The updated figure for the entangling capability.
+    """
     fig_ent_cap = go.Figure()
     if (
         page_log_training is not None
@@ -442,7 +552,25 @@ def update_ent_cap(n, page_log_training, page_data):
     ],
     prevent_initial_call=True,
 )
-def training(page_log_training, page_data, main_data):
+def training(
+    page_log_training: Dict[str, Any],
+    page_data: Dict[str, Any],
+    main_data: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    This function is called when the data in the training log storage changes.
+    It runs the training step for the current parameters and noise levels,
+    and updates the training log storage with the new parameters, cost, and
+    prediction.
+
+    Args:
+        page_log_training: The current data in the training log storage.
+        page_data: The current data in the training page storage.
+        main_data: The current data in the main storage.
+
+    Returns:
+        The updated data in the training log storage.
+    """
     if page_log_training is None or page_data is None:
         raise PreventUpdate()
 
@@ -467,7 +595,7 @@ def training(page_log_training, page_data, main_data):
     page_log_training["y"] = instructor.y_d
 
     data = instructor.calc_hist(
-        page_log_training["params"],
+        params=page_log_training["params"],
         noise_params=page_data["noise_params"],
     )
 
