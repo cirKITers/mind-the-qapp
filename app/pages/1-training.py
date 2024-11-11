@@ -454,7 +454,8 @@ def pong(
     This callback ensures that the training log is updated continuously.
 
     The function takes the modified timestamp of the training log and the current data
-    of the page log and page data as inputs. It returns the current data of the page log.
+    of the page log and page data as inputs.
+    It returns the current data of the page log.
 
     If the page log is None, the page data is None, the length of the loss in page log
     is greater than the steps in page data, or the running flag in page data is False,
