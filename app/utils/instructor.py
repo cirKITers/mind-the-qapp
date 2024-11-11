@@ -15,9 +15,10 @@ class Instructor:
         n_qubits: int,
         n_layers: int,
         n_freqs: int,
-        seed: int = 100,
-        circuit_type: int = 19,
-        data_reupload: bool = True,
+        stepsize: float,
+        seed: int,
+        circuit_type: int,
+        data_reupload: bool,
         **kwargs,
     ) -> None:
         """
@@ -54,7 +55,7 @@ class Instructor:
 
         self.y_d = np.array([y_fct(x) for x in self.x_d], requires_grad=False)
 
-        self.opt = qml.AdamOptimizer(stepsize=0.01)
+        self.opt = qml.AdamOptimizer(stepsize=stepsize)
 
     def calc_hist(
         self,

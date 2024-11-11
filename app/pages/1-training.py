@@ -21,6 +21,7 @@ dash.register_page(__name__, name="Training")
 
 DEFAULT_N_STEPS = 10
 DEFAULT_N_FREQS = 3
+DEFAULT_STEPSIZE = 0.01
 
 layout = html.Div(
     [
@@ -146,9 +147,9 @@ layout = html.Div(
                                                         ),
                                                     ],
                                                     style={
-                                                        "width": "5vw",
+                                                        "width": "4vw",
                                                         "display": "inline-block",
-                                                        "padding-left": "20px",
+                                                        "padding-left": "8px",
                                                     },
                                                 ),
                                             ]
@@ -175,9 +176,38 @@ layout = html.Div(
                                                         ),
                                                     ],
                                                     style={
+                                                        "width": "4vw",
+                                                        "display": "inline-block",
+                                                        "padding-left": "8px",
+                                                    },
+                                                ),
+                                            ]
+                                        ),
+                                        dbc.Col(
+                                            [
+                                                html.Div(
+                                                    [
+                                                        dbc.Label("Stepsize: "),
+                                                    ],
+                                                    style={
+                                                        "display": "inline-block",
+                                                    },
+                                                ),
+                                                html.Div(
+                                                    [
+                                                        dbc.Input(
+                                                            type="number",
+                                                            min=0.001,
+                                                            max=0.1,
+                                                            step=0.001,
+                                                            value=DEFAULT_STEPSIZE,
+                                                            id="training-stepsize-numeric-input",
+                                                        ),
+                                                    ],
+                                                    style={
                                                         "width": "5vw",
                                                         "display": "inline-block",
-                                                        "padding-left": "20px",
+                                                        "padding-left": "8px",
                                                     },
                                                 ),
                                             ]
@@ -296,6 +326,7 @@ def reset_log() -> Dict[str, list]:
         Input("training-depolarization-prob-slider", "value"),
         Input("training-freqs-numeric-input", "value"),
         Input("training-steps-numeric-input", "value"),
+        Input("training-stepsize-numeric-input", "value"),
         Input("training-start-button", "n_clicks"),
     ],
     State("training-start-button", "children"),
@@ -310,6 +341,7 @@ def on_preference_changed(
     dp: float,
     n_freqs: int,
     steps: int,
+    stepsize: int,
     n: int,
     state: str,
 ) -> list:
@@ -344,6 +376,7 @@ def on_preference_changed(
         },
         "steps": steps,
         "n_freqs": n_freqs,
+        "stepsize": stepsize,
         "running": state != "Reset Training",
     }
     page_log_training = reset_log()
@@ -616,6 +649,7 @@ def training(
         main_data["number_qubits"],
         main_data["number_layers"],
         n_freqs=page_data["n_freqs"],
+        stepsize=page_data["stepsize"],
         seed=main_data["seed"],
         circuit_type=main_data["circuit_type"],
         data_reupload=main_data["data_reupload"],
