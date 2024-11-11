@@ -12,14 +12,7 @@ import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
 from utils.instructor import Instructor
-from utils.expressibility import (
-    Expressibility_Sampler,
-    get_sampled_haar_probability_histogram,
-    get_kl_divergence_expr,
-)
 from utils.validation import data_is_valid
-
-from utils.entangling import EntanglingCapability_Sampler
 
 dash.register_page(__name__, name="Expressibility")
 
@@ -359,48 +352,9 @@ def update_hist_fourier(page_data, main_data):
 
 @callback(
     [
-        Output("expr-haar-figure", "figure"),
-    ],
-    [
-        Input("expr-page-storage", "data"),
-    ],
-    State("main-storage", "data"),
-    prevent_initial_call=True,
-)
-def update_hist_haar(page_data, main_data):
-    fig_haar = go.Figure()
-    fig_haar.update_layout(
-        title="Haar Probability Densities",
-        template="simple_white",
-        xaxis_title="Fidelity",
-        yaxis_title="Probability",
-    )
-
-    if not data_is_valid(page_data, main_data):
-        return [fig_haar]
-
-    _, n_input_samples, n_bins = (
-        page_data["n_samples"],
-        page_data["n_input_samples"],
-        page_data["n_bins"],
-    )
-
-    x_haar, y_haar = get_sampled_haar_probability_histogram(
-        main_data["number_qubits"], n_bins, n_input_samples
-    )
-
-    fig_haar.add_bar(
-        x=x_haar,
-        y=y_haar,
-    )
-
-    return [fig_haar]
-
-
-@callback(
-    [
         Output("expr-hist-figure", "figure"),
         Output("expr-kl-figure", "figure"),
+        Output("expr-haar-figure", "figure"),
         Output("main-loading-state", "children", allow_duplicate=True),
     ],
     [
@@ -416,9 +370,9 @@ def update_output_probabilities(page_data, main_data):
         template="simple_white",
         scene=dict(
             xaxis=dict(
-                title="Input",
+                title="Fidelity",
             ),
-            yaxis=dict(title="Fidelity"),
+            yaxis=dict(title="Input"),
             zaxis=dict(
                 title="Prob. Density",
             ),
@@ -439,6 +393,14 @@ def update_output_probabilities(page_data, main_data):
         yaxis_title="KL Divergence",
     )
 
+    fig_haar = go.Figure()
+    fig_haar.update_layout(
+        title="Haar Probability Densities",
+        template="simple_white",
+        xaxis_title="Fidelity",
+        yaxis_title="Probability",
+    )
+
     if not data_is_valid(page_data, main_data):
         return [fig_expr, fig_kl, "Not Ready"]
 
@@ -451,42 +413,46 @@ def update_output_probabilities(page_data, main_data):
     if main_data["circuit_type"] is None:
         return [fig_expr, "Ready"]
 
-    expr_sampler = Expressibility_Sampler(
+    instructor = Instructor(
         main_data["number_qubits"],
         main_data["number_layers"],
-        main_data["seed"],
-        main_data["circuit_type"],
-        main_data["data_reupload"],
-        n_samples,
-        n_input_samples,
-        n_bins,
+        seed=main_data["seed"],
+        circuit_type=main_data["circuit_type"],
+        data_reupload=main_data["data_reupload"],
     )
-    x_samples, y_samples, z_samples = expr_sampler.sample_hist_state_fidelities(
+
+    inputs, fidelity_values, fidelity_score = instructor.state_fidelities(
+        n_samples=n_samples,
+        n_bins=n_bins,
+        n_input_samples=n_input_samples,
         noise_params=page_data["noise_params"],
     )
 
     fig_expr.add_surface(
-        x=x_samples,
-        y=y_samples,
-        z=z_samples,
-        cmax=z_samples.max().item(),
+        x=fidelity_values,
+        y=inputs,
+        z=fidelity_score,
+        cmax=fidelity_score.max().item(),
         cmin=0,
         showscale=False,
         showlegend=False,
     )
 
-    _, y_haar = get_sampled_haar_probability_histogram(
-        main_data["number_qubits"], n_bins, n_input_samples
+    x_haar, y_haar = instructor.haar_integral(n_bins)
+
+    fig_haar.add_bar(
+        x=x_haar,
+        y=y_haar,
     )
 
-    kl_divergence = get_kl_divergence_expr(np.transpose(z_samples), y_haar)
+    kl_divergence = instructor.kullback_leibler(fidelity_score, y_haar)
 
-    fig_kl.add_scatter(x=x_samples, y=kl_divergence)
+    fig_kl.add_scatter(x=inputs, y=kl_divergence)
     fig_kl.update_layout(
         yaxis_range=[0, max(kl_divergence) + 0.2],
     )
 
-    return [fig_expr, fig_kl, "Ready"]
+    return [fig_expr, fig_kl, fig_haar, "Ready"]
 
 
 @callback(
@@ -501,14 +467,15 @@ def update_ent_cap(page_data, main_data):
     if not data_is_valid(page_data, main_data) or main_data["number_qubits"] == 1:
         return 0
 
-    ent_sampler = EntanglingCapability_Sampler(
+    instructor = Instructor(
         main_data["number_qubits"],
         main_data["number_layers"],
-        main_data["seed"],
-        main_data["circuit_type"],
-        main_data["data_reupload"],
+        seed=main_data["seed"],
+        circuit_type=main_data["circuit_type"],
+        data_reupload=main_data["data_reupload"],
     )
-    ent_cap = ent_sampler.calculate_entangling_capability(
-        samples_per_qubit=10, params=None, noise_params=page_data["noise_params"]
+
+    ent_cap = instructor.meyer_wallach(
+        n_samples=10, noise_params=page_data["noise_params"]
     )
     return f"{ent_cap:.3f}"

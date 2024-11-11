@@ -1370,13 +1370,13 @@ files = [
 
 [[package]]
 name = "qml-essentials"
-version = "0.1.15"
+version = "0.1.16"
 description = ""
 optional = false
 python-versions = "<3.12,>=3.10"
 files = [
-    {file = "qml_essentials-0.1.15-py3-none-any.whl", hash = "sha256:98bb1f9dced206047c1350fc1aba35552d726129fbc649640388b27c9ab41194"},
-    {file = "qml_essentials-0.1.15.tar.gz", hash = "sha256:30e30ef925cade449531b6f01b6859add04ec6ce5f52c7d955c3b3f8a091ec25"},
+    {file = "qml_essentials-0.1.16-py3-none-any.whl", hash = "sha256:54dc71c87c4566e38c17e31f7730c0302b3acdc6c10f53dd93073d223583d68d"},
+    {file = "qml_essentials-0.1.16.tar.gz", hash = "sha256:7258171dec8fa64d8ef8931362cb9ffd55136dc3864b29a7c47bf942fce97e75"},
 ]
 
 [package.dependencies]
@@ -1640,4 +1640,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "43775efb9e1be71e79c546f670ab7868a04d9e57414b1cc88ee1becd365ad27e"
+content-hash = "808cde5e091b91d9dd68a491f9c17c4524bdd5662902a23b5ebcbbcb0900a590"
