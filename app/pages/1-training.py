@@ -11,6 +11,7 @@ from dash import (
 import plotly.graph_objects as go
 from dash.exceptions import PreventUpdate
 
+from typing import Dict, Any, List, Optional
 
 from utils.instructor import Instructor
 
