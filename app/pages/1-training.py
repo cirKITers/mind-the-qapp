@@ -499,7 +499,7 @@ def update_expval(
     Output("fig-training-ent", "figure"),
     Input("training-log-storage", "modified_timestamp"),
     [
-        State("training-log-storage", "data", allow_duplicate=True),
+        State("training-log-storage", "data"),
         State("training-page-storage", "data"),
     ],
     prevent_initial_call=True,
