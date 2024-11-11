@@ -24,7 +24,6 @@ layout = html.Div(
     [
         dcc.Store(id="training-page-storage", storage_type="session"),
         dcc.Store(id="training-log-storage", storage_type="session"),
-        dcc.Store(id="training-log-hist-storage", storage_type="session"),
         html.Div(
             [
                 html.Div(
@@ -222,11 +221,24 @@ layout = html.Div(
 )
 
 
+def reset_log():
+    return {
+        "loss": [],
+        "y_hat": [],
+        "params": [],
+        "ent_cap": [],
+        "x": [],
+        "y": [],
+        "X": [],
+        "Y": [],
+        "steps": [],
+    }
+
+
 @callback(
     [
         Output("training-page-storage", "data"),
         Output("training-log-storage", "data", allow_duplicate=True),
-        Output("training-log-hist-storage", "data"),
         Output("training-start-button", "children", allow_duplicate=True),
     ],
     [
@@ -257,13 +269,12 @@ def on_preference_changed(_, bf, pf, ad, pd, dp, steps, n, state):
         "steps": steps,
         "running": state != "Reset Training",
     }
-    page_log = {"loss": [], "params": [], "ent_cap": []}
-    page_log_hist = {"x": [], "y": [], "z": []}
+    page_log = reset_log()
 
     if state == "Reset Training":
-        return [page_data, page_log, page_log_hist, "Start Training"]
+        return [page_data, page_log, "Start Training"]
     else:
-        return [page_data, page_log, page_log_hist, "Reset Training"]
+        return [page_data, page_log, "Reset Training"]
 
 
 @callback(
@@ -317,52 +328,22 @@ def pong(_, page_log_training, page_data):
 
 
 @callback(
-    [
-        Output("training-hist-fig", "figure"),
-        Output("training-log-hist-storage", "data", allow_duplicate=True),
-    ],
+    Output("training-hist-fig", "figure"),
     Input("training-log-storage", "modified_timestamp"),
-    [
-        State("training-log-storage", "data"),
-        State("training-log-hist-storage", "data"),
-        State("training-page-storage", "data"),
-        State("main-storage", "data"),
-    ],
+    State("training-log-storage", "data"),
     prevent_initial_call=True,
 )
-def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
+def update_hist(n, page_log_training):
     fig_hist = go.Figure()
 
     if page_log_training is not None and len(page_log_training["loss"]) > 0:
-        instructor = Instructor(
-            main_data["number_qubits"],
-            main_data["number_layers"],
-            seed=main_data["seed"],
-            circuit_type=main_data["circuit_type"],
-            data_reupload=main_data["data_reupload"],
-        )
-
-        data = instructor.calc_hist(
-            page_log_training["params"],
-            noise_params=page_data["noise_params"],
-        )
-        data_len = len(data)
-
-        page_log_hist["x"] = np.arange(
-            -data_len // 2 + 1, data_len // 2 + 1, 1
-        ).tolist()
-        page_log_hist["y"] = [i for i in range(len(page_log_training["loss"]))]
-        page_log_hist["z"].append(data.tolist())
-
         fig_hist.add_surface(
-            x=np.array(page_log_hist["x"]),
-            y=np.array(page_log_hist["y"]),
-            z=np.array(page_log_hist["z"]),
+            x=np.array(page_log_training["X"]),
+            y=np.array(page_log_training["steps"]),
+            z=np.array(page_log_training["Y"]),
             showscale=False,
             showlegend=False,
         )
-    else:
-        page_log_hist = {"x": [], "y": [], "z": []}
 
     fig_hist.update_layout(
         title="Histogram (Absolute Value)",
@@ -384,39 +365,25 @@ def update_hist(n, page_log_training, page_log_hist, page_data, main_data):
         coloraxis_showscale=False,
     )
 
-    return fig_hist, page_log_hist
+    return fig_hist
 
 
 @callback(
     Output("training-expval-figure", "figure"),
     Input("training-log-storage", "modified_timestamp"),
-    [
-        State("training-log-storage", "data"),
-        State("training-page-storage", "data"),
-        State("main-storage", "data"),
-    ],
+    State("training-log-storage", "data"),
     prevent_initial_call=True,
 )
-def update_expval(n, page_log_training, page_data, main_data):
+def update_expval(n, page_log_training):
     fig_expval = go.Figure()
 
     if page_log_training is not None and len(page_log_training["loss"]) > 0:
-        instructor = Instructor(
-            main_data["number_qubits"],
-            main_data["number_layers"],
-            seed=main_data["seed"],
-            circuit_type=main_data["circuit_type"],
-            data_reupload=main_data["data_reupload"],
+        fig_expval.add_scatter(
+            x=page_log_training["x"], y=page_log_training["y_hat"], name="Prediction"
         )
-
-        y_pred = instructor.model(
-            params=page_log_training["params"],
-            inputs=instructor.x_d,
-            noise_params=page_data["noise_params"],
+        fig_expval.add_scatter(
+            x=page_log_training["x"], y=page_log_training["y"], name="Target"
         )
-
-        fig_expval.add_scatter(x=instructor.x_d, y=y_pred[0], name="Prediction")
-        fig_expval.add_scatter(x=instructor.x_d, y=instructor.y_d, name="Target")
 
     fig_expval.update_layout(
         title="Output",
@@ -476,9 +443,7 @@ def training(page_log_training, page_data, main_data):
         raise PreventUpdate()
 
     if len(page_log_training["loss"]) > page_data["steps"]:
-        page_log_training["loss"] = []
-        page_log_training["params"] = []
-        page_log_training["ent_cap"] = []
+        page_log_training = reset_log()
 
     instructor = Instructor(
         main_data["number_qubits"],
@@ -488,11 +453,25 @@ def training(page_log_training, page_data, main_data):
         data_reupload=main_data["data_reupload"],
     )
 
-    page_log_training["params"], cost = instructor.step(
+    page_log_training["params"], cost, pred = instructor.step(
         page_log_training["params"], page_data["noise_params"]
     )
 
     page_log_training["loss"].append(cost.item())
+    page_log_training["y_hat"] = pred
+    page_log_training["x"] = instructor.x_d
+    page_log_training["y"] = instructor.y_d
+
+    data = instructor.calc_hist(
+        page_log_training["params"],
+        noise_params=page_data["noise_params"],
+    )
+
+    page_log_training["X"] = np.arange(
+        -len(data) // 2 + 1, len(data) // 2 + 1, 1
+    ).tolist()
+    page_log_training["steps"] = [i for i in range(len(page_log_training["loss"]))]
+    page_log_training["Y"].append(data.tolist())
 
     if main_data["number_qubits"] > 1:
         instructor.model.params = page_log_training["params"]
