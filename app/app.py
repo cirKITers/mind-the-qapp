@@ -224,4 +224,7 @@ if __name__ == "__main__":
 
     logging.info("(Re-)launching Application..")
 
-    app.run(host="0.0.0.0", port="8050", threaded=True, debug="--debug" in args)
+    try:
+        app.run(host="0.0.0.0", port="8050", threaded=True, debug="--debug" in args)
+    except Exception as e:
+        logging.error(e)
