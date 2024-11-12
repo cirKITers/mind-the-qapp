@@ -14,11 +14,11 @@ class Instructor:
         self,
         n_qubits: int,
         n_layers: int,
-        n_freqs: int,
-        stepsize: float,
-        seed: int,
-        circuit_type: int,
-        data_reupload: bool,
+        n_freqs: int = 3,
+        stepsize: float = 0.01,
+        seed: int = 1000,
+        circuit_type: str = "Circuit_19",
+        data_reupload: bool = True,
         **kwargs,
     ) -> None:
         """
