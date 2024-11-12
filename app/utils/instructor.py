@@ -187,9 +187,16 @@ class Instructor:
         if len(params) == 0:
             params = self.model.params
 
+        y_pred = self.model(
+            params=params,
+            inputs=self.x_d,
+            noise_params=noise_params,
+            cache=False,
+            execution_type="expval",
+        )
         params = np.array(params, requires_grad=True)
 
         params, cost = self.opt.step_and_cost(
             self.cost, params, y_d=self.y_d, noise_params=noise_params
         )
-        return params, cost
+        return (params, cost, y_pred[0])
