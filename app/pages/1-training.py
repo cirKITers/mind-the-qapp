@@ -20,6 +20,8 @@ import dash_bootstrap_components as dbc
 dash.register_page(__name__, name="Training")
 
 DEFAULT_N_STEPS = 10
+DEFAULT_N_FREQS = 3
+DEFAULT_STEPSIZE = 0.01
 
 layout = html.Div(
     [
@@ -127,6 +129,35 @@ layout = html.Div(
                                             [
                                                 html.Div(
                                                     [
+                                                        dbc.Label("# of Freqs.:"),
+                                                    ],
+                                                    style={
+                                                        "display": "inline-block",
+                                                    },
+                                                ),
+                                                html.Div(
+                                                    [
+                                                        dbc.Input(
+                                                            type="number",
+                                                            min=1,
+                                                            max=11,
+                                                            step=1,
+                                                            value=DEFAULT_N_FREQS,
+                                                            id="training-freqs-numeric-input",
+                                                        ),
+                                                    ],
+                                                    style={
+                                                        "width": "4vw",
+                                                        "display": "inline-block",
+                                                        "padding-left": "8px",
+                                                    },
+                                                ),
+                                            ]
+                                        ),
+                                        dbc.Col(
+                                            [
+                                                html.Div(
+                                                    [
                                                         dbc.Label("Steps:"),
                                                     ],
                                                     style={
@@ -138,16 +169,45 @@ layout = html.Div(
                                                         dbc.Input(
                                                             type="number",
                                                             min=1,
-                                                            max=101,
+                                                            max=201,
                                                             step=1,
                                                             value=DEFAULT_N_STEPS,
                                                             id="training-steps-numeric-input",
                                                         ),
                                                     ],
                                                     style={
+                                                        "width": "4vw",
+                                                        "display": "inline-block",
+                                                        "padding-left": "8px",
+                                                    },
+                                                ),
+                                            ]
+                                        ),
+                                        dbc.Col(
+                                            [
+                                                html.Div(
+                                                    [
+                                                        dbc.Label("Stepsize: "),
+                                                    ],
+                                                    style={
+                                                        "display": "inline-block",
+                                                    },
+                                                ),
+                                                html.Div(
+                                                    [
+                                                        dbc.Input(
+                                                            type="number",
+                                                            min=0.001,
+                                                            max=0.1,
+                                                            step=0.001,
+                                                            value=DEFAULT_STEPSIZE,
+                                                            id="training-stepsize-numeric-input",
+                                                        ),
+                                                    ],
+                                                    style={
                                                         "width": "5vw",
                                                         "display": "inline-block",
-                                                        "padding-left": "20px",
+                                                        "padding-left": "8px",
                                                     },
                                                 ),
                                             ]
@@ -264,7 +324,9 @@ def reset_log() -> Dict[str, list]:
         Input("training-amplitude-damping-prob-slider", "value"),
         Input("training-phase-damping-prob-slider", "value"),
         Input("training-depolarization-prob-slider", "value"),
+        Input("training-freqs-numeric-input", "value"),
         Input("training-steps-numeric-input", "value"),
+        Input("training-stepsize-numeric-input", "value"),
         Input("training-start-button", "n_clicks"),
     ],
     State("training-start-button", "children"),
@@ -277,7 +339,9 @@ def on_preference_changed(
     ad: float,
     pd: float,
     dp: float,
+    n_freqs: int,
     steps: int,
+    stepsize: int,
     n: int,
     state: str,
 ) -> list:
@@ -291,6 +355,7 @@ def on_preference_changed(
         ad: Amplitude damping probability from the slider input.
         pd: Phase damping probability from the slider input.
         dp: Depolarization probability from the slider input.
+        n_freqs: Number of frequencies from the numeric input.
         steps: Number of training steps from the numeric input.
         n: Number of clicks on the start button.
         state: The current text on the training start button.
@@ -310,6 +375,8 @@ def on_preference_changed(
             "Depolarization": dp,
         },
         "steps": steps,
+        "n_freqs": n_freqs,
+        "stepsize": stepsize,
         "running": state != "Reset Training",
     }
     page_log_training = reset_log()
@@ -488,7 +555,7 @@ def update_expval(
         template="simple_white",
         xaxis_title="X Domain",
         yaxis_title="Expectation Value",
-        yaxis_range=[-1, 1],
+        yaxis_range=[-0.5, 0.5],
         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
     )
 
@@ -581,6 +648,8 @@ def training(
     instructor = Instructor(
         main_data["number_qubits"],
         main_data["number_layers"],
+        n_freqs=page_data["n_freqs"],
+        stepsize=page_data["stepsize"],
         seed=main_data["seed"],
         circuit_type=main_data["circuit_type"],
         data_reupload=main_data["data_reupload"],

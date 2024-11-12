@@ -221,6 +221,7 @@ if __name__ == "__main__":
         logging.basicConfig(
             level=logging.ERROR, format="%(levelname)s:%(name)s:%(message)s"
         )
+        logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
     logging.info("(Re-)launching Application..")
 

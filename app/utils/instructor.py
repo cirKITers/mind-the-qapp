@@ -14,8 +14,10 @@ class Instructor:
         self,
         n_qubits: int,
         n_layers: int,
-        seed: int = 100,
-        circuit_type: int = 19,
+        n_freqs: int = 3,
+        stepsize: float = 0.01,
+        seed: int = 1000,
+        circuit_type: str = "Circuit_19",
         data_reupload: bool = True,
         **kwargs,
     ) -> None:
@@ -41,19 +43,20 @@ class Instructor:
             **kwargs,
         )
         self.x_domain = [-1 * np.pi, 1 * np.pi]  # [-4 * np.pi, 4 * np.pi]
-        omega_d = np.array([1, 2, 3])
+        omega_d = np.array([i for i in range(1, n_freqs + 1)])
 
         n_d = int(np.ceil(2 * np.max(np.abs(self.x_domain)) * np.max(omega_d)))
         self.x_d = np.linspace(
             self.x_domain[0], self.x_domain[1], n_d, requires_grad=False
         )
+        amplitude = 0.5
 
         def y_fct(x):
-            return 1 / np.linalg.norm(omega_d) * np.sum(np.cos(omega_d * x))
+            return 1 / np.linalg.norm(omega_d) * np.sum(amplitude * np.cos(omega_d * x))
 
         self.y_d = np.array([y_fct(x) for x in self.x_d], requires_grad=False)
 
-        self.opt = qml.AdamOptimizer(stepsize=0.01)
+        self.opt = qml.AdamOptimizer(stepsize=stepsize)
 
     def calc_hist(
         self,
