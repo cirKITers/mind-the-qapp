@@ -16,7 +16,7 @@ class Instructor:
         n_layers: int,
         n_freqs: int = 3,
         stepsize: float = 0.01,
-        seed: int = 1000,
+        seed: int = 100,
         circuit_type: str = "Circuit_19",
         data_reupload: bool = True,
         **kwargs,
@@ -33,6 +33,9 @@ class Instructor:
             tffm: Whether or not to use trainable frequency feature mapping.
         """
         self.seed = seed
+        self.stepsize = stepsize
+        self.n_freqs = n_freqs
+        self.circuit_type = circuit_type
 
         self.model = Model(
             n_qubits=n_qubits,
