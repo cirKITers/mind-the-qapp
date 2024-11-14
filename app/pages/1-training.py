@@ -29,17 +29,6 @@ from layouts.app_page_layout import (
 )
 
 
-# instructor = Instructor(
-#     DEFAULT_N_QUBITS,
-#     DEFAULT_N_LAYERS,
-#     n_freqs=DEFAULT_N_FREQS,
-#     stepsize=DEFAULT_STEPSIZE,
-#     seed=DEFAULT_SEED,
-#     circuit_type=main_data["circuit_type"],
-#     data_reupload=DEFAULT_DATA_REUPLOAD,
-# )
-
-
 def reset_log() -> Dict[str, list]:
     """
     Resets the training log to contain empty lists for the following keys:
