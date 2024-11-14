@@ -1,17 +1,18 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash import Input, Output, dcc, html, callback, State
-from qml_essentials.ansaetze import Ansaetze
+from dash import Input, Output, html, callback, State
 from typing import Any, Dict, Optional
 import sys
 
 import logging
 
-from layouts.app_page_layout import content, sidebar
 
 app = dash.Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME], use_pages=True
 )
+
+from layouts.app_page_layout import sidebar, content
+
 app.title = "Favicon"
 
 

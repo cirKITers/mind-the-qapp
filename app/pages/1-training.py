@@ -13,10 +13,31 @@ from typing import Dict, Any, List, Optional
 
 from utils.instructor import Instructor
 
-from layouts.training_page_layout import layout  # noqa
-from layouts.training_page_layout import DEFAULT_N_STEPS
-
 dash.register_page(__name__, name="Training")
+
+from layouts.training_page_layout import layout  # noqa
+from layouts.training_page_layout import (
+    DEFAULT_N_STEPS,
+    DEFAULT_N_FREQS,
+    DEFAULT_STEPSIZE,
+)
+from layouts.app_page_layout import (
+    DEFAULT_N_QUBITS,
+    DEFAULT_N_LAYERS,
+    DEFAULT_SEED,
+    DEFAULT_DATA_REUPLOAD,
+)
+
+
+# instructor = Instructor(
+#     DEFAULT_N_QUBITS,
+#     DEFAULT_N_LAYERS,
+#     n_freqs=DEFAULT_N_FREQS,
+#     stepsize=DEFAULT_STEPSIZE,
+#     seed=DEFAULT_SEED,
+#     circuit_type=main_data["circuit_type"],
+#     data_reupload=DEFAULT_DATA_REUPLOAD,
+# )
 
 
 def reset_log() -> Dict[str, list]:

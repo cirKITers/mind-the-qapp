@@ -11,9 +11,9 @@ import plotly.graph_objects as go
 from utils.instructor import Instructor
 from utils.validation import data_is_valid
 
-from layouts.expressibility_page_layout import layout  # noqa
-
 dash.register_page(__name__, name="Expressibility")
+
+from layouts.expressibility_page_layout import layout  # noqa
 
 
 @callback(
