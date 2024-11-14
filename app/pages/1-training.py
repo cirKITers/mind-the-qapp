@@ -317,7 +317,7 @@ def update_expval(
         template="simple_white",
         xaxis_title="X Domain",
         yaxis_title="Expectation Value",
-        yaxis_range=[-0.5, 0.5],
+        yaxis_range=[np.min(page_log_training["y"]), np.max(page_log_training["y"])],
         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
     )
 
@@ -429,9 +429,7 @@ def training(
             data_reupload=main_data["data_reupload"],
         )
 
-    page_log_training["params"], cost, pred = instructor.step(
-        page_log_training["params"], page_data["noise_params"]
-    )
+    cost, pred = instructor.step(page_data["noise_params"])
 
     page_log_training["loss"].append(cost.item())
     page_log_training["y_hat"] = pred
@@ -439,7 +437,7 @@ def training(
     page_log_training["y"] = instructor.y_d
 
     data = instructor.calc_hist(
-        params=page_log_training["params"],
+        params=instructor.model.params,
         noise_params=page_data["noise_params"],
     )
 
@@ -450,7 +448,7 @@ def training(
     page_log_training["Y"].append(data.tolist())
 
     if main_data["number_qubits"] > 1:
-        instructor.model.params = page_log_training["params"]
+        instructor.model.params = instructor.model.params
         ent_cap = instructor.meyer_wallach(
             noise_params=page_data["noise_params"],
         )
