@@ -8,6 +8,10 @@ from qml_essentials.coefficients import Coefficients
 from qml_essentials.entanglement import Entanglement
 from qml_essentials.expressibility import Expressibility
 
+import logging
+
+log = logging.getLogger(__name__)
+
 
 class Instructor:
     def __init__(
@@ -46,20 +50,96 @@ class Instructor:
             **kwargs,
         )
         self.x_domain = [-1 * np.pi, 1 * np.pi]  # [-4 * np.pi, 4 * np.pi]
-        omega_d = np.array([i for i in range(1, n_freqs + 1)])
 
-        n_d = int(np.ceil(2 * np.max(np.abs(self.x_domain)) * np.max(omega_d)))
-        self.x_d = np.linspace(
-            self.x_domain[0], self.x_domain[1], n_d, requires_grad=False
-        )
-        amplitude = 0.5
-
-        def y_fct(x):
-            return 1 / np.linalg.norm(omega_d) * np.sum(amplitude * np.cos(omega_d * x))
-
-        self.y_d = np.array([y_fct(x) for x in self.x_d], requires_grad=False)
-
+        self.x_d = self.sample_domain(self.x_domain, n_freqs)
+        self.y_d = self.generate_fourier_series(self.x_d, n_freqs, 0.5)
         self.opt = qml.AdamOptimizer(stepsize=stepsize)
+
+    def sample_domain(
+        self, domain: List[float], omegas: List[List[float]]
+    ) -> np.ndarray:
+        """
+        Generates a flattened grid of (x,y,...) coordinates in a range of -1 to 1.
+
+        Parameters
+        ----------
+        sidelen : int
+            Side length of the grid
+        dim : int, optional
+            Dimensionality of the grid, by default 2
+
+        Returns
+        -------
+        np.Tensor
+            Grid tensor of shape (sidelen^dim, dim)
+        """
+        dimensions = 1  # len(omega)
+
+        if isinstance(omegas, int):
+            omegas = [o for o in range(omegas)]
+        # using the max of all dimensions because we want uniform sampling
+        n_d = int(np.ceil(2 * np.max(np.abs(domain)) * np.max(omegas)))
+
+        log.info(f"Using {n_d} data points on {len(omegas)} dimensions")
+
+        tensors = tuple(dimensions * [np.linspace(domain[0], domain[1], num=n_d)])
+
+        return np.meshgrid(*tensors)[0].reshape(-1)  # .reshape(-1, dimensions)
+
+    def generate_fourier_series(
+        self,
+        domain_samples: np.ndarray,
+        omegas: List[List[float]],
+        coefficients: List[List[float]],
+    ) -> np.ndarray:
+        """
+        Generates the Fourier series representation of a function.
+
+        Parameters
+        ----------
+        domain_samples : np.ndarray
+            Grid of domain samples.
+        omega : List[List[float]]
+            List of frequencies for each dimension.
+
+        Returns
+        -------
+        np.ndarray
+            Fourier series representation of the function.
+        """
+        if not isinstance(omegas, list):
+            omegas = [o for o in range(omegas)]
+        if not isinstance(coefficients, list):
+            coefficients = [coefficients for _ in omegas]
+
+        assert len(omegas) == len(
+            coefficients
+        ), "Number of frequencies and coefficients must match"
+
+        omegas = np.array(omegas)
+        coefficients = np.array(coefficients)
+
+        def y(x: np.ndarray) -> float:
+            """
+            Calculates the Fourier series representation of a function at a given point.
+
+            Parameters
+            ----------
+            x : np.ndarray
+                Point at which to evaluate the function.
+
+            Returns
+            -------
+            float
+                Value of the Fourier series representation at the given point.
+            """
+            return (
+                1 / np.linalg.norm(omegas) * np.sum(coefficients * np.cos(omegas.T * x))
+            )  # transpose!
+
+        values = np.stack([y(x) for x in domain_samples])
+
+        return values
 
     def calc_hist(
         self,
@@ -145,8 +225,9 @@ class Instructor:
     def cost(
         self,
         params: np.ndarray,
+        x_d: np.ndarray,
         y_d: np.ndarray,
-        noise_params: Optional[Dict[str, float]] = None,
+        **kwargs,
     ) -> float:
         """Compute the cost of the model.
 
@@ -164,10 +245,8 @@ class Instructor:
         """
         y_pred = self.model(
             params=params,
-            inputs=self.x_d,
-            noise_params=noise_params,
-            cache=False,
-            execution_type="expval",
+            inputs=x_d,
+            **kwargs,
         )
 
         return np.mean((y_d - y_pred) ** 2)
@@ -190,19 +269,24 @@ class Instructor:
         Returns:
             Tuple[np.ndarray, float]: The updated params and the cost of the model.
         """
-        if len(params) == 0:
-            params = self.model.params
-
         y_pred = self.model(
-            params=params,
+            params=self.model.params,
             inputs=self.x_d,
             noise_params=noise_params,
             cache=False,
             execution_type="expval",
+            force_mean=True,
         )
-        params = np.array(params, requires_grad=True)
 
-        params, cost = self.opt.step_and_cost(
-            self.cost, params, y_d=self.y_d, noise_params=noise_params
+        self.model.params, cost = self.opt.step_and_cost(
+            self.cost,
+            self.model.params,
+            x_d=self.x_d,
+            y_d=self.y_d,
+            noise_params=noise_params,
+            cache=False,
+            execution_type="expval",
+            force_mean=True,
         )
-        return (params, cost, y_pred[0])
+
+        return (cost, y_pred)
