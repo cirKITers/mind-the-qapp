@@ -154,7 +154,7 @@ layout = html.Div(
                                                         dbc.Input(
                                                             type="number",
                                                             min=1,
-                                                            max=201,
+                                                            max=801,
                                                             step=1,
                                                             value=DEFAULT_N_STEPS,
                                                             id="training-steps-numeric-input",
