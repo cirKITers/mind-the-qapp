@@ -14,11 +14,11 @@ class Instructor:
         self,
         n_qubits: int,
         n_layers: int,
-        n_freqs: int,
-        stepsize: float,
-        seed: int,
-        circuit_type: int,
-        data_reupload: bool,
+        n_freqs: int = 3,
+        stepsize: float = 0.01,
+        seed: int = 1000,
+        circuit_type: str = "Circuit_19",
+        data_reupload: bool = True,
         **kwargs,
     ) -> None:
         """
@@ -49,9 +49,10 @@ class Instructor:
         self.x_d = np.linspace(
             self.x_domain[0], self.x_domain[1], n_d, requires_grad=False
         )
+        amplitude = 0.5
 
         def y_fct(x):
-            return 1 / np.linalg.norm(omega_d) * np.sum(np.cos(omega_d * x))
+            return 1 / np.linalg.norm(omega_d) * np.sum(amplitude * np.cos(omega_d * x))
 
         self.y_d = np.array([y_fct(x) for x in self.x_d], requires_grad=False)
 

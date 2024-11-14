@@ -169,7 +169,7 @@ layout = html.Div(
                                                         dbc.Input(
                                                             type="number",
                                                             min=1,
-                                                            max=101,
+                                                            max=201,
                                                             step=1,
                                                             value=DEFAULT_N_STEPS,
                                                             id="training-steps-numeric-input",
@@ -556,7 +556,7 @@ def update_expval(
         template="simple_white",
         xaxis_title="X Domain",
         yaxis_title="Expectation Value",
-        yaxis_range=[-1, 1],
+        yaxis_range=[-0.5, 0.5],
         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
     )
 
