@@ -4,8 +4,8 @@ from dash import (
 )
 import dash_bootstrap_components as dbc
 
-DEFAULT_N_STEPS = 10
-DEFAULT_N_FREQS = 3
+DEFAULT_N_STEPS = 50
+DEFAULT_N_FREQS = 4
 DEFAULT_STEPSIZE = 0.01
 
 layout = html.Div(
@@ -154,7 +154,7 @@ layout = html.Div(
                                                         dbc.Input(
                                                             type="number",
                                                             min=1,
-                                                            max=201,
+                                                            max=801,
                                                             step=1,
                                                             value=DEFAULT_N_STEPS,
                                                             id="training-steps-numeric-input",

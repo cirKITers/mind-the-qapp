@@ -1,4 +1,5 @@
-from layouts.training_page_layout import layout  # noqa
+from utils.instructor import Instructor
+from layouts.training_page_layout import layout  # noqa: E402
 from layouts.training_page_layout import (
     DEFAULT_N_STEPS,
     DEFAULT_N_FREQS,
@@ -9,8 +10,8 @@ from layouts.app_page_layout import (
     DEFAULT_N_LAYERS,
     DEFAULT_SEED,
     DEFAULT_DATA_REUPLOAD,
+    DEFAULT_ANSATZ,
 )
-from utils.instructor import Instructor
 
 import dash
 import numpy as np
@@ -25,7 +26,22 @@ from dash.exceptions import PreventUpdate
 
 from typing import Dict, Any, List, Optional
 
+import logging
+
+log = logging.getLogger(__name__)
+
 dash.register_page(__name__, name="Training")
+
+
+instructor = Instructor(
+    DEFAULT_N_QUBITS,
+    DEFAULT_N_LAYERS,
+    n_freqs=DEFAULT_N_FREQS,
+    stepsize=DEFAULT_STEPSIZE,
+    seed=DEFAULT_SEED,
+    circuit_type=DEFAULT_ANSATZ,
+    data_reupload=DEFAULT_DATA_REUPLOAD,
+)
 
 
 def reset_log() -> Dict[str, list]:
@@ -120,9 +136,11 @@ def on_preference_changed(
             "PhaseDamping": pd,
             "Depolarization": dp,
         },
-        "steps": steps,
-        "n_freqs": n_freqs,
-        "stepsize": stepsize,
+        "steps": steps if steps is not None and steps > 0 else DEFAULT_N_STEPS,
+        "n_freqs": n_freqs if n_freqs is not None and n_freqs > 0 else DEFAULT_N_FREQS,
+        "stepsize": (
+            stepsize if stepsize is not None and stepsize > 0 else DEFAULT_STEPSIZE
+        ),
         "running": state != "Reset Training",
     }
     page_log_training = reset_log()
@@ -297,12 +315,15 @@ def update_expval(
             x=page_log_training["x"], y=page_log_training["y"], name="Target"
         )
 
+    miny = np.min(page_log_training["y"]) if len(page_log_training["y"]) > 0 else -1
+    maxy = np.max(page_log_training["y"]) if len(page_log_training["y"]) > 0 else 1
+
     fig_expval.update_layout(
         title="Output",
         template="simple_white",
         xaxis_title="X Domain",
         yaxis_title="Expectation Value",
-        yaxis_range=[-0.5, 0.5],
+        yaxis_range=[miny, maxy],
         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
     )
 
@@ -386,48 +407,61 @@ def training(
     Returns:
         The updated data in the training log storage.
     """
+    global instructor
+
     if page_log_training is None or page_data is None:
         raise PreventUpdate()
 
     if len(page_log_training["loss"]) > page_data["steps"]:
         page_log_training = reset_log()
 
-    instructor = Instructor(
-        main_data["number_qubits"],
-        main_data["number_layers"],
-        n_freqs=page_data["n_freqs"],
-        stepsize=page_data["stepsize"],
-        seed=main_data["seed"],
-        circuit_type=main_data["circuit_type"],
-        data_reupload=main_data["data_reupload"],
-    )
-
-    page_log_training["params"], cost, pred = instructor.step(
-        page_log_training["params"], page_data["noise_params"]
-    )
-
-    page_log_training["loss"].append(cost.item())
-    page_log_training["y_hat"] = pred
+    if (
+        instructor.seed != main_data["seed"]
+        or instructor.model.n_qubits != main_data["number_qubits"]
+        or instructor.model.n_layers != main_data["number_layers"]
+        or instructor.stepsize != page_data["stepsize"]
+        or instructor.n_freqs != page_data["n_freqs"]
+        or instructor.circuit_type != main_data["circuit_type"]
+        or instructor.model.data_reupload != main_data["data_reupload"]
+    ):
+        print("Re-init inst")
+        instructor = Instructor(
+            main_data["number_qubits"],
+            main_data["number_layers"],
+            n_freqs=page_data["n_freqs"],
+            stepsize=page_data["stepsize"],
+            seed=main_data["seed"],
+            circuit_type=main_data["circuit_type"],
+            data_reupload=main_data["data_reupload"],
+        )
     page_log_training["x"] = instructor.x_d
     page_log_training["y"] = instructor.y_d
 
-    data = instructor.calc_hist(
-        params=page_log_training["params"],
-        noise_params=page_data["noise_params"],
-    )
-
-    page_log_training["X"] = np.arange(
-        -len(data) // 2 + 1, len(data) // 2 + 1, 1
-    ).tolist()
-    page_log_training["steps"] = [i for i in range(len(page_log_training["loss"]))]
-    page_log_training["Y"].append(data.tolist())
-
-    if main_data["number_qubits"] > 1:
-        instructor.model.params = page_log_training["params"]
-        ent_cap = instructor.meyer_wallach(
+    try:
+        data = instructor.calc_hist(
+            params=instructor.model.params,
             noise_params=page_data["noise_params"],
         )
+        page_log_training["X"] = np.arange(
+            -len(data) // 2 + 1, len(data) // 2 + 1, 1
+        ).tolist()
 
-        page_log_training["ent_cap"].append(ent_cap)
+        page_log_training["Y"].append(data.tolist())
+
+        if main_data["number_qubits"] > 1:
+            instructor.model.params = instructor.model.params
+            ent_cap = instructor.meyer_wallach(
+                noise_params=page_data["noise_params"],
+            )
+
+            page_log_training["ent_cap"].append(ent_cap)
+    except Exception as e:
+        log.error(e)
+
+    cost, pred = instructor.step(page_data["noise_params"])
+
+    page_log_training["loss"].append(cost.item())
+    page_log_training["steps"] = [i for i in range(len(page_log_training["loss"]))]
+    page_log_training["y_hat"] = pred
 
     return page_log_training

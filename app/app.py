@@ -1,4 +1,14 @@
-from layouts.app_page_layout import sidebar_top, sidebar_bottom, content
+from layouts.app_page_layout import (
+    sidebar_top,
+    sidebar_bottom,
+    content,
+    DEFAULT_ANSATZ,
+    DEFAULT_DATA_REUPLOAD,
+    DEFAULT_N_LAYERS,
+    DEFAULT_N_QUBITS,
+    DEFAULT_SEED,
+)
+
 import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, html, callback, State
@@ -65,15 +75,21 @@ def on_preference_changed(
     # Give a default data dict with 0 clicks if there's no data.
     data = data or {}
     data["number_qubits"] = (
-        max(min(number_qubits, 10), 0) if number_qubits is not None else None
+        max(min(number_qubits, 10), 0)
+        if number_qubits is not None
+        else DEFAULT_N_QUBITS
     )
     data["number_layers"] = (
-        max(min(number_layers, 10), 0) if number_layers is not None else None
+        max(min(number_layers, 10), 0)
+        if number_layers is not None
+        else DEFAULT_N_LAYERS
     )
-    data["circuit_type"] = circuit_type if circuit_type is not None else "No_Ansatz"
-    data["data_reupload"] = data_reupload
+    data["circuit_type"] = circuit_type if circuit_type is not None else DEFAULT_ANSATZ
+    data["data_reupload"] = (
+        data_reupload if data_reupload is not None else DEFAULT_DATA_REUPLOAD
+    )
     data["tffm"] = False  # tffm
-    data["seed"] = max(min(seed, 999), 100)
+    data["seed"] = max(min(seed, 999), 1000) if seed is not None else DEFAULT_SEED
 
     return data
 

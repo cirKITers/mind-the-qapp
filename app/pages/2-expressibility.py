@@ -13,7 +13,7 @@ from utils.validation import data_is_valid
 
 dash.register_page(__name__, name="Expressibility")
 
-from layouts.expressibility_page_layout import layout  # noqa
+from layouts.expressibility_page_layout import layout  # noqa: E402
 
 
 @callback(
