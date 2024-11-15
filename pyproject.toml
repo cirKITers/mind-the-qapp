@@ -14,11 +14,11 @@ dash-bootstrap-components = "^1.6.0"
 qml-essentials = "^0.1.16"
 matplotlib = "^3.9.2"
 
-
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
 flake8 = "^7.1.1"
 pre-commit = "^4.0.1"
+licensecheck = "^2024.3"
 
 [build-system]
 requires = ["poetry-core"]

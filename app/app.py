@@ -1,151 +1,31 @@
+from layouts.app_page_layout import sidebar_top, sidebar_bottom, content
 import dash
 import dash_bootstrap_components as dbc
-from dash import Input, Output, dcc, html, callback, State
-from qml_essentials.ansaetze import Ansaetze
+from dash import Input, Output, html, callback, State
 from typing import Any, Dict, Optional
 import sys
 
 import logging
 
+
 app = dash.Dash(
-    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME], use_pages=True
+    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME],
+    use_pages=True,
 )
+
 app.title = "Favicon"
-sidebar = html.Div(
+
+sidebar_page_elements = dbc.Nav(
     [
-        dcc.Store(id="main-storage", storage_type="session"),
-        html.Div(
-            [
-                html.H1(
-                    "Mind",
-                ),
-                html.H2(
-                    "the",
-                    style={
-                        "padding-left": "6px",
-                    },
-                ),
-                html.Span(
-                    [
-                        html.Img(
-                            src="assets/underground-sign.svg",
-                            width="42",
-                            style={
-                                "display": "inline-block",
-                                "padding-right": "5px",
-                                "padding-bottom": "20px",
-                            },
-                            className="rotate45",
-                        ),
-                        html.H1("App", style={"display": "inline-block"}),
-                    ]
-                ),
-            ],
-            className="infoBox",
-        ),
-        html.Hr(),
-        dbc.Nav(
-            [
-                dbc.NavLink(page["name"], href=page["relative_path"], active="exact")
-                for page in dash.page_registry.values()
-            ],
-            vertical=True,
-            pills=True,
-            fill=False,
-        ),
-        html.Div(
-            [
-                html.Div(
-                    [
-                        dbc.Label("# of Qubits (0-10)"),
-                        dbc.Input(
-                            type="number",
-                            min=0,
-                            max=10,
-                            step=1,
-                            value=1,
-                            id="main-qubits-input",
-                        ),
-                    ],
-                    className="numeric-input",
-                ),
-                html.Div(
-                    [
-                        dbc.Label("# of Layers (0-10)"),
-                        dbc.Input(
-                            type="number",
-                            min=0,
-                            max=10,
-                            step=1,
-                            value=1,
-                            id="main-layers-input",
-                        ),
-                    ],
-                    className="numeric-input",
-                ),
-                html.Div(
-                    [
-                        dbc.Label("Circuit Type"),
-                        dbc.Select(
-                            options=[
-                                {
-                                    "label": fct.__name__.replace("_", " ").title(),
-                                    "value": fct.__name__,
-                                }
-                                for fct in Ansaetze.get_available()
-                            ],
-                            placeholder="No Ansatz",
-                            required=True,
-                            id="main-circuit-ident-select",
-                        ),
-                    ],
-                    className="numeric-input",
-                ),
-                html.Div(
-                    [
-                        dbc.Label("Data-Reupload"),
-                        dbc.Switch(id="main-dru-switch", value=True, className="fs-4"),
-                    ],
-                ),
-                # html.Div(
-                #     [
-                #         dbc.Label("Trainable Freqs."),
-                #         dbc.Switch(id="switch-tffm", value=False),
-                #     ],
-                # ),
-                html.Div(
-                    [
-                        dbc.Label("Seed"),
-                        dbc.Input(
-                            type="number",
-                            min=100,
-                            max=999,
-                            step=1,
-                            value=100,
-                            id="main-seed-input",
-                        ),
-                    ],
-                    className="numeric-input",
-                ),
-            ],
-            className="preferencesBox",
-        ),
-        html.Hr(),
-        html.Div(
-            [
-                dbc.Spinner(
-                    [html.H6("", id="main-loading-state")],
-                    color="primary",
-                    type="grow",
-                    id="main-loading-spinner",
-                )
-            ],
-            className="spinnerBox",
-        ),
+        dbc.NavLink(page["name"], href=page["relative_path"], active="exact")
+        for page in dash.page_registry.values()
     ],
-    className="sidebar",
-    id="page-sidebar",
+    vertical=True,
+    pills=True,
+    fill=False,
 )
+sidebar_elements = sidebar_top + [sidebar_page_elements] + sidebar_bottom
+sidebar = html.Div(sidebar_elements, className="sidebar", id="page-sidebar")
 
 
 @callback(
@@ -196,15 +76,6 @@ def on_preference_changed(
     data["seed"] = max(min(seed, 999), 100)
 
     return data
-
-
-content = html.Div(
-    [
-        dash.page_container,
-    ],
-    className="content",
-    id="page-content",
-)
 
 
 app.layout = html.Div([sidebar, content])
