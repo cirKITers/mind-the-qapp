@@ -13,6 +13,10 @@ from typing import Dict, Any, List, Optional
 
 from utils.instructor import Instructor
 
+import logging
+
+log = logging.getLogger(__name__)
+
 dash.register_page(__name__, name="Training")
 
 from layouts.training_page_layout import layout  # noqa
@@ -312,12 +316,15 @@ def update_expval(
             x=page_log_training["x"], y=page_log_training["y"], name="Target"
         )
 
+    miny = np.min(page_log_training["y"]) if len(page_log_training["y"]) > 0 else -1
+    maxy = np.max(page_log_training["y"]) if len(page_log_training["y"]) > 0 else 1
+
     fig_expval.update_layout(
         title="Output",
         template="simple_white",
         xaxis_title="X Domain",
         yaxis_title="Expectation Value",
-        yaxis_range=[np.min(page_log_training["y"]), np.max(page_log_training["y"])],
+        yaxis_range=[miny, maxy],
         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
     )
 
@@ -428,31 +435,34 @@ def training(
             circuit_type=main_data["circuit_type"],
             data_reupload=main_data["data_reupload"],
         )
+    page_log_training["x"] = instructor.x_d
+    page_log_training["y"] = instructor.y_d
+
+    try:
+        data = instructor.calc_hist(
+            params=instructor.model.params,
+            noise_params=page_data["noise_params"],
+        )
+        page_log_training["X"] = np.arange(
+            -len(data) // 2 + 1, len(data) // 2 + 1, 1
+        ).tolist()
+
+        page_log_training["Y"].append(data.tolist())
+
+        if main_data["number_qubits"] > 1:
+            instructor.model.params = instructor.model.params
+            ent_cap = instructor.meyer_wallach(
+                noise_params=page_data["noise_params"],
+            )
+
+            page_log_training["ent_cap"].append(ent_cap)
+    except Exception as e:
+        log.error(e)
 
     cost, pred = instructor.step(page_data["noise_params"])
 
     page_log_training["loss"].append(cost.item())
-    page_log_training["y_hat"] = pred
-    page_log_training["x"] = instructor.x_d
-    page_log_training["y"] = instructor.y_d
-
-    data = instructor.calc_hist(
-        params=instructor.model.params,
-        noise_params=page_data["noise_params"],
-    )
-
-    page_log_training["X"] = np.arange(
-        -len(data) // 2 + 1, len(data) // 2 + 1, 1
-    ).tolist()
     page_log_training["steps"] = [i for i in range(len(page_log_training["loss"]))]
-    page_log_training["Y"].append(data.tolist())
-
-    if main_data["number_qubits"] > 1:
-        instructor.model.params = instructor.model.params
-        ent_cap = instructor.meyer_wallach(
-            noise_params=page_data["noise_params"],
-        )
-
-        page_log_training["ent_cap"].append(ent_cap)
+    page_log_training["y_hat"] = pred
 
     return page_log_training
