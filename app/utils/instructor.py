@@ -253,7 +253,6 @@ class Instructor:
 
     def step(
         self,
-        params: List[float],
         noise_params: Optional[Dict[str, float]] = None,
     ) -> Tuple[np.ndarray, float]:
         """Perform a single optimization step.
