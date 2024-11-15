@@ -4,7 +4,7 @@ from dash import (
 )
 import dash_bootstrap_components as dbc
 
-DEFAULT_N_STEPS = 10
+DEFAULT_N_STEPS = 50
 DEFAULT_N_FREQS = 4
 DEFAULT_STEPSIZE = 0.01
 
