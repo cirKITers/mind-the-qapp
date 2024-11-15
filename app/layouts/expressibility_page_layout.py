@@ -44,7 +44,7 @@ layout = html.Div(
                                         dbc.Col(
                                             dbc.Input(
                                                 type="number",
-                                                min=2,
+                                                min=1,
                                                 max=100,
                                                 step=1,
                                                 value=5,

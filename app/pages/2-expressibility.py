@@ -186,15 +186,22 @@ def update_output_probabilities(page_data, main_data):
         noise_params=page_data["noise_params"],
     )
 
-    fig_expr.add_surface(
-        x=fidelity_values,
-        y=inputs,
-        z=fidelity_score,
-        cmax=fidelity_score.max().item(),
-        cmin=0,
-        showscale=False,
-        showlegend=False,
-    )
+    if fidelity_score.shape[0] == 1:
+        fig_expr.add_scatter(x=fidelity_values, y=fidelity_score[0])
+        fig_expr.update_layout(
+            xaxis_title="Fidelity",
+            yaxis_title="Prob. Density",
+        )
+    else:
+        fig_expr.add_surface(
+            x=fidelity_values,
+            y=inputs,
+            z=fidelity_score,
+            cmax=fidelity_score.max().item(),
+            cmin=0,
+            showscale=False,
+            showlegend=False,
+        )
 
     x_haar, y_haar = instructor.haar_integral(n_bins)
 
