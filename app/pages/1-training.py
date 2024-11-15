@@ -1,3 +1,17 @@
+from layouts.training_page_layout import layout  # noqa
+from layouts.training_page_layout import (
+    DEFAULT_N_STEPS,
+    DEFAULT_N_FREQS,
+    DEFAULT_STEPSIZE,
+)
+from layouts.app_page_layout import (
+    DEFAULT_N_QUBITS,
+    DEFAULT_N_LAYERS,
+    DEFAULT_SEED,
+    DEFAULT_DATA_REUPLOAD,
+)
+from utils.instructor import Instructor
+
 import dash
 import numpy as np
 from dash import (
@@ -11,22 +25,7 @@ from dash.exceptions import PreventUpdate
 
 from typing import Dict, Any, List, Optional
 
-from utils.instructor import Instructor
-
 dash.register_page(__name__, name="Training")
-
-from layouts.training_page_layout import layout  # noqa
-from layouts.training_page_layout import (
-    DEFAULT_N_STEPS,
-    DEFAULT_N_FREQS,
-    DEFAULT_STEPSIZE,
-)
-from layouts.app_page_layout import (
-    DEFAULT_N_QUBITS,
-    DEFAULT_N_LAYERS,
-    DEFAULT_SEED,
-    DEFAULT_DATA_REUPLOAD,
-)
 
 
 def reset_log() -> Dict[str, list]:
