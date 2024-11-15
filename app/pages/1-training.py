@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 dash.register_page(__name__, name="Training")
 
-from layouts.training_page_layout import layout  # noqa
+from layouts.training_page_layout import layout  # noqa: E402
 from layouts.training_page_layout import (
     DEFAULT_N_STEPS,
     DEFAULT_N_FREQS,
