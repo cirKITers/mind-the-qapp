@@ -8,6 +8,8 @@ from dash import (
 )
 import plotly.graph_objects as go
 
+from typing import Dict
+
 from utils.instructor import Instructor
 from utils.validation import data_is_valid
 
@@ -67,27 +69,94 @@ def on_preference_changed(
     return data
 
 
+# @callback(
+#     [
+#         Output("fig-hist-fourier", "figure"),
+#     ],
+#     [
+#         Input("expr-page-storage", "data"),
+#     ],
+#     State("main-storage", "data"),
+#     prevent_initial_call=True,
+# )
+# def update_hist_fourier(page_data, main_data):
+#     fig_coeffs = go.Figure()
+#     fig_coeffs.update_layout(
+#         title="Histogram (Absolute Value)",
+#         template="simple_white",
+#         xaxis_title="Frequency",
+#         yaxis_title="Amplitude",
+#     )
+
+#     if not data_is_valid(page_data, main_data):
+#         return [fig_coeffs]
+
+#     instructor = Instructor(
+#         main_data["number_qubits"],
+#         main_data["number_layers"],
+#         seed=main_data["seed"],
+#         circuit_type=main_data["circuit_type"],
+#         data_reupload=main_data["data_reupload"],
+#     )
+
+#     data = instructor.calc_hist(
+#         instructor.model.params, noise_params=page_data["noise_params"]
+#     )
+
+#     data_len = len(data)
+
+#     fig_coeffs.add_bar(x=np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1), y=data)
+
+#     return [fig_coeffs]
+
+
 @callback(
-    [
-        Output("fig-hist-fourier", "figure"),
-    ],
+    Output("fig-hist-fourier", "figure"),
     [
         Input("expr-page-storage", "data"),
     ],
     State("main-storage", "data"),
     prevent_initial_call=True,
 )
-def update_hist_fourier(page_data, main_data):
-    fig_coeffs = go.Figure()
-    fig_coeffs.update_layout(
-        title="Histogram (Absolute Value)",
+def update_kl_noise(page_data, main_data):
+    fig_kl = go.Figure()
+    fig_kl.update_layout(
+        title="KL Divergence",
         template="simple_white",
-        xaxis_title="Frequency",
-        yaxis_title="Amplitude",
+        xaxis_title="X Domain",
+        yaxis_title="KL Divergence",
     )
 
     if not data_is_valid(page_data, main_data):
-        return [fig_coeffs]
+        return fig_kl
+
+    n_samples, n_input_samples, n_bins = (
+        page_data["n_samples"],
+        page_data["n_input_samples"],
+        page_data["n_bins"],
+    )
+
+    if main_data["circuit_type"] is None:
+        return fig_kl
+
+    class NoiseDict(Dict[str, float]):
+        """
+        A dictionary subclass for noise params.
+        """
+
+        def __truediv__(self, other: float) -> "NoiseDict":
+            """
+            Divide all values by a scalar.
+            """
+            return NoiseDict({k: v / other for k, v in self.items()})
+
+        def __mul__(self, other: float) -> "NoiseDict":
+            """
+            Multiply all values by a scalar.
+            """
+            return NoiseDict({k: v * other for k, v in self.items()})
+
+    noise_params = NoiseDict(page_data["noise_params"])
 
     instructor = Instructor(
         main_data["number_qubits"],
@@ -96,16 +165,30 @@ def update_hist_fourier(page_data, main_data):
         circuit_type=main_data["circuit_type"],
         data_reupload=main_data["data_reupload"],
     )
+    x_haar, y_haar = instructor.haar_integral(n_bins)
 
-    data = instructor.calc_hist(
-        instructor.model.params, noise_params=page_data["noise_params"]
+    kl_divergence = []
+    noise_steps = 5
+    for step in range(noise_steps + 1):  # +1 to go for 100%
+        part_noise_params = noise_params * (step / noise_steps)
+
+        # sample state fidelities for increasing noise
+
+        inputs, fidelity_values, fidelity_score = instructor.state_fidelities(
+            n_samples=n_samples,
+            n_bins=n_bins,
+            n_input_samples=1,
+            noise_params=part_noise_params,
+        )
+
+        kl_divergence.append(instructor.kullback_leibler(fidelity_score, y_haar).item())
+
+    fig_kl.add_scatter(x=list(range(noise_steps)), y=kl_divergence)
+    fig_kl.update_layout(
+        yaxis_range=[0, max(kl_divergence) + 0.2],
     )
 
-    data_len = len(data)
-
-    fig_coeffs.add_bar(x=np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1), y=data)
-
-    return [fig_coeffs]
+    return fig_kl
 
 
 @callback(
