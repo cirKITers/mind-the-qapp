@@ -1,5 +1,6 @@
 from layouts.app_page_layout import (
-    sidebar,
+    sidebar_top,
+    sidebar_bottom,
     content,
     DEFAULT_ANSATZ,
     DEFAULT_DATA_REUPLOAD,
@@ -18,10 +19,23 @@ import logging
 
 
 app = dash.Dash(
-    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME], use_pages=True
+    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME],
+    use_pages=True,
 )
 
 app.title = "Favicon"
+
+sidebar_page_elements = dbc.Nav(
+    [
+        dbc.NavLink(page["name"], href=page["relative_path"], active="exact")
+        for page in dash.page_registry.values()
+    ],
+    vertical=True,
+    pills=True,
+    fill=False,
+)
+sidebar_elements = sidebar_top + [sidebar_page_elements] + sidebar_bottom
+sidebar = html.Div(sidebar_elements, className="sidebar", id="page-sidebar")
 
 
 @callback(
