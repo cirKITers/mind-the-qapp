@@ -80,7 +80,7 @@ def on_preference_changed(
 def update_kl_noise(page_data, main_data):
     fig_kl = go.Figure()
     fig_kl.update_layout(
-        title="KL Divergence",
+        title="KL Divergence over Noise",
         template="simple_white",
         xaxis_title="X Domain",
         yaxis_title="KL Divergence",
@@ -146,7 +146,7 @@ def update_kl_noise(page_data, main_data):
     fig_kl.update_layout(
         yaxis_range=[0, max(kl_divergence) + 0.2],
         xaxis_title="Noise",
-        yaxis_title="KL Divergence over Noise",
+        yaxis_title="KL Divergence",
         xaxis=dict(
             tickmode="array",
             tickvals=list(range(noise_steps + 1)),
@@ -194,7 +194,7 @@ def update_output_probabilities(page_data, main_data):
 
     fig_kl = go.Figure()
     fig_kl.update_layout(
-        title="KL Divergence",
+        title="KL Divergence over Inputs",
         template="simple_white",
         xaxis_title="X Domain",
         yaxis_title="KL Divergence",
