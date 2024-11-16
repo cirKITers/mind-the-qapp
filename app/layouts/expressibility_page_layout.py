@@ -47,7 +47,7 @@ layout = html.Div(
                                                 min=1,
                                                 max=100,
                                                 step=1,
-                                                value=5,
+                                                value=1,
                                                 id="expr-samples-input",
                                             ),
                                         ),
@@ -229,7 +229,7 @@ layout = html.Div(
                             },
                         ),
                         dcc.Graph(
-                            id="fig-hist-fourier",
+                            id="expr-kl-noise-figure",
                             style={
                                 "display": "inline-block",
                                 "height": "40vh",
