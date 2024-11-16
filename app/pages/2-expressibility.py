@@ -69,49 +69,8 @@ def on_preference_changed(
     return data
 
 
-# @callback(
-#     [
-#         Output("fig-hist-fourier", "figure"),
-#     ],
-#     [
-#         Input("expr-page-storage", "data"),
-#     ],
-#     State("main-storage", "data"),
-#     prevent_initial_call=True,
-# )
-# def update_hist_fourier(page_data, main_data):
-#     fig_coeffs = go.Figure()
-#     fig_coeffs.update_layout(
-#         title="Histogram (Absolute Value)",
-#         template="simple_white",
-#         xaxis_title="Frequency",
-#         yaxis_title="Amplitude",
-#     )
-
-#     if not data_is_valid(page_data, main_data):
-#         return [fig_coeffs]
-
-#     instructor = Instructor(
-#         main_data["number_qubits"],
-#         main_data["number_layers"],
-#         seed=main_data["seed"],
-#         circuit_type=main_data["circuit_type"],
-#         data_reupload=main_data["data_reupload"],
-#     )
-
-#     data = instructor.calc_hist(
-#         instructor.model.params, noise_params=page_data["noise_params"]
-#     )
-
-#     data_len = len(data)
-
-#     fig_coeffs.add_bar(x=np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1), y=data)
-
-#     return [fig_coeffs]
-
-
 @callback(
-    Output("fig-hist-fourier", "figure"),
+    Output("expr-kl-noise-figure", "figure"),
     [
         Input("expr-page-storage", "data"),
     ],
@@ -165,7 +124,7 @@ def update_kl_noise(page_data, main_data):
         circuit_type=main_data["circuit_type"],
         data_reupload=main_data["data_reupload"],
     )
-    x_haar, y_haar = instructor.haar_integral(n_bins)
+    _, y_haar = instructor.haar_integral(n_bins)
 
     kl_divergence = []
     noise_steps = 5
@@ -174,18 +133,25 @@ def update_kl_noise(page_data, main_data):
 
         # sample state fidelities for increasing noise
 
-        inputs, fidelity_values, fidelity_score = instructor.state_fidelities(
+        _, _, fidelity_score = instructor.state_fidelities(
             n_samples=n_samples,
             n_bins=n_bins,
-            n_input_samples=1,
+            n_input_samples=0,
             noise_params=part_noise_params,
         )
 
         kl_divergence.append(instructor.kullback_leibler(fidelity_score, y_haar).item())
 
-    fig_kl.add_scatter(x=list(range(noise_steps)), y=kl_divergence)
+    fig_kl.add_scatter(x=list(range(noise_steps + 1)), y=kl_divergence)
     fig_kl.update_layout(
         yaxis_range=[0, max(kl_divergence) + 0.2],
+        xaxis_title="Noise",
+        yaxis_title="KL Divergence over Noise",
+        xaxis=dict(
+            tickmode="array",
+            tickvals=list(range(noise_steps + 1)),
+            ticktext=[f"{i / noise_steps * 100:.0f}%" for i in range(noise_steps + 1)],
+        ),
     )
 
     return fig_kl
@@ -247,7 +213,7 @@ def update_output_probabilities(page_data, main_data):
 
     n_samples, n_input_samples, n_bins = (
         page_data["n_samples"],
-        page_data["n_input_samples"],
+        page_data["n_input_samples"] if page_data["n_input_samples"] > 1 else 0,
         page_data["n_bins"],
     )
 
@@ -269,8 +235,8 @@ def update_output_probabilities(page_data, main_data):
         noise_params=page_data["noise_params"],
     )
 
-    if fidelity_score.shape[0] == 1:
-        fig_expr.add_scatter(x=fidelity_values, y=fidelity_score[0])
+    if n_input_samples == 0:
+        fig_expr.add_scatter(x=fidelity_values, y=fidelity_score)
         fig_expr.update_layout(
             xaxis_title="Fidelity",
             yaxis_title="Prob. Density",
