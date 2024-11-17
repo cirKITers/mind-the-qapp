@@ -1,5 +1,4 @@
 import dash
-import numpy as np
 from dash import (
     Input,
     State,
@@ -70,7 +69,10 @@ def on_preference_changed(
 
 
 @callback(
-    Output("expr-kl-noise-figure", "figure"),
+    [
+        Output("main-loading-state", "children", allow_duplicate=True),
+        Output("expr-kl-noise-figure", "figure"),
+    ],
     [
         Input("expr-page-storage", "data"),
     ],
@@ -86,17 +88,13 @@ def update_kl_noise(page_data, main_data):
         yaxis_title="KL Divergence",
     )
 
-    if not data_is_valid(page_data, main_data):
-        return fig_kl
+    if not data_is_valid(page_data, main_data) or main_data["circuit_type"] is None:
+        return ["Loading...", fig_kl]
 
-    n_samples, n_input_samples, n_bins = (
+    n_samples, n_bins = (
         page_data["n_samples"],
-        page_data["n_input_samples"],
         page_data["n_bins"],
     )
-
-    if main_data["circuit_type"] is None:
-        return fig_kl
 
     class NoiseDict(Dict[str, float]):
         """
@@ -115,6 +113,9 @@ def update_kl_noise(page_data, main_data):
             """
             return NoiseDict({k: v * other for k, v in self.items()})
 
+        def max(self):
+            return max(self.values())
+
     noise_params = NoiseDict(page_data["noise_params"])
 
     instructor = Instructor(
@@ -127,7 +128,7 @@ def update_kl_noise(page_data, main_data):
     _, y_haar = instructor.haar_integral(n_bins)
 
     kl_divergence = []
-    noise_steps = 5
+    noise_steps = int(noise_params.max() * 20) if noise_params.max() > 0.0 else 1
     for step in range(noise_steps + 1):  # +1 to go for 100%
         part_noise_params = noise_params * (step / noise_steps)
 
@@ -145,7 +146,7 @@ def update_kl_noise(page_data, main_data):
     fig_kl.add_scatter(x=list(range(noise_steps + 1)), y=kl_divergence)
     fig_kl.update_layout(
         yaxis_range=[0, max(kl_divergence) + 0.2],
-        xaxis_title="Noise",
+        xaxis_title="Rel. Noise Level",
         yaxis_title="KL Divergence",
         xaxis=dict(
             tickmode="array",
@@ -154,7 +155,7 @@ def update_kl_noise(page_data, main_data):
         ),
     )
 
-    return fig_kl
+    return ["Ready", fig_kl]
 
 
 @callback(
@@ -162,7 +163,6 @@ def update_kl_noise(page_data, main_data):
         Output("expr-hist-figure", "figure"),
         Output("expr-kl-figure", "figure"),
         Output("expr-haar-figure", "figure"),
-        Output("main-loading-state", "children", allow_duplicate=True),
     ],
     [
         Input("expr-page-storage", "data"),
@@ -209,16 +209,13 @@ def update_output_probabilities(page_data, main_data):
     )
 
     if not data_is_valid(page_data, main_data):
-        return [fig_expr, fig_kl, "Not Ready"]
+        return [fig_expr, fig_kl, fig_haar]
 
     n_samples, n_input_samples, n_bins = (
         page_data["n_samples"],
         page_data["n_input_samples"] if page_data["n_input_samples"] > 1 else 0,
         page_data["n_bins"],
     )
-
-    if main_data["circuit_type"] is None:
-        return [fig_expr, "Ready"]
 
     instructor = Instructor(
         main_data["number_qubits"],
@@ -266,7 +263,7 @@ def update_output_probabilities(page_data, main_data):
         yaxis_range=[0, max(kl_divergence) + 0.2],
     )
 
-    return [fig_expr, fig_kl, fig_haar, "Ready"]
+    return [fig_expr, fig_kl, fig_haar]
 
 
 @callback(
