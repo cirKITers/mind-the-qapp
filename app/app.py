@@ -11,7 +11,7 @@ from layouts.app_page_layout import (
 
 import dash
 import dash_bootstrap_components as dbc
-from dash import Input, Output, html, callback, State, html
+from dash import Input, Output, html, callback, State
 from typing import Any, Dict, Optional
 import sys
 
@@ -91,15 +91,6 @@ def on_preference_changed(
     data["seed"] = max(min(seed, 999), 1000) if seed is not None else DEFAULT_SEED
 
     return data
-
-
-content = html.Div(
-    [
-        dash.page_container,
-    ],
-    className="content",
-    id="page-content",
-)
 
 
 app.title = "Favicon"
