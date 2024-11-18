@@ -484,7 +484,7 @@ def training(
                     for params in instructor.model.params
                 ]
             )
-            if control_params.any() != None:
+            if control_params.any() is not None:
                 control_rotation_mean = np.sum(np.abs(control_params) % (2 * np.pi)) / (
                     control_params.size * (2 * np.pi)
                 )
