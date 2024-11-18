@@ -1,24 +1,4 @@
-import dash
-import numpy as np
-from dash import (
-    Input,
-    State,
-    Output,
-    callback,
-)
-import plotly.graph_objects as go
-from dash.exceptions import PreventUpdate
-
-from typing import Dict, Any, List, Optional
-
 from utils.instructor import Instructor
-
-import logging
-
-log = logging.getLogger(__name__)
-
-dash.register_page(__name__, name="Training")
-
 from layouts.training_page_layout import layout  # noqa: E402
 from layouts.training_page_layout import (
     DEFAULT_N_STEPS,
@@ -32,6 +12,25 @@ from layouts.app_page_layout import (
     DEFAULT_DATA_REUPLOAD,
     DEFAULT_ANSATZ,
 )
+
+import dash
+import numpy as np
+from dash import (
+    Input,
+    State,
+    Output,
+    callback,
+)
+import plotly.graph_objects as go
+from dash.exceptions import PreventUpdate
+
+from typing import Dict, Any, List, Optional
+
+import logging
+
+log = logging.getLogger(__name__)
+
+dash.register_page(__name__, name="Training")
 
 
 instructor = Instructor(
