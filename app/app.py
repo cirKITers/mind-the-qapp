@@ -11,17 +11,10 @@ from layouts.app_page_layout import (
 
 import dash
 import dash_bootstrap_components as dbc
-from dash import Input, Output, html, callback, State, dcc, html
+from dash import Input, Output, html, callback, State, html
 from typing import Any, Dict, Optional
 import sys
 
-from layouts.app_page_layout import (
-    DEFAULT_N_QUBITS,
-    DEFAULT_N_LAYERS,
-    DEFAULT_SEED,
-    DEFAULT_DATA_REUPLOAD,
-    DEFAULT_ANSATZ,
-)
 
 import logging
 
