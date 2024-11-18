@@ -134,6 +134,7 @@ def on_preference_changed(
             - Button text indicating the next state.
     """
     page_data = {
+        **page_data,
         "noise_params": {
             "BitFlip": bf,
             "PhaseFlip": pf,
@@ -146,7 +147,7 @@ def on_preference_changed(
         "stepsize": (
             stepsize if stepsize is not None and stepsize > 0 else DEFAULT_STEPSIZE
         ),
-    } | page_data
+    }
 
     page_log_training = reset_log()
 
@@ -401,14 +402,14 @@ def update_ent_cap(
 
         if len(page_log_training["ctrl_params"]) > 0:
             fig_ent_cap.add_scatter(
-                name="Control Parameters", y=page_log_training["ctrl_params"]
+                name="Control Param. Mean", y=page_log_training["ctrl_params"]
             )
 
     fig_ent_cap.update_layout(
         title="Entangling Capability",
         template="simple_white",
         xaxis_title="Step",
-        yaxis_title="Entangling Capability",
+        # yaxis_title="Entangling Capability",
         xaxis_range=[
             0,
             page_data["steps"] if page_data is not None else DEFAULT_N_STEPS,
