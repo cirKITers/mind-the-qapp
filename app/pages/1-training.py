@@ -133,6 +133,8 @@ def on_preference_changed(
             - Reset log dictionary.
             - Button text indicating the next state.
     """
+    if page_data is None:
+        page_data = {}
     page_data = {
         **page_data,
         "noise_params": {
@@ -349,8 +351,11 @@ def update_expval(
             x=page_log_training["x"], y=page_log_training["y"], name="Target"
         )
 
-    miny = np.min(page_log_training["y"]) if len(page_log_training["y"]) > 0 else -1
-    maxy = np.max(page_log_training["y"]) if len(page_log_training["y"]) > 0 else 1
+        miny = np.min(page_log_training["y"])
+        maxy = np.max(page_log_training["y"])
+    else:
+        miny = -1
+        maxy = 1
 
     fig_expval.update_layout(
         title="Output",
