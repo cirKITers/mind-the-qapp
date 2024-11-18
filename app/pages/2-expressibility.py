@@ -1,5 +1,4 @@
 import dash
-import numpy as np
 from dash import (
     Input,
     State,
@@ -7,6 +6,8 @@ from dash import (
     callback,
 )
 import plotly.graph_objects as go
+
+from typing import Dict
 
 from utils.instructor import Instructor
 from utils.validation import data_is_valid
@@ -69,7 +70,8 @@ def on_preference_changed(
 
 @callback(
     [
-        Output("fig-hist-fourier", "figure"),
+        Output("main-loading-state", "children", allow_duplicate=True),
+        Output("expr-kl-noise-figure", "figure"),
     ],
     [
         Input("expr-page-storage", "data"),
@@ -77,17 +79,44 @@ def on_preference_changed(
     State("main-storage", "data"),
     prevent_initial_call=True,
 )
-def update_hist_fourier(page_data, main_data):
-    fig_coeffs = go.Figure()
-    fig_coeffs.update_layout(
-        title="Histogram (Absolute Value)",
+def update_kl_noise(page_data, main_data):
+    fig_kl = go.Figure()
+    fig_kl.update_layout(
+        title="KL Divergence over Noise",
         template="simple_white",
-        xaxis_title="Frequency",
-        yaxis_title="Amplitude",
+        xaxis_title="X Domain",
+        yaxis_title="KL Divergence",
     )
 
-    if not data_is_valid(page_data, main_data):
-        return [fig_coeffs]
+    if not data_is_valid(page_data, main_data) or main_data["circuit_type"] is None:
+        return ["Loading...", fig_kl]
+
+    n_samples, n_bins = (
+        page_data["n_samples"],
+        page_data["n_bins"],
+    )
+
+    class NoiseDict(Dict[str, float]):
+        """
+        A dictionary subclass for noise params.
+        """
+
+        def __truediv__(self, other: float) -> "NoiseDict":
+            """
+            Divide all values by a scalar.
+            """
+            return NoiseDict({k: v / other for k, v in self.items()})
+
+        def __mul__(self, other: float) -> "NoiseDict":
+            """
+            Multiply all values by a scalar.
+            """
+            return NoiseDict({k: v * other for k, v in self.items()})
+
+        def max(self):
+            return max(self.values())
+
+    noise_params = NoiseDict(page_data["noise_params"])
 
     instructor = Instructor(
         main_data["number_qubits"],
@@ -96,16 +125,37 @@ def update_hist_fourier(page_data, main_data):
         circuit_type=main_data["circuit_type"],
         data_reupload=main_data["data_reupload"],
     )
+    _, y_haar = instructor.haar_integral(n_bins)
 
-    data = instructor.calc_hist(
-        instructor.model.params, noise_params=page_data["noise_params"]
+    kl_divergence = []
+    noise_steps = int(noise_params.max() * 20) if noise_params.max() > 0.0 else 1
+    for step in range(noise_steps + 1):  # +1 to go for 100%
+        part_noise_params = noise_params * (step / noise_steps)
+
+        # sample state fidelities for increasing noise
+
+        _, _, fidelity_score = instructor.state_fidelities(
+            n_samples=n_samples,
+            n_bins=n_bins,
+            n_input_samples=0,
+            noise_params=part_noise_params,
+        )
+
+        kl_divergence.append(instructor.kullback_leibler(fidelity_score, y_haar).item())
+
+    fig_kl.add_scatter(x=list(range(noise_steps + 1)), y=kl_divergence)
+    fig_kl.update_layout(
+        yaxis_range=[0, max(kl_divergence) + 0.2],
+        xaxis_title="Rel. Noise Level",
+        yaxis_title="KL Divergence",
+        xaxis=dict(
+            tickmode="array",
+            tickvals=list(range(noise_steps + 1)),
+            ticktext=[f"{i / noise_steps * 100:.0f}%" for i in range(noise_steps + 1)],
+        ),
     )
 
-    data_len = len(data)
-
-    fig_coeffs.add_bar(x=np.arange(-data_len // 2 + 1, data_len // 2 + 1, 1), y=data)
-
-    return [fig_coeffs]
+    return ["Ready", fig_kl]
 
 
 @callback(
@@ -113,7 +163,6 @@ def update_hist_fourier(page_data, main_data):
         Output("expr-hist-figure", "figure"),
         Output("expr-kl-figure", "figure"),
         Output("expr-haar-figure", "figure"),
-        Output("main-loading-state", "children", allow_duplicate=True),
     ],
     [
         Input("expr-page-storage", "data"),
@@ -145,7 +194,7 @@ def update_output_probabilities(page_data, main_data):
 
     fig_kl = go.Figure()
     fig_kl.update_layout(
-        title="KL Divergence",
+        title="KL Divergence over Inputs",
         template="simple_white",
         xaxis_title="X Domain",
         yaxis_title="KL Divergence",
@@ -160,16 +209,13 @@ def update_output_probabilities(page_data, main_data):
     )
 
     if not data_is_valid(page_data, main_data):
-        return [fig_expr, fig_kl, "Not Ready"]
+        return [fig_expr, fig_kl, fig_haar]
 
     n_samples, n_input_samples, n_bins = (
         page_data["n_samples"],
-        page_data["n_input_samples"],
+        page_data["n_input_samples"] if page_data["n_input_samples"] > 1 else 0,
         page_data["n_bins"],
     )
-
-    if main_data["circuit_type"] is None:
-        return [fig_expr, "Ready"]
 
     instructor = Instructor(
         main_data["number_qubits"],
@@ -186,15 +232,22 @@ def update_output_probabilities(page_data, main_data):
         noise_params=page_data["noise_params"],
     )
 
-    fig_expr.add_surface(
-        x=fidelity_values,
-        y=inputs,
-        z=fidelity_score,
-        cmax=fidelity_score.max().item(),
-        cmin=0,
-        showscale=False,
-        showlegend=False,
-    )
+    if n_input_samples == 0:
+        fig_expr.add_scatter(x=fidelity_values, y=fidelity_score)
+        fig_expr.update_layout(
+            xaxis_title="Fidelity",
+            yaxis_title="Prob. Density",
+        )
+    else:
+        fig_expr.add_surface(
+            x=fidelity_values,
+            y=inputs,
+            z=fidelity_score,
+            cmax=fidelity_score.max().item(),
+            cmin=0,
+            showscale=False,
+            showlegend=False,
+        )
 
     x_haar, y_haar = instructor.haar_integral(n_bins)
 
@@ -210,7 +263,7 @@ def update_output_probabilities(page_data, main_data):
         yaxis_range=[0, max(kl_divergence) + 0.2],
     )
 
-    return [fig_expr, fig_kl, fig_haar, "Ready"]
+    return [fig_expr, fig_kl, fig_haar]
 
 
 @callback(

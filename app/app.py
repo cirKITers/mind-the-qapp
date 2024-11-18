@@ -15,15 +15,14 @@ from dash import Input, Output, html, callback, State
 from typing import Any, Dict, Optional
 import sys
 
+
 import logging
 
 
 app = dash.Dash(
-    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME],
-    use_pages=True,
+    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME], use_pages=True
 )
 
-app.title = "Favicon"
 
 sidebar_page_elements = dbc.Nav(
     [
@@ -94,8 +93,8 @@ def on_preference_changed(
     return data
 
 
+app.title = "Favicon"
 app.layout = html.Div([sidebar, content])
-
 
 if __name__ == "__main__":
     args = sys.argv

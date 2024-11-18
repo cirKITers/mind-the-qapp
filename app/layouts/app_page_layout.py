@@ -1,6 +1,5 @@
-import dash
 import dash_bootstrap_components as dbc
-from dash import dcc, html
+from dash import html, dcc, html, page_container
 from qml_essentials.ansaetze import Ansaetze
 
 DEFAULT_N_QUBITS = 1
@@ -140,7 +139,7 @@ sidebar_bottom = [
 
 content = html.Div(
     [
-        dash.page_container,
+        page_container,
     ],
     className="content",
     id="page-content",

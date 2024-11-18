@@ -212,11 +212,12 @@ class Instructor:
             input_domain=self.x_domain,
             model=self.model,
             noise_params=noise_params,
+            scale=False,
         )
 
     def haar_integral(self, n_bins):
         return Expressibility().haar_integral(
-            n_qubits=self.model.n_qubits, n_bins=n_bins
+            n_qubits=self.model.n_qubits, n_bins=n_bins, scale=False
         )
 
     def kullback_leibler(self, a, b):
