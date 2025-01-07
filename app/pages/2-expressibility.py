@@ -116,6 +116,9 @@ def update_kl_noise(page_data, main_data):
         def max(self):
             return max(self.values())
 
+        def sum(self):
+            return sum(self.values())
+
     noise_params = NoiseDict(page_data["noise_params"])
 
     instructor = Instructor(
@@ -128,7 +131,7 @@ def update_kl_noise(page_data, main_data):
     _, y_haar = instructor.haar_integral(n_bins)
 
     kl_divergence = []
-    noise_steps = int(noise_params.max() * 20) if noise_params.max() > 0.0 else 1
+    noise_steps = int(noise_params.sum() * 20) if noise_params.sum() > 0.0 else 1
     for step in range(noise_steps + 1):  # +1 to go for 100%
         part_noise_params = noise_params * (step / noise_steps)
 
