@@ -420,6 +420,7 @@ def update_ent_cap(
             page_data["steps"] if page_data is not None else DEFAULT_N_STEPS,
         ],
         autosize=False,
+        legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99),
     )
 
     return fig_ent_cap
