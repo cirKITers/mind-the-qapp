@@ -12,7 +12,6 @@ plotly = "^5.24.1"
 dash = "^2.18.2"
 dash-bootstrap-components = "^1.6.0"
 qml-essentials = "^0.1.17"
-matplotlib = "^3.9.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
