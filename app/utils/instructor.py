@@ -51,40 +51,35 @@ class Instructor:
         )
         self.x_domain = [-1 * np.pi, 1 * np.pi]  # [-4 * np.pi, 4 * np.pi]
 
-        self.x_d = self.sample_domain(self.x_domain, n_freqs)
+        self.x_d = self.sample_domain(self.x_domain)
         self.y_d = self.generate_fourier_series(self.x_d, n_freqs, 0.5)
         self.opt = qml.AdamOptimizer(stepsize=stepsize)
 
     def sample_domain(
-        self, domain: List[float], omegas: List[List[float]]
+        self,
+        domain: List[float],
     ) -> np.ndarray:
         """
-        Generates a flattened grid of (x,y,...) coordinates in a range of -1 to 1.
+        Generates a evenly spaced grid of data points in a domain [min, max].
 
         Parameters
         ----------
-        sidelen : int
-            Side length of the grid
-        dim : int, optional
-            Dimensionality of the grid, by default 2
+        domain : List[float]
+            Domain from which to sample.
 
         Returns
         -------
-        np.Tensor
-            Grid tensor of shape (sidelen^dim, dim)
+        np.ndarray
+            Grid tensor with shape (> 2 * n_freqs,)
         """
-        dimensions = 1  # len(omega)
+        # We always have at least five data points
+        n_d = max(int(np.ceil(2 * np.max(np.abs(domain))) * (self.n_freqs)), 5)
 
-        if isinstance(omegas, int):
-            omegas = [o for o in range(omegas)]
-        # using the max of all dimensions because we want uniform sampling
-        n_d = int(np.ceil(2 * np.max(np.abs(domain)) * np.max(omegas)))
+        log.info(f"Using {n_d} data points on {self.n_freqs} frequencies")
 
-        log.info(f"Using {n_d} data points on {len(omegas)} dimensions")
+        grid = np.linspace(domain[0], domain[1], num=n_d)
 
-        tensors = tuple(dimensions * [np.linspace(domain[0], domain[1], num=n_d)])
-
-        return np.meshgrid(*tensors)[0].reshape(-1)  # .reshape(-1, dimensions)
+        return grid
 
     def generate_fourier_series(
         self,
@@ -108,7 +103,8 @@ class Instructor:
             Fourier series representation of the function.
         """
         if not isinstance(omegas, list):
-            omegas = [o for o in range(omegas)]
+            # plus one as zero freq does not count
+            omegas = [o for o in range(omegas + 1)]
         if not isinstance(coefficients, list):
             coefficients = [coefficients for _ in omegas]
 
