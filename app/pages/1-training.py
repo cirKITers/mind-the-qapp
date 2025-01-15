@@ -296,7 +296,7 @@ def update_hist(
         )
 
     fig_hist.update_layout(
-        title="Histogram (Absolute Value)",
+        title="Fourier Coefficients (Absolute Value)",
         template="simple_white",
         scene=dict(
             xaxis=dict(
