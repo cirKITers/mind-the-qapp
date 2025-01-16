@@ -207,13 +207,13 @@ def update_loss(
         and len(page_log_training["loss"]) > 0
         and page_data is not None
     ):
-        fig_expval.add_scatter(y=page_log_training["loss"])
+        fig_expval.add_scatter(y=page_log_training["loss"], name="MSE")
 
     fig_expval.update_layout(
         title="Loss",
         template="simple_white",
         xaxis_title="Step",
-        yaxis_title="Loss",
+        # yaxis_title="Loss",
         xaxis_range=[
             0,
             page_data["steps"] if page_data is not None else DEFAULT_N_STEPS,
@@ -358,10 +358,10 @@ def update_expval(
         maxy = 1
 
     fig_expval.update_layout(
-        title="Output",
+        title="Expectation Value",
         template="simple_white",
         xaxis_title="X Domain",
-        yaxis_title="Expectation Value",
+        # yaxis_title="Expectation Value",
         yaxis_range=[miny, maxy],
         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
     )
@@ -411,7 +411,7 @@ def update_ent_cap(
             )
 
     fig_ent_cap.update_layout(
-        title="Entangling Capability",
+        title="Entanglement",
         template="simple_white",
         xaxis_title="Step",
         # yaxis_title="Entangling Capability",
