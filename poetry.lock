@@ -1054,13 +1054,13 @@ files = [
 
 [[package]]
 name = "qml-essentials"
-version = "0.1.18"
+version = "0.1.19"
 description = ""
 optional = false
 python-versions = "<3.13,>=3.10"
 files = [
-    {file = "qml_essentials-0.1.18-py3-none-any.whl", hash = "sha256:033d416c2c8dc99fe0fab8907d55b936c56356a29f2e29660c0a923bc13bb45a"},
-    {file = "qml_essentials-0.1.18.tar.gz", hash = "sha256:700724589521d9efae528e5f611eca1a0ba6d3f2e14f55184a1c09822b2d7890"},
+    {file = "qml_essentials-0.1.19-py3-none-any.whl", hash = "sha256:07c3e41d0759db6dedc16a49a5e9eb69db958f204626397d3c1a035d9610b3f9"},
+    {file = "qml_essentials-0.1.19.tar.gz", hash = "sha256:55a5ca2071cc54d1696cf631494a9a93d3317569a007c35b6cac769835fb286b"},
 ]
 
 [package.dependencies]
@@ -1500,4 +1500,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "fc66f47108dfa514128242cd387bd0cfa0058c038158fb5c2cbd6f401f706648"
+content-hash = "0494c4f8eac5f80d1b8aaa5b64987518e946ce1edbee60dd0a19e94a38bad12e"
