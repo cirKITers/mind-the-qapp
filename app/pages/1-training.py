@@ -207,7 +207,7 @@ def update_loss(
         and len(page_log_training["loss"]) > 0
         and page_data is not None
     ):
-        fig_expval.add_scatter(y=page_log_training["loss"], name="MSE")
+        fig_expval.add_scatter(y=page_log_training["loss"], name="MSE", showlegend=True)
 
     fig_expval.update_layout(
         title="Loss",
@@ -219,6 +219,7 @@ def update_loss(
             page_data["steps"] if page_data is not None else DEFAULT_N_STEPS,
         ],
         autosize=False,
+        legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99),
     )
 
     return fig_expval
