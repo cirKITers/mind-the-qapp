@@ -53,9 +53,7 @@ layout = html.Div(
                                 dbc.Row(
                                     [
                                         dbc.Col(
-                                            dbc.Label(
-                                                "Amplitude Damping Probability",
-                                            ),
+                                            dbc.Label("Depolarization Probability")
                                         ),
                                         dbc.Col(
                                             dcc.Slider(
@@ -63,8 +61,8 @@ layout = html.Div(
                                                 max=0.1,
                                                 step=0.01,
                                                 value=0,
-                                                id="training-amplitude-damping-prob-slider",
-                                            ),
+                                                id="training-depolarization-prob-slider",
+                                            )
                                         ),
                                     ],
                                 ),
@@ -80,6 +78,24 @@ layout = html.Div(
                             [
                                 dbc.Row(
                                     [
+                                        dbc.Col(
+                                            dbc.Label(
+                                                "Amplitude Damping Probability",
+                                            ),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                min=0,
+                                                max=0.1,
+                                                step=0.01,
+                                                value=0,
+                                                id="training-amplitude-damping-prob-slider",
+                                            ),
+                                        ),
+                                    ],
+                                ),
+                                dbc.Row(
+                                    [
                                         dbc.Col(dbc.Label("Phase Damping Probability")),
                                         dbc.Col(
                                             dcc.Slider(
@@ -91,22 +107,6 @@ layout = html.Div(
                                             )
                                         ),
                                     ]
-                                ),
-                                dbc.Row(
-                                    [
-                                        dbc.Col(
-                                            dbc.Label("Depolarization Probability")
-                                        ),
-                                        dbc.Col(
-                                            dcc.Slider(
-                                                min=0,
-                                                max=0.1,
-                                                step=0.01,
-                                                value=0,
-                                                id="training-depolarization-prob-slider",
-                                            )
-                                        ),
-                                    ],
                                 ),
                                 dbc.Row(
                                     [
@@ -206,7 +206,7 @@ layout = html.Div(
                                             ],
                                         ),
                                     ],
-                                    style={"padding": "15px"},
+                                    style={"padding-top": "10px"},
                                 ),
                             ],
                             className="settingsRow",
