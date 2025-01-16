@@ -161,7 +161,7 @@ layout = html.Div(
                                                         ),
                                                     ],
                                                     style={
-                                                        "width": "4vw",
+                                                        "width": "5vw",
                                                         "display": "inline-block",
                                                         "padding-left": "8px",
                                                     },
