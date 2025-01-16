@@ -42,7 +42,7 @@
 .preferencesBox {
     position: fixed;
     padding-left: 0.5rem;
-    bottom: 8rem;
+    bottom: 4rem;
     width: 10rem;
 }
 
@@ -56,7 +56,7 @@
     bottom: 0;
     left: 3rem;
     padding-left: 0.5rem;
-    padding-bottom: 2rem;
+    padding-bottom: 1rem;
 }
 
 .nav-pills {

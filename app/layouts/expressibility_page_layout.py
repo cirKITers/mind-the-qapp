@@ -37,26 +37,6 @@ layout = html.Div(
                                     [
                                         dbc.Col(
                                             dbc.Label(
-                                                "Input Samples",
-                                                html_for="expr-samples-input",
-                                            ),
-                                        ),
-                                        dbc.Col(
-                                            dbc.Input(
-                                                type="number",
-                                                min=1,
-                                                max=100,
-                                                step=1,
-                                                value=1,
-                                                id="expr-samples-input",
-                                            ),
-                                        ),
-                                    ],
-                                ),
-                                dbc.Row(
-                                    [
-                                        dbc.Col(
-                                            dbc.Label(
                                                 "Histogram Bins",
                                                 html_for="expr-histogram-bins-input",
                                             ),
@@ -69,6 +49,26 @@ layout = html.Div(
                                                 step=1,
                                                 value=20,
                                                 id="expr-histogram-bins-input",
+                                            ),
+                                        ),
+                                    ],
+                                ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label(
+                                                "Input Samples",
+                                                html_for="expr-samples-input",
+                                            ),
+                                        ),
+                                        dbc.Col(
+                                            dbc.Input(
+                                                type="number",
+                                                min=1,
+                                                max=100,
+                                                step=1,
+                                                value=1,
+                                                id="expr-samples-input",
                                             ),
                                         ),
                                     ],
@@ -108,38 +108,6 @@ layout = html.Div(
                                 dbc.Row(
                                     [
                                         dbc.Col(
-                                            dbc.Label("Phase Damping Probability"),
-                                        ),
-                                        dbc.Col(
-                                            dcc.Slider(
-                                                0,
-                                                0.5,
-                                                0.05,
-                                                value=0,
-                                                id="expr-phase-damping-prob-slider",
-                                            ),
-                                        ),
-                                    ],
-                                ),
-                                dbc.Row(
-                                    [
-                                        dbc.Col(
-                                            dbc.Label("Depolarization Probability"),
-                                        ),
-                                        dbc.Col(
-                                            dcc.Slider(
-                                                0,
-                                                0.5,
-                                                0.05,
-                                                value=0,
-                                                id="expr-depolarization-prob-slider",
-                                            ),
-                                        ),
-                                    ],
-                                ),
-                                dbc.Row(
-                                    [
-                                        dbc.Col(
                                             dbc.Label("Bit-Flip Probability"),
                                         ),
                                         dbc.Col(
@@ -172,6 +140,22 @@ layout = html.Div(
                                 dbc.Row(
                                     [
                                         dbc.Col(
+                                            dbc.Label("Depolarization Probability"),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="expr-depolarization-prob-slider",
+                                            ),
+                                        ),
+                                    ],
+                                ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
                                             dbc.Label(
                                                 "Amplitude Damping Probability",
                                             ),
@@ -183,6 +167,22 @@ layout = html.Div(
                                                 0.05,
                                                 value=0,
                                                 id="expr-amplitude-damping-prob-slider",
+                                            ),
+                                        ),
+                                    ],
+                                ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Label("Phase Damping Probability"),
+                                        ),
+                                        dbc.Col(
+                                            dcc.Slider(
+                                                0,
+                                                0.5,
+                                                0.05,
+                                                value=0,
+                                                id="expr-phase-damping-prob-slider",
                                             ),
                                         ),
                                     ],
