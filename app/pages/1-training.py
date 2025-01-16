@@ -296,7 +296,7 @@ def update_hist(
         )
 
     fig_hist.update_layout(
-        title="Histogram (Absolute Value)",
+        title="Fourier Coefficients (Absolute Value)",
         template="simple_white",
         scene=dict(
             xaxis=dict(
@@ -489,7 +489,7 @@ def training(
                     for params in instructor.model.params
                 ]
             )
-            if control_params.any() is not None:
+            if not any(c is None for c in control_params):
                 control_rotation_mean = np.sum(np.abs(control_params) % (2 * np.pi)) / (
                     control_params.size * (2 * np.pi)
                 )
