@@ -8,8 +8,9 @@ Characteristic paramters of a QML model can be adjusted
 - number of layers
 - type of ansatz
 - data re-uploading [1]
+The model is generated using our [QML Essentials](https://github.com/cirKITers/qml-essentials) library. Head over to check it out!
 
-Furthermore as noise is a non-negligible factor in Quantum Computing, the application allows the user to adjust the strength of various types of noise.
+As noise is a non-negligible factor in Quantum Computing, the application allows the user to adjust the strength of various types of noise.
 This enables to study the impact of noise on the Fourier spectrum, which can be represented with the chosen ansatz [1], both with a fixed set of parameters and within a training scenario.
 
 We can also track the entangling capability [2] of the chosen Ansatz over the training period, so that one can evaluate the effect of parameterized entangling gates on the training performance.
