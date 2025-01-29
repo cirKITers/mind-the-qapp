@@ -7,60 +7,49 @@ import dash_bootstrap_components as dbc
 DEFAULT_N_STEPS = 50
 DEFAULT_N_FREQS = 4
 DEFAULT_STEPSIZE = 0.01
+MAX_N_FREQS = 11
 
-def generate_coefficient_sliders(n_freqs=DEFAULT_N_FREQS, initial_values=None):
-    """Generate sliders for Fourier series coefficients.
-    
-    Args:
-        n_freqs: Number of frequency components
-        initial_values: List of initial values for the sliders. If None, defaults to 0.5
-    """
-    if initial_values is None:
-        initial_values = [0.5] * n_freqs
-    else:
-        # Ensure we have enough values
-        # initial_values = initial_values[:n_freqs]
-        if len(initial_values) < n_freqs:
-            initial_values.extend([0.5] * (n_freqs - len(initial_values)))
-
+def generate_coefficient_sliders(n_freqs=DEFAULT_N_FREQS):
+    """Generate sliders for Fourier series coefficients."""
     return dbc.Row(
         [
             dbc.Col(
                 [
                     dbc.Input(
                         type="number",
-                        # id={"type": "coefficient-input", "index": i},
-                        value=initial_values[i],
+                        id=f"coef-input-{i}",
+                        value=0.5,
                         min=0,
                         max=1,
                         step=0.1,
                         size="sm",
-                        style={
-                            "font-size": "0.8rem",
-                            "maxWidth": "60px",
-                        },
                     ),
                     html.Div(
                         dcc.Slider(
                             min=0,
                             max=1,
-                            value=initial_values[i],
+                            value=0.5,
                             vertical=True,
                             marks={
                                 **{i/10: str(i/10) for i in range(1,10)},
                                 0: "0.0",
                                 1: "1.0"
                             },
-                            # id={"type": "coefficient-slider", "index": i},
-                            updatemode="drag",
+                            id=f"coef-slider-{i}",
+                            updatemode="mouseup",
                         ),
-                        # style={"height": "200px"},
                     ),
                 ],
-                className="text-center",
-                # style={"maxWidth": "100px"},
+                id=f"coef-col-{i}",
+                style={
+                    "minWidth": "50px",
+                    "maxWidth": "70px",
+                    "width": "auto",
+                    "visibility": "visible" if i < n_freqs else "hidden",
+                    "display": "block" if i < n_freqs else "none"
+                }
             )
-            for i in range(n_freqs)
+            for i in range(MAX_N_FREQS)
         ],
         className="g-1",
     )
@@ -73,6 +62,11 @@ coefficient_popover = dbc.Popover(
             html.Div(
                 id="coefficient-sliders-container",
                 children=generate_coefficient_sliders(),
+                style={
+                    "display": "flex",
+                    "justifyContent": "center",
+                    "width": "100%"
+                }
             )
         ),
     ],
@@ -84,7 +78,6 @@ coefficient_popover = dbc.Popover(
 
 layout = html.Div(
     [
-        dcc.Store(id="coefficient-values-storage", storage_type="session", data=[0.5] * DEFAULT_N_FREQS),
         dcc.Store(id="training-page-storage", storage_type="session"),
         dcc.Store(id="training-log-storage", storage_type="session"),
         coefficient_popover,
@@ -201,7 +194,7 @@ layout = html.Div(
                                                         dbc.Input(
                                                             type="number",
                                                             min=1,
-                                                            max=11,
+                                                            max=MAX_N_FREQS,
                                                             step=1,
                                                             value=DEFAULT_N_FREQS,
                                                             id="training-freqs-numeric-input",

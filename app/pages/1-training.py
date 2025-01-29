@@ -4,6 +4,7 @@ from layouts.training_page_layout import (
     DEFAULT_N_STEPS,
     DEFAULT_N_FREQS,
     DEFAULT_STEPSIZE,
+    MAX_N_FREQS,
     generate_coefficient_sliders,
 )
 from layouts.app_page_layout import (
@@ -517,39 +518,48 @@ def training(
 
 
 @callback(
-    Output("coefficient-sliders-container", "children"),
-    [Input("training-freqs-numeric-input", "value")],
-    [State("coefficient-values-storage", "data")]
-)
-def update_coefficient_sliders(n_freqs, stored_values):
-    """Update the number of coefficient sliders based on n_freqs."""
-    if n_freqs is None or n_freqs < 1:
-        n_freqs = DEFAULT_N_FREQS
-    return generate_coefficient_sliders(n_freqs, stored_values)
-
-@callback(
-    [
-        Output({"type": "coefficient-slider", "index": MATCH}, "value"),
-        Output({"type": "coefficient-input", "index": MATCH}, "value")
-    ],
-    [
-        Input({"type": "coefficient-slider", "index": MATCH}, "value"),
-        Input({"type": "coefficient-input", "index": MATCH}, "value")
-    ],
+    [Output(f"coef-col-{i}", "style") for i in range(MAX_N_FREQS)],
+    Input("training-freqs-numeric-input", "value"),
     prevent_initial_call=True
 )
-def sync_coefficient_controls(slider_value, input_value):
-    """
-    Synchronize coefficient slider and input values.
-    Returns the triggering input's value to both outputs.
-    """
-    ctx = dash.callback_context
-    if not ctx.triggered:
-        raise PreventUpdate
-        
-    trigger = ctx.triggered[0]
-    prop_id = trigger['prop_id']
-    
-    if '"type":"coefficient-slider"' in prop_id:
-        return slider_value, slider_value
-    return input_value, input_value
+def update_coefficient_visibility(n_freqs):
+    """Update the visibility of coefficient controls based on n_freqs."""
+    return [
+        {
+            "minWidth": "50px",
+            "maxWidth": "70px",
+            "width": "auto",
+            "visibility": "visible" if i < n_freqs else "hidden",
+            "display": "block" if i < n_freqs else "none"
+        }
+        for i in range(MAX_N_FREQS)
+    ]
+
+def generate_coefficient_callbacks(app):
+    """Generate callbacks for all possible coefficient sliders/inputs"""
+    for i in range(MAX_N_FREQS):  # Maximum possible number of coefficients
+        @app.callback(
+            [
+                Output(f"coef-slider-{i}", "value"),
+                Output(f"coef-input-{i}", "value")
+            ],
+            [
+                Input(f"coef-slider-{i}", "value"),
+                Input(f"coef-input-{i}", "value")
+            ],
+            prevent_initial_call=True
+        )
+        def sync_coefficient_pair(slider_value, input_value):
+            """Synchronize a coefficient slider-input pair"""
+            ctx = dash.callback_context
+            if not ctx.triggered:
+                raise PreventUpdate
+                
+            trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            
+            if "slider" in trigger_id:
+                return slider_value, slider_value
+            else:
+                return input_value, input_value
+# Call this after dash.register_page:
+generate_coefficient_callbacks(dash.get_app())
