@@ -4,6 +4,7 @@ from layouts.training_page_layout import (
     DEFAULT_N_STEPS,
     DEFAULT_N_FREQS,
     DEFAULT_STEPSIZE,
+    generate_coefficient_sliders,
 )
 from layouts.app_page_layout import (
     DEFAULT_N_QUBITS,
@@ -20,6 +21,8 @@ from dash import (
     State,
     Output,
     callback,
+    MATCH,
+    ALL,
 )
 import plotly.graph_objects as go
 from dash.exceptions import PreventUpdate
@@ -30,7 +33,8 @@ import logging
 
 log = logging.getLogger(__name__)
 
-dash.register_page(__name__, name="Training")
+# Register this page with Dash
+dash.register_page(__name__, name="Training", layout=layout)
 
 
 instructor = Instructor(
@@ -510,3 +514,42 @@ def training(
     page_log_training["y_hat"] = pred
 
     return page_log_training
+
+
+@callback(
+    Output("coefficient-sliders-container", "children"),
+    [Input("training-freqs-numeric-input", "value")],
+    [State("coefficient-values-storage", "data")]
+)
+def update_coefficient_sliders(n_freqs, stored_values):
+    """Update the number of coefficient sliders based on n_freqs."""
+    if n_freqs is None or n_freqs < 1:
+        n_freqs = DEFAULT_N_FREQS
+    return generate_coefficient_sliders(n_freqs, stored_values)
+
+@callback(
+    [
+        Output({"type": "coefficient-slider", "index": MATCH}, "value"),
+        Output({"type": "coefficient-input", "index": MATCH}, "value")
+    ],
+    [
+        Input({"type": "coefficient-slider", "index": MATCH}, "value"),
+        Input({"type": "coefficient-input", "index": MATCH}, "value")
+    ],
+    prevent_initial_call=True
+)
+def sync_coefficient_controls(slider_value, input_value):
+    """
+    Synchronize coefficient slider and input values.
+    Returns the triggering input's value to both outputs.
+    """
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        raise PreventUpdate
+        
+    trigger = ctx.triggered[0]
+    prop_id = trigger['prop_id']
+    
+    if '"type":"coefficient-slider"' in prop_id:
+        return slider_value, slider_value
+    return input_value, input_value
