@@ -103,8 +103,11 @@ class Instructor:
             Fourier series representation of the function.
         """
         if not isinstance(omegas, list):
-            # plus one as zero freq does not count
-            omegas = [o for o in range(omegas + 1)]
+            # when we only have one frequency, we do not want c_0
+            if omegas == 1:
+                omegas = [1]
+            else:
+                omegas = [o for o in range(omegas)]
         if not isinstance(coefficients, list):
             coefficients = [coefficients for _ in omegas]
 
