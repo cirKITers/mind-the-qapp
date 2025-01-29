@@ -107,3 +107,9 @@
     -ms-transform: rotate(45deg);
     transform: rotate(45deg);
 }
+
+.popover {
+    width: auto;
+    max-width: 800px;
+    min-width: 10px;
+}
