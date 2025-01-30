@@ -43,7 +43,7 @@ instructor = Instructor(
     seed=DEFAULT_SEED,
     circuit_type=DEFAULT_ANSATZ,
     data_reupload=DEFAULT_DATA_REUPLOAD,
-    coefficients=[0.5] * DEFAULT_N_FREQS + [0.5],
+    coefficients=[0.5] * DEFAULT_N_FREQS,
 )
 
 
@@ -140,7 +140,7 @@ def on_preference_changed(
             - Button text indicating the next state.
     """
 
-    coefficients = [1] + list(map(float, args[:-3]))[
+    coefficients = list(map(float, args[:-3]))[
         :n_freqs
     ]  # Unpack coefficients from args as a list and convert to float
     state: str = str(args[-3])  # Ensure state is a string
