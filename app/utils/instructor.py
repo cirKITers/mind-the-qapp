@@ -35,7 +35,7 @@ class Instructor:
             seed: Random seed to use for weight initialization.
             circuit_type: Type of circuit to use as the instructor.
             data_reupload: Whether or not to reupload data in the circuit.
-            coefficients: List of coefficients for the Fourier series. If None, uses 0.5 for all.
+            coefficients: List of coefficients for the Fourier series.
         """
         self.seed = seed
         self.stepsize = stepsize

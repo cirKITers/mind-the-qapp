@@ -548,7 +548,7 @@ def update_coefficient_visibility(n_freqs):
 
 
 def generate_coefficient_callbacks(app):
-    """Generate callbacks for all possible coefficient sliders/inputs in the beginning"""
+    """Generate callbacks for synchronizing coefficient sliders and inputs"""
     for i in range(MAX_N_FREQS):
 
         @app.callback(
