@@ -4,6 +4,8 @@ from layouts.training_page_layout import (
     DEFAULT_N_STEPS,
     DEFAULT_N_FREQS,
     DEFAULT_STEPSIZE,
+    MAX_N_FREQS,
+    generate_coefficient_sliders,
 )
 from layouts.app_page_layout import (
     DEFAULT_N_QUBITS,
@@ -30,7 +32,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-dash.register_page(__name__, name="Training")
+dash.register_page(__name__, name="Training", layout=layout)
 
 
 instructor = Instructor(
@@ -41,6 +43,7 @@ instructor = Instructor(
     seed=DEFAULT_SEED,
     circuit_type=DEFAULT_ANSATZ,
     data_reupload=DEFAULT_DATA_REUPLOAD,
+    coefficients=[0.5] * DEFAULT_N_FREQS,
 )
 
 
@@ -91,7 +94,8 @@ def reset_log() -> Dict[str, list]:
         Input("training-steps-numeric-input", "value"),
         Input("training-stepsize-numeric-input", "value"),
         Input("training-start-button", "n_clicks"),
-    ],
+    ]
+    + [Input(f"coef-slider-{i}", "value") for i in range(MAX_N_FREQS)],
     State("training-start-button", "children"),
     State("main-storage", "data"),
     State("training-page-storage", "data"),
@@ -108,9 +112,10 @@ def on_preference_changed(
     steps: int,
     stepsize: int,
     n: int,
-    state: str,
-    main_data: Dict,
-    page_data: Dict,
+    *args,
+    # state: str,
+    # main_data: Dict,
+    # page_data: Dict,
 ) -> list:
     """
     Handles the preference change events and updates the training configuration.
@@ -125,6 +130,7 @@ def on_preference_changed(
         n_freqs: Number of frequencies from the numeric input.
         steps: Number of training steps from the numeric input.
         n: Number of clicks on the start button.
+        *coefficients: Fourier coefficients from the sliders.
         state: The current text on the training start button.
 
     Returns:
@@ -133,8 +139,14 @@ def on_preference_changed(
             - Reset log dictionary.
             - Button text indicating the next state.
     """
-    if page_data is None:
-        page_data = {}
+
+    coefficients = list(map(float, args[:-3]))[
+        :n_freqs
+    ]  # Unpack coefficients from args as a list and convert to float
+    state: str = str(args[-3])  # Ensure state is a string
+    main_data: Dict = dict(args[-2])  # Convert main_data to a dictionary
+    page_data: Dict = dict(args[-1]) if args[-1] is not None else {}
+
     page_data = {
         **page_data,
         "noise_params": {
@@ -149,6 +161,7 @@ def on_preference_changed(
         "stepsize": (
             stepsize if stepsize is not None and stepsize > 0 else DEFAULT_STEPSIZE
         ),
+        "coefficients": coefficients,
     }
 
     page_log_training = reset_log()
@@ -163,6 +176,7 @@ def on_preference_changed(
         seed=main_data["seed"],
         circuit_type=main_data["circuit_type"],
         data_reupload=main_data["data_reupload"],
+        coefficients=coefficients,  # Pass coefficients to instructor
     )
 
     if state == "Reset Training" or n is None or page_data["lastn"] == n:
@@ -510,3 +524,49 @@ def training(
     page_log_training["y_hat"] = pred
 
     return page_log_training
+
+
+@callback(
+    [Output(f"coef-col-{i}", "style") for i in range(MAX_N_FREQS)],
+    Input("training-freqs-numeric-input", "value"),
+    prevent_initial_call=True,
+)
+def update_coefficient_visibility(n_freqs):
+    """Update the visibility of coefficient controls based on n_freqs."""
+    return [
+        {
+            "minWidth": "50px",
+            "maxWidth": "70px",
+            "width": "auto",
+            "visibility": "visible" if i < n_freqs else "hidden",
+            "display": "block" if i < n_freqs else "none",
+        }
+        for i in range(MAX_N_FREQS)
+    ]
+
+
+def generate_coefficient_callbacks(app):
+    """Generate callbacks for synchronizing coefficient sliders and inputs"""
+    for i in range(MAX_N_FREQS):
+
+        @app.callback(
+            [Output(f"coef-slider-{i}", "value"), Output(f"coef-input-{i}", "value")],
+            [Input(f"coef-slider-{i}", "value"), Input(f"coef-input-{i}", "value")],
+            prevent_initial_call=True,
+        )
+        def sync_coefficient_pair(slider_value, input_value):
+            """Synchronize a coefficient slider-input pair"""
+            ctx = dash.callback_context
+            if not ctx.triggered:
+                raise PreventUpdate
+
+            trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+            if "slider" in trigger_id:
+                return slider_value, slider_value
+            else:
+                return input_value, input_value
+
+
+# Call this after dash.register_page:
+generate_coefficient_callbacks(dash.get_app())
