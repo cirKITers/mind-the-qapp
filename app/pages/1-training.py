@@ -22,8 +22,6 @@ from dash import (
     State,
     Output,
     callback,
-    MATCH,
-    ALL,
 )
 import plotly.graph_objects as go
 from dash.exceptions import PreventUpdate
@@ -46,6 +44,7 @@ instructor = Instructor(
     seed=DEFAULT_SEED,
     circuit_type=DEFAULT_ANSATZ,
     data_reupload=DEFAULT_DATA_REUPLOAD,
+    coefficients=[0.5] * DEFAULT_N_FREQS + [0.5],
 )
 
 
@@ -95,8 +94,8 @@ def reset_log() -> Dict[str, list]:
         Input("training-freqs-numeric-input", "value"),
         Input("training-steps-numeric-input", "value"),
         Input("training-stepsize-numeric-input", "value"),
-        Input("training-start-button", "n_clicks"),
-    ],
+        Input("training-start-button", "n_clicks"),] +
+        [Input(f"coef-slider-{i}", "value") for i in range(MAX_N_FREQS)],
     State("training-start-button", "children"),
     State("main-storage", "data"),
     State("training-page-storage", "data"),
@@ -113,9 +112,10 @@ def on_preference_changed(
     steps: int,
     stepsize: int,
     n: int,
-    state: str,
-    main_data: Dict,
-    page_data: Dict,
+    *args,
+    # state: str,
+    # main_data: Dict,
+    # page_data: Dict,
 ) -> list:
     """
     Handles the preference change events and updates the training configuration.
@@ -130,6 +130,7 @@ def on_preference_changed(
         n_freqs: Number of frequencies from the numeric input.
         steps: Number of training steps from the numeric input.
         n: Number of clicks on the start button.
+        *coefficients: Fourier coefficients from the sliders.
         state: The current text on the training start button.
 
     Returns:
@@ -138,6 +139,12 @@ def on_preference_changed(
             - Reset log dictionary.
             - Button text indicating the next state.
     """
+
+    coefficients = [1] + list(map(float, args[:-3]))[:n_freqs]  # Unpack coefficients from args as a list and convert to float
+    state: str = str(args[-3])  # Ensure state is a string
+    main_data: Dict = dict(args[-2])  # Convert main_data to a dictionary
+    page_data: Dict = dict(args[-1])  # Convert page_data to a dictionary
+
     if page_data is None:
         page_data = {}
     page_data = {
@@ -154,6 +161,7 @@ def on_preference_changed(
         "stepsize": (
             stepsize if stepsize is not None and stepsize > 0 else DEFAULT_STEPSIZE
         ),
+        "coefficients": coefficients,
     }
 
     page_log_training = reset_log()
@@ -168,6 +176,7 @@ def on_preference_changed(
         seed=main_data["seed"],
         circuit_type=main_data["circuit_type"],
         data_reupload=main_data["data_reupload"],
+        coefficients=coefficients,  # Pass coefficients to instructor
     )
 
     if state == "Reset Training" or n is None or page_data["lastn"] == n:
@@ -536,8 +545,8 @@ def update_coefficient_visibility(n_freqs):
     ]
 
 def generate_coefficient_callbacks(app):
-    """Generate callbacks for all possible coefficient sliders/inputs"""
-    for i in range(MAX_N_FREQS):  # Maximum possible number of coefficients
+    """Generate callbacks for all possible coefficient sliders/inputs in the beginning"""
+    for i in range(MAX_N_FREQS):
         @app.callback(
             [
                 Output(f"coef-slider-{i}", "value"),
