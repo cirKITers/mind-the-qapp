@@ -41,7 +41,9 @@ class Instructor:
         self.stepsize = stepsize
         self.n_freqs = n_freqs
         self.circuit_type = circuit_type
-        self.coefficients = coefficients if coefficients is not None else [0.5] * n_freqs
+        self.coefficients = (
+            coefficients if coefficients is not None else [0.5] * n_freqs
+        )
 
         self.model = Model(
             n_qubits=n_qubits,

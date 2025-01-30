@@ -9,6 +9,7 @@ DEFAULT_N_FREQS = 4
 DEFAULT_STEPSIZE = 0.01
 MAX_N_FREQS = 11
 
+
 def generate_coefficient_sliders(n_freqs=DEFAULT_N_FREQS):
     """Generate sliders for Fourier series coefficients."""
     return dbc.Row(
@@ -30,12 +31,12 @@ def generate_coefficient_sliders(n_freqs=DEFAULT_N_FREQS):
                             value=0.5,
                             vertical=True,
                             marks={
-                                **{i/10: str(i/10) for i in range(1,10)},
+                                **{i / 10: str(i / 10) for i in range(1, 10)},
                                 0: "0.0",
-                                1: "1.0"
+                                1: "1.0",
                             },
                             id=f"coef-slider-{i}",
-                            updatemode="mouseup",   # 'drag' for continuous updates
+                            updatemode="mouseup",  # 'drag' for continuous updates
                         ),
                     ),
                 ],
@@ -45,13 +46,14 @@ def generate_coefficient_sliders(n_freqs=DEFAULT_N_FREQS):
                     "maxWidth": "70px",
                     "width": "auto",
                     "visibility": "visible" if i < n_freqs else "hidden",
-                    "display": "block" if i < n_freqs else "none"
-                }
+                    "display": "block" if i < n_freqs else "none",
+                },
             )
             for i in range(MAX_N_FREQS)
         ],
         className="g-1",
     )
+
 
 # Create popover content
 coefficient_popover = dbc.Popover(
@@ -61,11 +63,7 @@ coefficient_popover = dbc.Popover(
             html.Div(
                 id="coefficient-sliders-container",
                 children=generate_coefficient_sliders(),
-                style={
-                    "display": "flex",
-                    "justifyContent": "center",
-                    "width": "100%"
-                }
+                style={"display": "flex", "justifyContent": "center", "width": "100%"},
             )
         ),
     ],
@@ -197,12 +195,18 @@ layout = html.Div(
                                                             step=1,
                                                             value=DEFAULT_N_FREQS,
                                                             id="training-freqs-numeric-input",
-                                                            style={"marginRight": "10px"} 
+                                                            style={
+                                                                "marginRight": "10px"
+                                                            },
                                                         ),
                                                         dbc.Button(
                                                             html.Img(
-                                                                src='/assets/gear-solid.svg',
-                                                                style={"width": "24px", "height": "24px", "filter": "invert(1)"}
+                                                                src="/assets/gear-solid.svg",
+                                                                style={
+                                                                    "width": "24px",
+                                                                    "height": "24px",
+                                                                    "filter": "invert(1)",
+                                                                },
                                                             ),
                                                             id="open-coefficient-modal",
                                                             style={
@@ -215,7 +219,8 @@ layout = html.Div(
                                                         ),
                                                     ],
                                                     style={
-                                                        "display": "flex", "alignItems": "center"
+                                                        "display": "flex",
+                                                        "alignItems": "center",
                                                     },
                                                 ),
                                             ]

@@ -93,8 +93,9 @@ def reset_log() -> Dict[str, list]:
         Input("training-freqs-numeric-input", "value"),
         Input("training-steps-numeric-input", "value"),
         Input("training-stepsize-numeric-input", "value"),
-        Input("training-start-button", "n_clicks"),] +
-        [Input(f"coef-slider-{i}", "value") for i in range(MAX_N_FREQS)],
+        Input("training-start-button", "n_clicks"),
+    ]
+    + [Input(f"coef-slider-{i}", "value") for i in range(MAX_N_FREQS)],
     State("training-start-button", "children"),
     State("main-storage", "data"),
     State("training-page-storage", "data"),
@@ -139,7 +140,9 @@ def on_preference_changed(
             - Button text indicating the next state.
     """
 
-    coefficients = [1] + list(map(float, args[:-3]))[:n_freqs]  # Unpack coefficients from args as a list and convert to float
+    coefficients = [1] + list(map(float, args[:-3]))[
+        :n_freqs
+    ]  # Unpack coefficients from args as a list and convert to float
     state: str = str(args[-3])  # Ensure state is a string
     main_data: Dict = dict(args[-2])  # Convert main_data to a dictionary
     page_data: Dict = dict(args[-1])  # Convert page_data to a dictionary
@@ -528,7 +531,7 @@ def training(
 @callback(
     [Output(f"coef-col-{i}", "style") for i in range(MAX_N_FREQS)],
     Input("training-freqs-numeric-input", "value"),
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
 def update_coefficient_visibility(n_freqs):
     """Update the visibility of coefficient controls based on n_freqs."""
@@ -538,36 +541,34 @@ def update_coefficient_visibility(n_freqs):
             "maxWidth": "70px",
             "width": "auto",
             "visibility": "visible" if i < n_freqs else "hidden",
-            "display": "block" if i < n_freqs else "none"
+            "display": "block" if i < n_freqs else "none",
         }
         for i in range(MAX_N_FREQS)
     ]
 
+
 def generate_coefficient_callbacks(app):
     """Generate callbacks for all possible coefficient sliders/inputs in the beginning"""
     for i in range(MAX_N_FREQS):
+
         @app.callback(
-            [
-                Output(f"coef-slider-{i}", "value"),
-                Output(f"coef-input-{i}", "value")
-            ],
-            [
-                Input(f"coef-slider-{i}", "value"),
-                Input(f"coef-input-{i}", "value")
-            ],
-            prevent_initial_call=True
+            [Output(f"coef-slider-{i}", "value"), Output(f"coef-input-{i}", "value")],
+            [Input(f"coef-slider-{i}", "value"), Input(f"coef-input-{i}", "value")],
+            prevent_initial_call=True,
         )
         def sync_coefficient_pair(slider_value, input_value):
             """Synchronize a coefficient slider-input pair"""
             ctx = dash.callback_context
             if not ctx.triggered:
                 raise PreventUpdate
-                
+
             trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-            
+
             if "slider" in trigger_id:
                 return slider_value, slider_value
             else:
                 return input_value, input_value
+
+
 # Call this after dash.register_page:
 generate_coefficient_callbacks(dash.get_app())
