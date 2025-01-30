@@ -145,10 +145,8 @@ def on_preference_changed(
     ]  # Unpack coefficients from args as a list and convert to float
     state: str = str(args[-3])  # Ensure state is a string
     main_data: Dict = dict(args[-2])  # Convert main_data to a dictionary
-    page_data: Dict = dict(args[-1])  # Convert page_data to a dictionary
+    page_data: Dict = dict(args[-1]) if args[-1] is not None else {}
 
-    if page_data is None:
-        page_data = {}
     page_data = {
         **page_data,
         "noise_params": {
