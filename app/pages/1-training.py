@@ -32,7 +32,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-# Register this page with Dash
 dash.register_page(__name__, name="Training", layout=layout)
 
 

@@ -21,7 +21,6 @@ def generate_coefficient_sliders(n_freqs=DEFAULT_N_FREQS):
                         value=0.5,
                         min=0,
                         max=1,
-                        step=0.1,
                         size="sm",
                     ),
                     html.Div(
@@ -36,7 +35,7 @@ def generate_coefficient_sliders(n_freqs=DEFAULT_N_FREQS):
                                 1: "1.0"
                             },
                             id=f"coef-slider-{i}",
-                            updatemode="mouseup",
+                            updatemode="mouseup",   # 'drag' for continuous updates
                         ),
                     ),
                 ],
