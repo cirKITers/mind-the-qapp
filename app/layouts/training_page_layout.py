@@ -183,7 +183,7 @@ layout = html.Div(
                                                         dbc.Label("# of Freqs.:"),
                                                     ],
                                                     style={
-                                                        "display": "inline-block",
+                                                        "display": "block",
                                                     },
                                                 ),
                                                 html.Div(
@@ -232,7 +232,7 @@ layout = html.Div(
                                                         dbc.Label("Steps:"),
                                                     ],
                                                     style={
-                                                        "display": "inline-block",
+                                                        "display": "block",  # Changed to block for stacking
                                                     },
                                                 ),
                                                 html.Div(
@@ -248,7 +248,7 @@ layout = html.Div(
                                                     ],
                                                     style={
                                                         "width": "5vw",
-                                                        "display": "inline-block",
+                                                        "display": "block",  # Changed to block for stacking
                                                         "padding-left": "8px",
                                                     },
                                                 ),
@@ -261,7 +261,7 @@ layout = html.Div(
                                                         dbc.Label("Stepsize: "),
                                                     ],
                                                     style={
-                                                        "display": "inline-block",
+                                                        "display": "block",
                                                     },
                                                 ),
                                                 html.Div(
@@ -277,7 +277,7 @@ layout = html.Div(
                                                     ],
                                                     style={
                                                         "width": "5vw",
-                                                        "display": "inline-block",
+                                                        "display": "block",
                                                         "padding-left": "8px",
                                                     },
                                                 ),
