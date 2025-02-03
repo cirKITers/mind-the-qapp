@@ -42,7 +42,7 @@ class Instructor:
         self.n_freqs = n_freqs
         self.circuit_type = circuit_type
         self.coefficients = (
-            [0.5] + coefficients if coefficients is not None else [0.5] * (n_freqs + 1)
+            coefficients if coefficients is not None else [0.5] * (n_freqs)
         )
 
         self.model = Model(
