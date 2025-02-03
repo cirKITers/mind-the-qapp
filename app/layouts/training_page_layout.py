@@ -7,11 +7,77 @@ import dash_bootstrap_components as dbc
 DEFAULT_N_STEPS = 50
 DEFAULT_N_FREQS = 4
 DEFAULT_STEPSIZE = 0.01
+MAX_N_FREQS = 11
+
+
+def generate_coefficient_sliders(n_freqs=DEFAULT_N_FREQS):
+    """Generate sliders for Fourier series coefficients."""
+    return dbc.Row(
+        [
+            dbc.Col(
+                [
+                    dbc.Input(
+                        type="number",
+                        id=f"coef-input-{i}",
+                        value=0.5,
+                        min=0,
+                        max=1,
+                        size="sm",
+                    ),
+                    html.Div(
+                        dcc.Slider(
+                            min=0,
+                            max=1,
+                            value=0.5,
+                            vertical=True,
+                            marks={
+                                **{i / 10: str(i / 10) for i in range(1, 10)},
+                                0: "0.0",
+                                1: "1.0",
+                            },
+                            id=f"coef-slider-{i}",
+                            updatemode="mouseup",  # 'drag' for continuous updates
+                        ),
+                    ),
+                ],
+                id=f"coef-col-{i}",
+                style={
+                    "minWidth": "50px",
+                    "maxWidth": "70px",
+                    "width": "auto",
+                    "visibility": "visible" if i < n_freqs else "hidden",
+                    "display": "block" if i < n_freqs else "none",
+                },
+            )
+            for i in range(MAX_N_FREQS)
+        ],
+        className="g-1",
+    )
+
+
+# Create popover content
+coefficient_popover = dbc.Popover(
+    [
+        dbc.PopoverHeader("Fourier Series Coefficients"),
+        dbc.PopoverBody(
+            html.Div(
+                id="coefficient-sliders-container",
+                children=generate_coefficient_sliders(),
+                style={"display": "flex", "justifyContent": "center", "width": "100%"},
+            )
+        ),
+    ],
+    id="coefficient-settings-popover",
+    target="open-coefficient-modal",  # ID of the gear button
+    trigger="click",  # Show on click
+    placement="bottom",  # Show below the button
+)
 
 layout = html.Div(
     [
         dcc.Store(id="training-page-storage", storage_type="session"),
         dcc.Store(id="training-log-storage", storage_type="session"),
+        coefficient_popover,
         html.Div(
             [
                 html.Div(
@@ -117,7 +183,7 @@ layout = html.Div(
                                                         dbc.Label("# of Freqs.:"),
                                                     ],
                                                     style={
-                                                        "display": "inline-block",
+                                                        "display": "block",
                                                     },
                                                 ),
                                                 html.Div(
@@ -125,16 +191,36 @@ layout = html.Div(
                                                         dbc.Input(
                                                             type="number",
                                                             min=1,
-                                                            max=11,
+                                                            max=MAX_N_FREQS,
                                                             step=1,
                                                             value=DEFAULT_N_FREQS,
                                                             id="training-freqs-numeric-input",
+                                                            style={
+                                                                "marginRight": "10px"
+                                                            },
+                                                        ),
+                                                        dbc.Button(
+                                                            html.Img(
+                                                                src="/assets/gear-solid.svg",
+                                                                style={
+                                                                    "width": "24px",
+                                                                    "height": "24px",
+                                                                    "filter": "invert(1)",
+                                                                },
+                                                            ),
+                                                            id="open-coefficient-modal",
+                                                            style={
+                                                                "aspect-ratio": "1",
+                                                                "padding": "6px",
+                                                                "display": "flex",
+                                                                "align-items": "center",
+                                                                "justify-content": "center",
+                                                            },
                                                         ),
                                                     ],
                                                     style={
-                                                        "width": "4vw",
-                                                        "display": "inline-block",
-                                                        "padding-left": "8px",
+                                                        "display": "flex",
+                                                        "alignItems": "center",
                                                     },
                                                 ),
                                             ]
@@ -146,7 +232,7 @@ layout = html.Div(
                                                         dbc.Label("Steps:"),
                                                     ],
                                                     style={
-                                                        "display": "inline-block",
+                                                        "display": "block",  # Changed to block for stacking
                                                     },
                                                 ),
                                                 html.Div(
@@ -162,7 +248,7 @@ layout = html.Div(
                                                     ],
                                                     style={
                                                         "width": "5vw",
-                                                        "display": "inline-block",
+                                                        "display": "block",  # Changed to block for stacking
                                                         "padding-left": "8px",
                                                     },
                                                 ),
@@ -175,7 +261,7 @@ layout = html.Div(
                                                         dbc.Label("Stepsize: "),
                                                     ],
                                                     style={
-                                                        "display": "inline-block",
+                                                        "display": "block",
                                                     },
                                                 ),
                                                 html.Div(
@@ -191,7 +277,7 @@ layout = html.Div(
                                                     ],
                                                     style={
                                                         "width": "5vw",
-                                                        "display": "inline-block",
+                                                        "display": "block",
                                                         "padding-left": "8px",
                                                     },
                                                 ),

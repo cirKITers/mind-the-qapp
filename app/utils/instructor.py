@@ -23,6 +23,7 @@ class Instructor:
         seed: int = 100,
         circuit_type: str = "Circuit_19",
         data_reupload: bool = True,
+        coefficients: Optional[List[float]] = None,
         **kwargs,
     ) -> None:
         """
@@ -34,12 +35,15 @@ class Instructor:
             seed: Random seed to use for weight initialization.
             circuit_type: Type of circuit to use as the instructor.
             data_reupload: Whether or not to reupload data in the circuit.
-            tffm: Whether or not to use trainable frequency feature mapping.
+            coefficients: List of coefficients for the Fourier series.
         """
         self.seed = seed
         self.stepsize = stepsize
         self.n_freqs = n_freqs
         self.circuit_type = circuit_type
+        self.coefficients = (
+            coefficients if coefficients is not None else [0.5] * (n_freqs)
+        )
 
         self.model = Model(
             n_qubits=n_qubits,
@@ -52,7 +56,7 @@ class Instructor:
         self.x_domain = [-1 * np.pi, 1 * np.pi]  # [-4 * np.pi, 4 * np.pi]
 
         self.x_d = self.sample_domain(self.x_domain)
-        self.y_d = self.generate_fourier_series(self.x_d, n_freqs, 0.5)
+        self.y_d = self.generate_fourier_series(self.x_d, n_freqs, self.coefficients)
         self.opt = qml.AdamOptimizer(stepsize=stepsize)
 
     def sample_domain(
