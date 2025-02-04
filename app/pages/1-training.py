@@ -176,8 +176,11 @@ def on_preference_changed(
         seed=main_data["seed"],
         circuit_type=main_data["circuit_type"],
         data_reupload=main_data["data_reupload"],
-        coefficients=coefficients,  # Pass coefficients to instructor
+        coefficients=coefficients,
     )
+
+    page_log_training["x"] = instructor.x_d
+    page_log_training["y"] = instructor.y_d
 
     if state == "Reset Training" or n is None or page_data["lastn"] == n:
         page_data["lastn"] = n
@@ -354,6 +357,12 @@ def update_expval(
     """
     fig_expval = go.Figure()
 
+    fig_expval.add_scatter(
+        x=page_log_training["x"], y=page_log_training["y"], name="Target"
+    )
+    miny = np.min(page_log_training["y"])
+    maxy = np.max(page_log_training["y"])
+
     if (
         page_log_training is not None
         and len(page_log_training["loss"]) > 0
@@ -362,15 +371,6 @@ def update_expval(
         fig_expval.add_scatter(
             x=page_log_training["x"], y=page_log_training["y_hat"], name="Prediction"
         )
-        fig_expval.add_scatter(
-            x=page_log_training["x"], y=page_log_training["y"], name="Target"
-        )
-
-        miny = np.min(page_log_training["y"])
-        maxy = np.max(page_log_training["y"])
-    else:
-        miny = -1
-        maxy = 1
 
     fig_expval.update_layout(
         title="Expectation Value",

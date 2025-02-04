@@ -108,7 +108,8 @@
     transform: rotate(45deg);
 }
 
-.popover {
+.popover#coefficient-settings-popover {
     width: auto;
     max-width: 800px;
+    background-color: rgba(255, 255, 255, 0.85);
 }
